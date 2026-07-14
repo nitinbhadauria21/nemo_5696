@@ -1,0 +1,235 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap');
+
+:root {
+  --background: #F5F6F8;
+  --foreground: #111827;
+  --primary: #FF5A1F;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E5E7EB;
+  --secondary-foreground: #374151;
+  --accent: #059669;
+  --accent-foreground: #FFFFFF;
+  --muted: #F0F1F3;
+  --muted-foreground: #6B7280;
+  --card: #FFFFFF;
+  --card-foreground: #111827;
+  --border: #E5E7EB;
+  --input: #F0F1F3;
+  --ring: #FF5A1F;
+  --radius: 10px;
+  --font-sans: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  --font-display: 'Fredoka', sans-serif;
+  --font-mono: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  --flame-gradient: linear-gradient(150deg, #FF3D0D, #FF8A22);
+  --flame-gradient-soft: linear-gradient(150deg, rgba(255,61,13,0.10), rgba(255,138,34,0.10));
+  --sidebar-width: 240px;
+  --sidebar-collapsed: 64px;
+}
+
+.dark {
+  --background: #140E0A;
+  --foreground: #F7EFE7;
+  --primary: #FF5A1F;
+  --primary-foreground: #FFFFFF;
+  --secondary: #FFB820;
+  --secondary-foreground: #1A120D;
+  --accent: #10B981;
+  --accent-foreground: #000000;
+  --muted: #1E1410;
+  --muted-foreground: #8B7B75;
+  --card: #1A120D;
+  --card-foreground: #F7EFE7;
+  --border: #2C1E17;
+  --input: #1E1410;
+  --ring: #FF5A1F;
+  --font-sans: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  --font-display: 'Fredoka', sans-serif;
+  --font-mono: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6, p {
+    margin: 0;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-mono-custom {
+    font-family: var(--font-sans);
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .flame-gradient {
+    background: var(--flame-gradient);
+  }
+
+  .flame-gradient-text {
+    background: var(--flame-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .flame-gradient-soft {
+    background: var(--flame-gradient-soft);
+  }
+
+  .nemo-mark {
+    background: var(--flame-gradient);
+    border-radius: 28%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: var(--font-display);
+    font-weight: 700;
+  }
+
+  .status-hot {
+    background-color: rgba(255, 61, 13, 0.10);
+    color: #D93A0A;
+    border: 1px solid rgba(255, 61, 13, 0.20);
+  }
+
+  .status-hot-glow {
+  }
+
+  .status-rising {
+    background-color: rgba(217, 119, 6, 0.10);
+    color: #B45309;
+    border: 1px solid rgba(217, 119, 6, 0.20);
+  }
+
+  .status-fading {
+    background-color: rgba(107, 114, 128, 0.10);
+    color: #6B7280;
+    border: 1px solid rgba(107, 114, 128, 0.20);
+  }
+
+  .card-surface {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .sidebar-transition {
+    transition: width 300ms ease, transform 300ms ease;
+  }
+
+  .live-pulse {
+    animation: livePulse 2s ease-in-out infinite;
+  }
+
+  .score-glow {
+    /* text-shadow removed — was making text unclear */
+  }
+
+  .trend-card-hover {
+    transition: transform 150ms ease;
+  }
+
+  .trend-card-hover:hover {
+    transform: translateY(-2px);
+  }
+
+  .btn-flame {
+    background: var(--flame-gradient);
+    color: white;
+    font-family: var(--font-display);
+    font-weight: 600;
+    border-radius: 999px;
+    transition: opacity 150ms ease, transform 150ms ease;
+  }
+
+  .btn-flame:hover {
+    opacity: 0.92;
+  }
+
+  .btn-flame:active {
+    transform: scale(0.97);
+  }
+
+  .skeleton-pulse {
+    animation: skeletonPulse 1.5s ease-in-out infinite;
+    background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
+    background-size: 200% 100%;
+  }
+
+  .heatmap-cell {
+    border-radius: 4px;
+    transition: opacity 150ms ease;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+  }
+
+  .text-hero-xl {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+  }
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes skeletonPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 200ms ease forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 250ms ease forwards;
+}

@@ -1,0 +1,27 @@
+import React from 'react';
+
+type Status = 'hot' | 'rising' | 'fading';
+
+interface StatusBadgeProps {
+  status: Status;
+  size?: 'sm' | 'md';
+}
+
+const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
+  hot: { label: '🔥 HOT', className: 'status-hot status-hot-glow' },
+  rising: { label: '📈 RISING', className: 'status-rising' },
+  fading: { label: '📉 FADING', className: 'status-fading' },
+};
+
+export default function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
+  const config = STATUS_CONFIG[status];
+  const sizeClass = size === 'sm' ? 'text-xs px-2 py-0.5' : 'text-xs px-2.5 py-1';
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full font-mono-custom font-bold uppercase tracking-wider ${sizeClass} ${config.className}`}
+    >
+      {config.label}
+    </span>
+  );
+}
