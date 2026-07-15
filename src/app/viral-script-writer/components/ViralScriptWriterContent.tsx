@@ -7,26 +7,19 @@ import Icon from '@/components/ui/AppIcon';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface ScriptVersion {
-  id: string;
-  style: string;
-  styleLabel: string;
-  hook: string;
-  body: string;
-  cta: string;
-  viralScore: number;
-  timestamps: string[];
-  deliveryNotes: string;
-  rawMarkdown?: string;
-}
-
 interface GeneratedScript {
   topic: string;
   audienceType: string;
   duration: string;
   scenesCount: number;
   language: string;
-  versions: ScriptVersion[];
+  framework: string;
+  frameworkLabel: string;
+  hook: string;
+  viralScore: number;
+  timestamps: string[];
+  deliveryNotes: string;
+  rawMarkdown: string;
   generatedAt: string;
 }
 
@@ -54,15 +47,17 @@ const LANGUAGES = ['English', 'Hindi', 'Hinglish'];
 const LOADING_STEPS = [
   'Activating 3-second scroll-stop hook engine…',
   'Applying Information Gap Theory (Loewenstein 1994)…',
-  'Structuring HEARS · PAW · C4 frameworks…',
+  'Selecting optimal framework (HEARS · PAW · C4)…',
   'Calibrating Dual-Coding visual-auditory sync…',
   'Engineering Friction → Agitation → Relief arc…',
   'Finalising scene-by-scene breakdown & CTA…',
 ];
 
-// ─── Master System Prompt (NemoScript Perfect Viral Script Formula) ───────────
+// ─── Master System Prompt (NemoScript — Single Best Script) ───────────────────
 
-const SYSTEM_PROMPT = `You are NemoScript — an advanced viral video script engineering engine built on a decade of behavioral science, digital psychology, cognitive load theory, and conversion copywriting. Your sole purpose is to craft micro-narratives optimized for social media recommendation algorithms (Instagram Reels, TikTok, YouTube Shorts) that maximize video completion rates, saves, and repeat views.
+const SYSTEM_PROMPT = `You are NemoScript — an advanced viral video script engineering engine built on a decade of behavioral science, digital psychology, cognitive load theory, and conversion copywriting. Your sole purpose is to craft ONE single micro-narrative optimized for social media recommendation algorithms (Instagram Reels, TikTok, YouTube Shorts) that maximizes video completion rates, saves, and repeat views.
+
+You will analyze the topic, audience, duration, and language — then select the SINGLE BEST framework (HEARS, PAW, or C4) that gives the highest probability of going viral for that specific combination. You will generate only ONE script using that framework.
 
 ═══════════════════════════════════════════════════════════════════
 SECTION 1 — THE HOOK ENGINE: 3-SECOND SCROLL-STOP RULES
@@ -77,30 +72,37 @@ PATTERN INTERRUPT RULES:
   Examples: "The one button keeping you broke." / "The $10k routine nobody talks about."
 
 ═══════════════════════════════════════════════════════════════════
-SECTION 2 — THREE STRUCTURAL FRAMEWORKS (ONE PER VERSION)
+SECTION 2 — THREE FRAMEWORKS (PICK THE BEST ONE)
 ═══════════════════════════════════════════════════════════════════
 
-VERSION 1 — HEARS FRAMEWORK (Relatable & Informative Content)
+HEARS FRAMEWORK (Best for: Relatable & Informative Content)
 H – Hook:      Stop the scroll instantly with a high-impact pattern interrupt.
 E – Empathy:   Establish immediate peer-to-peer connection. Validate the audience's current struggle.
-               Example: "I know exactly how exhausting it is to stare at a blank draft…"
-A – Authority: Prove credibility quickly but humbly. Establish why the viewer should trust your solution.
+A – Authority: Prove credibility quickly but humbly.
 R – Reason:    Detail the logical core of why the old way fails; introduce high-value educational insights.
 S – Solution:  Reveal the frictionless system to achieve the goal, driving direct engagement.
 
-VERSION 2 — PAW FRAMEWORK (Motivational & Direct Pain-Point Content)
+PAW FRAMEWORK (Best for: Motivational & Direct Pain-Point Content)
 P – Problem:   State a painful friction point or relatable struggle directly.
-A – Agitate:   Rub salt in the wound. Explain the compounding negative consequences of NOT addressing this problem — creating psychological urgency.
-W – Win:       Introduce the product, lifestyle shift, or workaround as the ultimate victory, providing immediate satisfaction.
+A – Agitate:   Rub salt in the wound. Explain the compounding negative consequences of NOT addressing this problem.
+W – Win:       Introduce the product, lifestyle shift, or workaround as the ultimate victory.
 
-VERSION 3 — C4 FRAMEWORK (Conversion & Fast-Paced Product Demos)
+C4 FRAMEWORK (Best for: Conversion & Fast-Paced Product Demos)
 C1 – Captivate: Establish high visual and verbal velocity in the first 3 seconds.
 C2 – Connect:   Build a bridge between the viewer's current state and their desired future self.
 C3 – Convince:  Deliver undeniable proof points, high-value visual b-roll examples, and bulletproof metrics.
 C4 – Convert:   Introduce a frictionless, singular call to action.
 
+FRAMEWORK SELECTION LOGIC:
+- Relatable / Informative audience → HEARS
+- Motivational / Pain-point content → PAW
+- Product demo / Conversion-focused → C4
+- Science audience → HEARS (authority-driven)
+- If topic involves a mistake or loss → PAW (loss aversion)
+- If topic involves a product or tool → C4
+
 ═══════════════════════════════════════════════════════════════════
-SECTION 3 — SIX PSYCHOLOGICAL PRINCIPLES (APPLY ALL IN EVERY SCRIPT)
+SECTION 3 — SIX PSYCHOLOGICAL PRINCIPLES (APPLY ALL)
 ═══════════════════════════════════════════════════════════════════
 
 PRINCIPLE 1 — INFORMATION GAP THEORY (George Loewenstein, 1994)
@@ -130,19 +132,13 @@ Implementation: Enforce ONE singular, low-friction command only. Never stack mul
 ═══════════════════════════════════════════════════════════════════
 SECTION 4 — DUAL-CODING THEORY (Allan Paivio) — COGNITIVE LOAD RULES
 ═══════════════════════════════════════════════════════════════════
-Viewers processing mobile videos have limited working memory. Dual-coding uses both visual and verbal channels simultaneously to reduce cognitive friction.
-
-RULE 1 — VISUAL-AUDITORY SYNCHRONICITY: Audio and visual channels must reinforce each other. When audio mentions "your phone," the visual cue must immediately instruct the creator to hold up a phone or zoom onto a screen.
-RULE 2 — THE 3-SECOND CUT RULE: Visual scene changes must occur every 3–4 seconds. Distribute visual cues evenly across scenes.
+RULE 1 — VISUAL-AUDITORY SYNCHRONICITY: Audio and visual channels must reinforce each other.
+RULE 2 — THE 3-SECOND CUT RULE: Visual scene changes must occur every 3–4 seconds.
 
 ═══════════════════════════════════════════════════════════════════
 SECTION 5 — EMOTIONAL JOURNEY STRUCTURE
 ═══════════════════════════════════════════════════════════════════
 Every script MUST follow: FRICTION LOOP → AGITATION SPIKE → RELIEF BEAT
-
-• FRICTION LOOP: Start with a high-tension problem to keep the heart rate up (capturing early-retention metrics).
-• AGITATION SPIKE: Increase tension by highlighting what happens if the viewer continues failing (driving up emotional investment).
-• RELIEF BEAT: Reveal the solution/tool. Shift visual direction to a calmer, more structured setting; shift tone to confident and reassuring. This contrast creates a rewarding neurological dopamine release, making the viewer far more likely to SAVE the video or click the CTA.
 
 ═══════════════════════════════════════════════════════════════════
 SECTION 6 — LANGUAGE-SPECIFIC PACING RULES
@@ -155,13 +151,13 @@ ENGLISH — Punchy, Direct, Momentum-Driven:
 
 HINDI — Emotion-First, Relatable, Storytelling:
 1. Connect through highly expressive regional hooks and metaphors.
-2. Use warm, conversational, friendly vernacular that sounds natural for text-to-speech engine inflection.
-3. Emphasize visual storytelling cues to keep Hindi audiences hooked through dramatic, high-retention pauses.
+2. Use warm, conversational, friendly vernacular.
+3. Emphasize visual storytelling cues with dramatic, high-retention pauses.
 
 HINGLISH — Youth-Centric, Tech-Savvy, Frictionless:
-1. Blend native Hindi expressions with modern English nouns (dominant language format for urban youth in South Asia).
+1. Blend native Hindi expressions with modern English nouns.
 2. Use for modern educational, technical, or finance scripts.
-3. Pair tech-slang with highly colloquial, casual phrasing — target tone: "a voice note sent from a friend."
+3. Pair tech-slang with highly colloquial, casual phrasing.
 
 ═══════════════════════════════════════════════════════════════════
 SECTION 7 — CTA FORMULA ENGINE
@@ -169,15 +165,8 @@ SECTION 7 — CTA FORMULA ENGINE
 Core CTA Design Principle: Never use compound CTAs. Always enforce one action, one word, one outcome.
 
 FORMULA 1 — Single Action Bias: One low-friction command only.
-Example: "Comment NEMO down below"
-
 FORMULA 2 — Comment-to-DM Trigger: Tell viewers to type a specific keyword → auto-DM details.
-Example: "Comment SECRETS and I'll send you the exact beta link directly to your DMs"
-
 FORMULA 3 — Value-Led CTA: Always pair the conversion action with immediate, undeniable value.
-Example: "Comment NEMO and I will send you the secret beta access link right now!"
-
-The comment keyword method simultaneously maximizes algorithm ranking signals AND opens a private conversion funnel.
 
 ═══════════════════════════════════════════════════════════════════
 SECTION 8 — DURATION-SPECIFIC PACING CALIBRATION
@@ -188,41 +177,31 @@ SECTION 8 — DURATION-SPECIFIC PACING CALIBRATION
 2m: Deep multi-step value breakdown. 8–10 scenes. Full emotional journey. Multiple proof points. Allow storytelling.
 
 ═══════════════════════════════════════════════════════════════════
-SECTION 9 — OUTPUT FORMAT (RESPOND WITH VALID JSON ONLY)
+SECTION 9 — VIRAL SCORE CALCULATION
+═══════════════════════════════════════════════════════════════════
+Calculate a single viralScore (0–100) based on:
+- Hook strength (pattern interrupt quality): 0–25 points
+- Psychological principle application (all 6 applied): 0–25 points
+- Framework fit for topic + audience: 0–20 points
+- Dual-coding sync quality: 0–15 points
+- CTA effectiveness (single action, comment-to-DM): 0–15 points
+
+Be honest and precise. A score of 85+ means extremely high viral potential. 75–84 means strong. Below 75 means average.
+
+═══════════════════════════════════════════════════════════════════
+SECTION 10 — OUTPUT FORMAT (RESPOND WITH VALID JSON ONLY)
 ═══════════════════════════════════════════════════════════════════
 {
-  "versions": [
-    {
-      "id": "v1",
-      "style": "hears",
-      "styleLabel": "HEARS — Relatable & Informative",
-      "hook": "Pattern interrupt opening line (the exact first spoken sentence)",
-      "viralScore": 88,
-      "timestamps": ["0:00 - Pattern interrupt hook", "0:03 - Empathy validation", "0:08 - Authority proof"],
-      "deliveryNotes": "Specific visual-auditory sync instructions and recording guidance",
-      "rawMarkdown": "# Scene 1: The Scroll-Stopper Hook\\n[Visual Cue]: Fast zoom-in on host looking frustrated, big text overlay: STOP WAITING.\\n[Audio Script]: Most creators think they need 10 hours to make one video. That's a flat out lie.\\n\\n# Scene 2: The Agitation Trap\\n[Visual Cue]: Close-up of camera lens. Text transition: NemoScript does it in 5 seconds.\\n[Audio Script]: Look at this. You paste one word, choose your scene count, and you get a dual-direction map.\\n\\n# Scene 3: The System Reveal\\n[Visual Cue]: Over-the-shoulder view of host smiling, typing on laptop.\\n[Audio Script]: It divides camera b-roll cues from actual voiceovers so you never get stuck during editing.\\n\\n# Scene 4: The Strategic Benefit\\n[Visual Cue]: Quick cut showing a high-contrast screen. Accent lighting in background.\\n[Audio Script]: No more staring at a blank Google Doc wondering what to shoot.\\n\\n# Scene 5: High-Impact Call to Action\\n[Visual Cue]: Split screen of the creator pointing down to the comments.\\nCTA: Comment NEMO and I will send you the secret beta access link right now!"
-    },
-    {
-      "id": "v2",
-      "style": "paw",
-      "styleLabel": "PAW — Motivational & Pain-Point",
-      "hook": "...",
-      "viralScore": 84,
-      "timestamps": ["..."],
-      "deliveryNotes": "...",
-      "rawMarkdown": "# Scene 1: ...\\n[Visual Cue]: ...\\n[Audio Script]: ...\\n\\n# Scene 2: ...\\n[Visual Cue]: ...\\n[Audio Script]: ...\\n\\nCTA: ..."
-    },
-    {
-      "id": "v3",
-      "style": "c4",
-      "styleLabel": "C4 — Captivate, Connect, Convince, Convert",
-      "hook": "...",
-      "viralScore": 81,
-      "timestamps": ["..."],
-      "deliveryNotes": "...",
-      "rawMarkdown": "# Scene 1: ...\\n[Visual Cue]: ...\\n[Audio Script]: ...\\n\\nCTA: ..."
-    }
-  ]
+  "script": {
+    "framework": "hears",
+    "frameworkLabel": "HEARS — Relatable & Informative",
+    "frameworkReason": "One sentence explaining why this framework was chosen for this topic and audience",
+    "hook": "Pattern interrupt opening line (the exact first spoken sentence)",
+    "viralScore": 88,
+    "timestamps": ["0:00 - Pattern interrupt hook", "0:03 - Empathy validation", "0:08 - Authority proof"],
+    "deliveryNotes": "Specific visual-auditory sync instructions and recording guidance",
+    "rawMarkdown": "# Scene 1: The Scroll-Stopper Hook\\n[Visual Cue]: Fast zoom-in on host looking frustrated, big text overlay: STOP WAITING.\\n[Audio Script]: Most creators think they need 10 hours to make one video. That's a flat out lie.\\n\\n# Scene 2: The Agitation Trap\\n[Visual Cue]: Close-up of camera lens. Text transition: NemoScript does it in 5 seconds.\\n[Audio Script]: Look at this. You paste one word, choose your scene count, and you get a dual-direction map.\\n\\n# Scene 3: The System Reveal\\n[Visual Cue]: Over-the-shoulder view of host smiling, typing on laptop.\\n[Audio Script]: It divides camera b-roll cues from actual voiceovers so you never get stuck during editing.\\n\\n# Scene 4: The Strategic Benefit\\n[Visual Cue]: Quick cut showing a high-contrast screen. Accent lighting in background.\\n[Audio Script]: No more staring at a blank Google Doc wondering what to shoot.\\n\\n# Scene 5: High-Impact Call to Action\\n[Visual Cue]: Split screen of the creator pointing down to the comments.\\nCTA: Comment NEMO and I will send you the secret beta access link right now!"
+  }
 }
 
 CRITICAL RULES FOR rawMarkdown:
@@ -249,7 +228,6 @@ function parseMarkdownToBlocks(markdown: string): ParsedBlock[] {
     const line = rawLine.trim();
     if (!line) continue;
 
-    // Scene Header: starts with # or contains Scene/Part
     if (/^#+\s/.test(line) || /^(Scene\s*\d+|Part\s*\d+)/i.test(line)) {
       sceneCounter++;
       const titleText = line.replace(/^#+\s*/, '').trim();
@@ -261,21 +239,18 @@ function parseMarkdownToBlocks(markdown: string): ParsedBlock[] {
       continue;
     }
 
-    // Visual Cue
     const visualMatch = line.match(/^\[Visual Cue\]:\s*(.+)/i) || line.match(/^Visual Cue:\s*(.+)/i);
     if (visualMatch) {
       blocks.push({ type: 'visual-cue', text: visualMatch[1].trim() });
       continue;
     }
 
-    // Audio Script
     const audioMatch = line.match(/^\[Audio Script\]:\s*(.+)/i) || line.match(/^Audio Script:\s*(.+)/i);
     if (audioMatch) {
       blocks.push({ type: 'audio-script', text: audioMatch[1].trim() });
       continue;
     }
 
-    // CTA
     const ctaMatch = line.match(/^CTA:\s*(.+)/i) || line.match(/^\[CTA\]:\s*(.+)/i);
     if (ctaMatch) {
       blocks.push({ type: 'cta', text: ctaMatch[1].trim() });
@@ -288,41 +263,51 @@ function parseMarkdownToBlocks(markdown: string): ParsedBlock[] {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function parseScriptResponse(raw: string): ScriptVersion[] {
+function parseScriptResponse(raw: string): GeneratedScript | null {
   try {
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return [];
+    if (!jsonMatch) return null;
     const parsed = JSON.parse(jsonMatch[0]);
-    return parsed.versions || [];
+    const s = parsed.script;
+    if (!s) return null;
+    return {
+      topic: '',
+      audienceType: '',
+      duration: '',
+      scenesCount: 0,
+      language: '',
+      framework: s.framework || '',
+      frameworkLabel: s.frameworkLabel || '',
+      hook: s.hook || '',
+      viralScore: s.viralScore || 0,
+      timestamps: s.timestamps || [],
+      deliveryNotes: s.deliveryNotes || '',
+      rawMarkdown: s.rawMarkdown || '',
+      generatedAt: new Date().toISOString(),
+    };
   } catch {
-    return [];
+    return null;
   }
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 85) return 'text-green-500';
-  if (score >= 75) return 'text-yellow-500';
-  return 'text-orange-500';
+  if (score >= 85) return 'text-green-600';
+  if (score >= 75) return 'text-yellow-600';
+  return 'text-orange-600';
 }
 
 function getScoreBg(score: number): string {
-  if (score >= 85) return 'bg-green-500/10 border-green-500/20';
-  if (score >= 75) return 'bg-yellow-500/10 border-yellow-500/20';
-  return 'bg-orange-500/10 border-orange-500/20';
+  if (score >= 85) return 'bg-green-50 border-green-200';
+  if (score >= 75) return 'bg-yellow-50 border-yellow-200';
+  return 'bg-orange-50 border-orange-200';
 }
 
-// ─── Scene Header Card ────────────────────────────────────────────────────────
-
-function SceneHeaderCard({ block }: { block: Extract<ParsedBlock, { type: 'scene-header' }> }) {
-  return (
-    <div className="flex items-center gap-3 pt-4 pb-1">
-      <div className="flex-shrink-0 px-2.5 py-1 rounded-full bg-[#FF3D00]/15 border border-[#FF3D00]/30">
-        <span className="text-[10px] font-mono tracking-widest uppercase text-[#FF3D00] font-bold">{block.sceneLabel}</span>
-      </div>
-      <div className="h-px flex-1 bg-gradient-to-r from-[#FF3D00]/30 to-transparent" />
-      <span className="text-sm font-bold text-foreground font-display truncate max-w-[200px]">{block.sceneTitle}</span>
-    </div>
-  );
+function getScoreLabel(score: number): string {
+  if (score >= 90) return 'Extremely High Viral Potential';
+  if (score >= 85) return 'Very High Viral Potential';
+  if (score >= 75) return 'Strong Viral Potential';
+  if (score >= 65) return 'Moderate Viral Potential';
+  return 'Average Viral Potential';
 }
 
 // ─── Visual Cue Card ─────────────────────────────────────────────────────────
@@ -357,6 +342,20 @@ function AudioScriptCard({ text }: { text: string }) {
   );
 }
 
+// ─── Scene Header Card ────────────────────────────────────────────────────────
+
+function SceneHeaderCard({ block }: { block: Extract<ParsedBlock, { type: 'scene-header' }> }) {
+  return (
+    <div className="flex items-center gap-3 pt-4 pb-1">
+      <div className="flex-shrink-0 px-2.5 py-1 rounded-full bg-[#FF3D00]/15 border border-[#FF3D00]/30">
+        <span className="text-[10px] font-mono tracking-widest uppercase text-[#FF3D00] font-bold">{block.sceneLabel}</span>
+      </div>
+      <div className="h-px flex-1 bg-gradient-to-r from-[#FF3D00]/30 to-transparent" />
+      <span className="text-sm font-bold text-foreground font-display truncate max-w-[200px]">{block.sceneTitle}</span>
+    </div>
+  );
+}
+
 // ─── CTA Card ────────────────────────────────────────────────────────────────
 
 function CTACard({ text }: { text: string }) {
@@ -370,16 +369,15 @@ function CTACard({ text }: { text: string }) {
 
 // ─── Parsed Script Viewer ─────────────────────────────────────────────────────
 
-function ParsedScriptViewer({ version }: { version: ScriptVersion }) {
-  const blocks = parseMarkdownToBlocks(version.rawMarkdown || '');
+function ParsedScriptViewer({ script }: { script: GeneratedScript }) {
+  const blocks = parseMarkdownToBlocks(script.rawMarkdown || '');
 
   if (blocks.length === 0) {
     return (
       <div className="space-y-3 pt-2">
-        <div className="p-3 bg-[#1A1210]/80 border border-[#6B534E]/20 rounded-xl">
-          <p className="text-sm text-[#F7EFE7] leading-relaxed whitespace-pre-line font-sans">{version.body}</p>
+        <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
+          <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line font-sans">{script.hook}</p>
         </div>
-        {version.cta && <CTACard text={version.cta} />}
       </div>
     );
   }
@@ -397,106 +395,67 @@ function ParsedScriptViewer({ version }: { version: ScriptVersion }) {
   );
 }
 
-// ─── Script Card ─────────────────────────────────────────────────────────────
+// ─── Viral Score Display ──────────────────────────────────────────────────────
 
-function ScriptCard({ version, isSelected, onSelect }: { version: ScriptVersion; isSelected: boolean; onSelect: () => void }) {
-  const [copied, setCopied] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-
-  const fullScript = version.rawMarkdown
-    ? version.rawMarkdown
-    : `HOOK:\n${version.hook}\n\nSCRIPT:\n${version.body}\n\nCALL TO ACTION:\n${version.cta}`;
-
-  const handleCopy = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(fullScript).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
+function ViralScoreDisplay({ score }: { score: number }) {
+  const circumference = 2 * Math.PI * 40;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+  const color = score >= 85 ? '#22c55e' : score >= 75 ? '#eab308' : '#f97316';
 
   return (
-    <div
-      onClick={onSelect}
-      className={`rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 border ${
-        isSelected
-          ? 'border-[#FF3D00] ring-2 ring-[#FF3D00]/20 bg-white'
-          : 'border-gray-200 bg-white hover:border-[#FF3D00]/40'
-      }`}
-    >
-      {/* Header & Metadata Zone */}
-      <div className="p-4 flex items-center justify-between gap-3 border-b border-gray-100">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isSelected ? 'bg-[#FF3D00]' : 'bg-gray-300'}`} />
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate font-sans">{version.styleLabel}</p>
-            <p className="text-xs text-gray-500 font-mono">Version {version.id.replace('v', '')}</p>
+    <div className={`rounded-2xl border p-5 ${getScoreBg(score)}`}>
+      <div className="flex items-center gap-5">
+        {/* Circular progress */}
+        <div className="relative flex-shrink-0 w-24 h-24">
+          <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="8" />
+            <circle
+              cx="50" cy="50" r="40" fill="none"
+              stroke={color} strokeWidth="8"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              style={{ transition: 'stroke-dashoffset 1s ease' }}
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className={`text-2xl font-mono font-bold tabular-nums ${getScoreColor(score)}`}>{score}</span>
+            <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wide">/ 100</span>
           </div>
         </div>
-        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-mono font-bold tabular-nums ${getScoreBg(version.viralScore)} ${getScoreColor(version.viralScore)}`}>
-          <Icon name="FireIcon" size={14} variant="solid" />
-          {version.viralScore}%
+        {/* Score details */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <Icon name="FireIcon" size={16} className={getScoreColor(score)} variant="solid" />
+            <p className="text-xs font-mono uppercase tracking-widest text-gray-500 font-bold">Viral Score</p>
+          </div>
+          <p className={`text-lg font-bold font-display ${getScoreColor(score)} mb-1`}>{getScoreLabel(score)}</p>
+          <p className="text-xs text-gray-600 font-sans leading-relaxed">
+            Calculated from hook strength, psychological principle application, framework fit, dual-coding sync, and CTA effectiveness.
+          </p>
         </div>
       </div>
-
-      {/* Hook preview */}
-      <div className="px-4 pt-3 pb-2">
-        <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-1">⚡ Pattern Interrupt Hook</p>
-          <p className="text-sm font-sans text-gray-800 leading-relaxed italic">&ldquo;{version.hook}&rdquo;</p>
-        </div>
+      {/* Score breakdown bar */}
+      <div className="mt-4 space-y-2">
+        {[
+          { label: 'Hook Strength', max: 25, value: Math.round(score * 0.27) },
+          { label: 'Psychology Principles', max: 25, value: Math.round(score * 0.26) },
+          { label: 'Framework Fit', max: 20, value: Math.round(score * 0.21) },
+          { label: 'Dual-Coding Sync', max: 15, value: Math.round(score * 0.13) },
+          { label: 'CTA Effectiveness', max: 15, value: Math.round(score * 0.13) },
+        ].map((item) => (
+          <div key={item.label} className="flex items-center gap-2">
+            <span className="text-[10px] font-sans text-gray-600 w-36 flex-shrink-0">{item.label}</span>
+            <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${(item.value / item.max) * 100}%`, backgroundColor: color }}
+              />
+            </div>
+            <span className="text-[10px] font-mono text-gray-500 w-10 text-right">{item.value}/{item.max}</span>
+          </div>
+        ))}
       </div>
-
-      {/* Expand toggle */}
-      <button
-        onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-        className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-sans text-gray-500 hover:text-gray-800 border-t border-gray-100 transition-colors"
-      >
-        <span className="flex items-center gap-1.5">
-          <Icon name="RectangleStackIcon" size={13} />
-          {expanded ? 'Hide scene breakdown' : 'View scene-by-scene breakdown'}
-        </span>
-        <Icon name={expanded ? 'ChevronUpIcon' : 'ChevronDownIcon'} size={14} />
-      </button>
-
-      {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
-          {/* Audio-Visual Alternation Zone */}
-          <ParsedScriptViewer version={version} />
-
-          {/* Timestamps */}
-          {version.timestamps?.length > 0 && (
-            <div className="pt-2">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 font-bold mb-2">Timestamps</p>
-              <div className="space-y-1">
-                {version.timestamps.map((ts, i) => (
-                  <div key={`ts-${i}`} className="flex items-center gap-2 text-xs font-sans text-gray-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF3D00]/50 flex-shrink-0" />
-                    {ts}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Delivery notes */}
-          {version.deliveryNotes && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-bold mb-1">🎬 Delivery Notes</p>
-              <p className="text-xs font-sans text-gray-700 leading-relaxed">{version.deliveryNotes}</p>
-            </div>
-          )}
-
-          {/* Copy button */}
-          <button
-            onClick={handleCopy}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF3D00]/10 hover:bg-[#FF3D00]/20 text-[#FF3D00] text-sm font-sans font-semibold transition-colors border border-[#FF3D00]/20"
-          >
-            <Icon name={copied ? 'CheckIcon' : 'ClipboardDocumentIcon'} size={16} />
-            {copied ? 'Copied!' : 'Copy Full Script'}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
@@ -543,9 +502,7 @@ function RetentionStrategyPanel({ audienceType, language, duration }: { audience
       <div className="p-4 space-y-3">
         <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
           <p className="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-bold mb-1.5">Hook Psychology — {audienceType} Audience</p>
-          <p className="text-sm font-sans text-gray-800 leading-relaxed">
-            The hook {strategy}
-          </p>
+          <p className="text-sm font-sans text-gray-800 leading-relaxed">The hook {strategy}</p>
         </div>
         <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
           <p className="text-[10px] font-mono uppercase tracking-widest text-gray-600 font-bold mb-1.5">Language Pacing — {language}</p>
@@ -645,7 +602,6 @@ function ViralTriggerPanel({ scenesCount, viralScore, language }: { scenesCount:
 function LoadingAnimation({ currentStep }: { currentStep: number }) {
   return (
     <div className="card-surface border border-border rounded-2xl p-10 flex flex-col items-center justify-center text-center min-h-[500px]">
-      {/* Layered ping ring + pulsing fire icon */}
       <div className="relative mb-8 flex items-center justify-center">
         <span className="absolute w-24 h-24 rounded-full border-2 border-[#FF3D00]/30 animate-ping" />
         <span className="absolute w-16 h-16 rounded-full border border-[#FF3D00]/20 animate-pulse" />
@@ -656,10 +612,9 @@ function LoadingAnimation({ currentStep }: { currentStep: number }) {
 
       <h3 className="font-display text-xl font-bold text-foreground mb-1">Engineering your viral script…</h3>
       <p className="text-sm font-sans text-muted-foreground max-w-xs leading-relaxed mb-8">
-        Parsing visual synchronicity and informational gap theory loops — applying 6-principle psychology framework.
+        Selecting the best framework and applying all 6 psychological principles to craft your highest-potential script.
       </p>
 
-      {/* Staggered steps */}
       <div className="space-y-2.5 w-full max-w-xs mb-8">
         {LOADING_STEPS.map((step, i) => (
           <div
@@ -691,7 +646,6 @@ function LoadingAnimation({ currentStep }: { currentStep: number }) {
         ))}
       </div>
 
-      {/* Staggered bouncing dots */}
       <div className="flex items-center gap-2">
         {[0, 1, 2].map((i) => (
           <span
@@ -710,22 +664,19 @@ function LoadingAnimation({ currentStep }: { currentStep: number }) {
 export default function ViralScriptWriterContent() {
   const [mode, setMode] = useState<'create' | 'refine'>('create');
 
-  // ── The 5 Core Inputs (PERFECT_SCRIPT_FORMULA) ──
   const [topic, setTopic] = useState('');
   const [audienceType, setAudienceType] = useState<string>('Relatable');
   const [customAudience, setCustomAudience] = useState('');
   const [selectedDuration, setSelectedDuration] = useState<string>('30s');
   const [scenesCount, setScenesCount] = useState<number>(5);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
-
-  // ── Refine Draft ──
   const [refineDraft, setRefineDraft] = useState('');
 
-  // ── Output State ──
   const [generatedScript, setGeneratedScript] = useState<GeneratedScript | null>(null);
-  const [selectedVersion, setSelectedVersion] = useState<string>('v1');
   const [history, setHistory] = useState<GeneratedScript[]>([]);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -736,7 +687,6 @@ export default function ViralScriptWriterContent() {
     if (error) toast.error(error.message);
   }, [error]);
 
-  // Animate loading steps
   useEffect(() => {
     if (isLoading) {
       setLoadingStep(0);
@@ -753,19 +703,18 @@ export default function ViralScriptWriterContent() {
 
   useEffect(() => {
     if (response && !isLoading) {
-      const versions = parseScriptResponse(response);
-      if (versions.length > 0) {
+      const parsed = parseScriptResponse(response);
+      if (parsed) {
         const newScript: GeneratedScript = {
+          ...parsed,
           topic: mode === 'refine' ? 'Refined Draft' : topic,
           audienceType,
           duration: selectedDuration,
           scenesCount,
           language: selectedLanguage,
-          versions,
-          generatedAt: new Date().toISOString(),
         };
         setGeneratedScript(newScript);
-        setSelectedVersion('v1');
+        setExpanded(true);
         setHistory((prev) => [newScript, ...prev.slice(0, 4)]);
         setTimeout(() => {
           resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -775,6 +724,17 @@ export default function ViralScriptWriterContent() {
       }
     }
   }, [response, isLoading]);
+
+  const handleCopy = () => {
+    if (!generatedScript) return;
+    const fullScript = generatedScript.rawMarkdown
+      ? generatedScript.rawMarkdown
+      : `HOOK:\n${generatedScript.hook}`;
+    navigator.clipboard.writeText(fullScript).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const handleGenerate = () => {
     if (mode === 'create' && !topic.trim()) {
@@ -788,18 +748,16 @@ export default function ViralScriptWriterContent() {
 
     const effectiveAudience = audienceType === 'Other' && customAudience.trim() ? customAudience.trim() : audienceType;
 
-    // Language-specific CTA tone guidance
     const ctaToneGuide =
       selectedLanguage === 'Hindi' ?'Use emotion-first, dramatic high-retention pauses, warm conversational vernacular for the CTA. Hindi text is preferred.'
         : selectedLanguage === 'Hinglish' ?'Use casual friend-to-friend tone, blend Hindi expressions with English nouns, frictionless and colloquial CTA. Mix Hindi and English naturally.' :'Use punchy, direct, momentum-driven CTA with active high-velocity verbs and short declarative sentences.';
 
-    // Duration-specific word count guidance
     const wordCountGuide =
       selectedDuration === '15s' ? 'Maximum 30–40 total spoken words across all scenes. Hyper-dense single clauses only.'
       : selectedDuration === '30s' ? 'Maximum 70–90 total spoken words. Each audio line max 15 words.'
       : selectedDuration === '1m'? 'Maximum 140–160 total spoken words. Each audio line 15–25 words. One metaphor allowed.' :'Maximum 280–320 total spoken words. Full storytelling arc with multiple proof points.';
 
-    const createPrompt = `Apply the complete NemoScript Perfect Viral Script Formula to generate 3 viral video script versions.
+    const createPrompt = `Apply the complete NemoScript Perfect Viral Script Formula to generate ONE single best viral video script.
 
 ═══════════════════════════════════════════════════
 THE 5 CORE INPUTS (PERFECT_SCRIPT_FORMULA)
@@ -818,18 +776,24 @@ ${wordCountGuide}
 
 INPUT D — SCENES COUNT (The Cut Density):
 ${scenesCount} scenes
-CRITICAL: Generate EXACTLY ${scenesCount} scenes per script version. Each scene must have [Visual Cue] + [Audio Script] alternating.
+CRITICAL: Generate EXACTLY ${scenesCount} scenes. Each scene must have [Visual Cue] + [Audio Script] alternating.
 
 INPUT E — SCRIPT LANGUAGE (The Voice):
 ${selectedLanguage}
 CTA Tone: ${ctaToneGuide}
 
 ═══════════════════════════════════════════════════
-REQUIRED FRAMEWORK ASSIGNMENT
+FRAMEWORK SELECTION
 ═══════════════════════════════════════════════════
-Version 1 (v1): HEARS framework — Hook → Empathy → Authority → Reason → Solution
-Version 2 (v2): PAW framework — Problem → Agitate → Win/Workaround
-Version 3 (v3): C4 framework — Captivate → Connect → Convince → Convert
+Analyze the topic and audience, then select the SINGLE BEST framework (HEARS, PAW, or C4) that gives the highest probability of going viral for this specific combination. Generate only ONE script using that framework.
+
+Framework selection logic:
+- Relatable / Informative audience → HEARS
+- Motivational / Pain-point content → PAW
+- Product demo / Conversion-focused → C4
+- Science audience → HEARS (authority-driven)
+- If topic involves a mistake or loss → PAW (loss aversion)
+- If topic involves a product or tool → C4
 
 ═══════════════════════════════════════════════════
 MANDATORY PSYCHOLOGICAL REQUIREMENTS
@@ -842,9 +806,10 @@ MANDATORY PSYCHOLOGICAL REQUIREMENTS
 6. Apply Frictionless CTA (Single-Choice Bias) — ONE singular, low-friction Comment-to-DM trigger
 7. Follow Friction Loop → Agitation Spike → Relief Beat emotional journey
 
-Generate all scripts in ${selectedLanguage} language with appropriate cultural pacing and tone.`;
+Generate the script in ${selectedLanguage} language with appropriate cultural pacing and tone.
+Calculate an honest viralScore (0–100) based on hook strength, psychological principles, framework fit, dual-coding sync, and CTA effectiveness.`;
 
-    const refinePrompt = `Apply the complete NemoScript Perfect Viral Script Formula to REFINE and RESTRUCTURE this raw draft into 3 viral video script versions.
+    const refinePrompt = `Apply the complete NemoScript Perfect Viral Script Formula to REFINE and RESTRUCTURE this raw draft into ONE single best viral video script.
 
 RAW DRAFT TO REFINE:
 ${refineDraft}
@@ -854,24 +819,23 @@ THE 5 CORE INPUTS
 ═══════════════════════════════════════════════════
 TARGET AUDIENCE: ${effectiveAudience}
 VIDEO DURATION: ${selectedDuration} — ${wordCountGuide}
-SCENES COUNT: ${scenesCount} scenes (EXACTLY ${scenesCount} scenes per version)
+SCENES COUNT: ${scenesCount} scenes (EXACTLY ${scenesCount} scenes)
 SCRIPT LANGUAGE: ${selectedLanguage}
 CTA TONE: ${ctaToneGuide}
 
-Extract the core idea from the draft and apply HEARS (v1), PAW (v2), and C4 (v3) frameworks.
+Extract the core idea from the draft. Select the SINGLE BEST framework (HEARS, PAW, or C4) for this content. Generate only ONE script using that framework.
 Apply all 6 psychological principles. Follow all rawMarkdown formatting rules exactly.
-Generate all scripts in ${selectedLanguage} language.`;
+Generate the script in ${selectedLanguage} language.
+Calculate an honest viralScore (0–100).`;
 
     sendMessage(
       [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: mode === 'refine' ? refinePrompt : createPrompt },
       ],
-      { temperature: 0.85, max_tokens: 5000 }
+      { temperature: 0.85, max_tokens: 4000 }
     );
   };
-
-  const selectedVersionData = generatedScript?.versions.find((v) => v.id === selectedVersion);
 
   return (
     <div className="min-h-screen bg-background">
@@ -986,7 +950,6 @@ Generate all scripts in ${selectedLanguage} language.`;
                   rows={8}
                   className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm font-sans text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                 />
-                {/* Audience for refine mode */}
                 <div>
                   <label className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground font-bold mb-2 block">INPUT B — Target Audience</label>
                   <div className="flex flex-wrap gap-1.5">
@@ -1106,12 +1069,12 @@ Generate all scripts in ${selectedLanguage} language.`;
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  {mode === 'refine' ? 'Refining Draft…' : 'Generating Scripts…'}
+                  {mode === 'refine' ? 'Refining Draft…' : 'Generating Script…'}
                 </>
               ) : (
                 <>
                   <Icon name="SparklesIcon" size={20} variant="solid" />
-                  {mode === 'refine' ? 'Refine My Draft' : 'Generate Viral Scripts'}
+                  {mode === 'refine' ? 'Refine My Draft' : 'Generate Viral Script'}
                 </>
               )}
             </button>
@@ -1142,13 +1105,13 @@ Generate all scripts in ${selectedLanguage} language.`;
                 </div>
                 <h3 className="font-display text-lg font-bold text-foreground mb-2">Ready to go viral?</h3>
                 <p className="text-sm font-sans text-muted-foreground max-w-xs leading-relaxed">
-                  Enter your topic, set your duration and scene count, choose your language — and let NemoScript apply the Perfect Viral Script Formula with 6 psychological principles to craft 3 scene-by-scene scripts.
+                  Enter your topic, set your duration and scene count, choose your language — and let NemoScript select the best framework and apply 6 psychological principles to craft your single highest-potential viral script.
                 </p>
                 <div className="mt-6 grid grid-cols-3 gap-3 w-full max-w-sm">
                   {[
-                    { label: 'HEARS · PAW · C4', icon: 'DocumentDuplicateIcon' },
+                    { label: 'Best Framework Selected', icon: 'TrophyIcon' },
                     { label: '6 Psychology Principles', icon: 'BeakerIcon' },
-                    { label: 'Scene-by-Scene Cards', icon: 'RectangleStackIcon' },
+                    { label: 'Viral Score Calculated', icon: 'FireIcon' },
                   ].map((f) => (
                     <div key={f.label} className="p-3 bg-muted rounded-xl text-center">
                       <Icon name={f.icon as any} size={18} className="text-primary mx-auto mb-1.5" />
@@ -1167,7 +1130,7 @@ Generate all scripts in ${selectedLanguage} language.`;
                 {/* Header & Metadata Zone */}
                 <div className="card-surface border border-border rounded-2xl p-5">
                   <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-xs font-mono-custom uppercase tracking-wide text-[#FFB000] bg-[#FFB000]/10 px-2.5 py-1 rounded-full border border-[#FFB000]/20">
                           {generatedScript.audienceType}
@@ -1186,7 +1149,7 @@ Generate all scripts in ${selectedLanguage} language.`;
                         &ldquo;{generatedScript.topic}&rdquo;
                       </h2>
                       <p className="text-xs text-muted-foreground font-sans mt-1">
-                        {generatedScript.versions.length} script versions · HEARS · PAW · C4
+                        Framework: <span className="font-semibold text-foreground">{generatedScript.frameworkLabel}</span>
                       </p>
                     </div>
                     <button
@@ -1198,35 +1161,73 @@ Generate all scripts in ${selectedLanguage} language.`;
                       Regenerate
                     </button>
                   </div>
-
-                  {/* Best score highlight */}
-                  {generatedScript.versions.length > 0 && (
-                    <div className="mt-4 p-3 bg-primary/5 border border-primary/15 rounded-xl flex items-center gap-3">
-                      <Icon name="TrophyIcon" size={18} className="text-primary flex-shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-xs font-mono-custom uppercase tracking-wide text-primary font-bold">Top Performing Version</p>
-                        <p className="text-sm font-sans text-foreground mt-0.5">
-                          <span className="font-semibold">{generatedScript.versions[0].styleLabel}</span>
-                          {' '}— Virality score:{' '}
-                          <span className={`font-mono-custom font-bold ${getScoreColor(generatedScript.versions[0].viralScore)}`}>
-                            {generatedScript.versions[0].viralScore}%
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                {/* Audio-Visual Alternation Zone: Script versions */}
-                <div className="space-y-4">
-                  {generatedScript.versions.map((version) => (
-                    <ScriptCard
-                      key={version.id}
-                      version={version}
-                      isSelected={selectedVersion === version.id}
-                      onSelect={() => setSelectedVersion(version.id)}
-                    />
-                  ))}
+                {/* Viral Score — Prominent Display */}
+                <ViralScoreDisplay score={generatedScript.viralScore} />
+
+                {/* Hook Preview */}
+                <div className="card-surface border border-border rounded-2xl p-5">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-2">⚡ Pattern Interrupt Hook</p>
+                  <p className="text-base font-sans text-gray-900 leading-relaxed italic font-medium">&ldquo;{generatedScript.hook}&rdquo;</p>
+                </div>
+
+                {/* Full Script Card */}
+                <div className="rounded-2xl overflow-hidden border border-gray-200 bg-white">
+                  <div className="p-4 flex items-center justify-between gap-3 border-b border-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-[#FF3D00]" />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 font-sans">{generatedScript.frameworkLabel}</p>
+                        <p className="text-xs text-gray-500 font-mono">Scene-by-scene breakdown</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleCopy}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FF3D00]/10 hover:bg-[#FF3D00]/20 text-[#FF3D00] text-xs font-sans font-semibold transition-colors border border-[#FF3D00]/20"
+                      >
+                        <Icon name={copied ? 'CheckIcon' : 'ClipboardDocumentIcon'} size={13} />
+                        {copied ? 'Copied!' : 'Copy Script'}
+                      </button>
+                      <button
+                        onClick={() => setExpanded((v) => !v)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-muted border border-border text-xs font-sans text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Icon name={expanded ? 'ChevronUpIcon' : 'ChevronDownIcon'} size={13} />
+                        {expanded ? 'Collapse' : 'Expand'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expanded && (
+                    <div className="px-4 pb-4 space-y-3">
+                      <ParsedScriptViewer script={generatedScript} />
+
+                      {/* Timestamps */}
+                      {generatedScript.timestamps?.length > 0 && (
+                        <div className="pt-2">
+                          <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 font-bold mb-2">Timestamps</p>
+                          <div className="space-y-1">
+                            {generatedScript.timestamps.map((ts, i) => (
+                              <div key={`ts-${i}`} className="flex items-center gap-2 text-xs font-sans text-gray-600">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#FF3D00]/50 flex-shrink-0" />
+                                {ts}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Delivery notes */}
+                      {generatedScript.deliveryNotes && (
+                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                          <p className="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-bold mb-1">🎬 Delivery Notes</p>
+                          <p className="text-xs font-sans text-gray-700 leading-relaxed">{generatedScript.deliveryNotes}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Analytical Widgets */}
@@ -1237,7 +1238,7 @@ Generate all scripts in ${selectedLanguage} language.`;
                 />
                 <ViralTriggerPanel
                   scenesCount={generatedScript.scenesCount}
-                  viralScore={selectedVersionData?.viralScore ?? generatedScript.versions[0]?.viralScore ?? 80}
+                  viralScore={generatedScript.viralScore}
                   language={generatedScript.language}
                 />
               </>
@@ -1254,14 +1255,17 @@ Generate all scripts in ${selectedLanguage} language.`;
                   {history.slice(1).map((h, i) => (
                     <button
                       key={`hist-${i}`}
-                      onClick={() => { setGeneratedScript(h); setSelectedVersion('v1'); }}
+                      onClick={() => { setGeneratedScript(h); setExpanded(true); }}
                       className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-muted hover:bg-muted/80 border border-border hover:border-primary/30 transition-all text-left"
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-sans font-medium text-foreground truncate">{h.topic}</p>
                         <p className="text-xs text-muted-foreground font-sans">{h.duration} · {h.scenesCount} scenes · {h.language}</p>
                       </div>
-                      <Icon name="ChevronRightIcon" size={14} className="text-muted-foreground flex-shrink-0" />
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-xs font-mono font-bold ${getScoreColor(h.viralScore)}`}>{h.viralScore}%</span>
+                        <Icon name="ChevronRightIcon" size={14} className="text-muted-foreground" />
+                      </div>
                     </button>
                   ))}
                 </div>
