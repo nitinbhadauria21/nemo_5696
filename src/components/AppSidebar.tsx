@@ -51,27 +51,17 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
         <div className="flex items-center gap-2 min-w-0">
           {collapsed ? (
             /* Collapsed: always use the orange gradient N icon */
-            <AppLogo size={32} src="/assets/images/1-1783875917780.png" />
+            <AppLogo size={36} src="/assets/images/1-1783875917780.png" />
           ) : (
-            /* Expanded: dark wordmark for light mode, dark icon for dark mode */
-            <>
-              <AppImage
-                src="/assets/images/2_LD-1783875551744.png"
-                alt="Nemo Wordmark"
-                width={120}
-                height={36}
-                className="flex-shrink-0 object-contain dark:hidden"
-                priority={true}
-              />
-              <AppImage
-                src="/assets/images/1_LD-1783875046029.png"
-                alt="Nemo Wordmark"
-                width={120}
-                height={36}
-                className="flex-shrink-0 object-contain hidden dark:block"
-                priority={true}
-              />
-            </>
+            /* Expanded: white wordmark for gradient sidebar */
+            <AppImage
+              src="/assets/images/Nemo_Logo_in_LD_-1784112287144.png"
+              alt="Nemo Wordmark"
+              width={160}
+              height={48}
+              className="flex-shrink-0 object-contain"
+              priority={true}
+            />
           )}
         </div>
       </div>
@@ -99,12 +89,12 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
                   >
                     <Icon
                       name={item.icon as any}
-                      size={20}
+                      size={22}
                       variant={isActive ? 'solid' : 'outline'}
                       className={isActive ? 'text-white' : ''}
                     />
                     {!collapsed && (
-                      <span className="font-sans text-sm font-medium truncate">{item.label}</span>
+                      <span className="font-sans text-base font-medium truncate">{item.label}</span>
                     )}
                     {!collapsed && item.badge && (
                       <span className="ml-auto text-xs font-mono-custom bg-white/20 text-white px-1.5 py-0.5 rounded-full">
@@ -130,9 +120,9 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
                 }`}
                 title={collapsed ? 'AI Chat' : undefined}
               >
-                <Icon name="ChatBubbleLeftRightIcon" size={20} variant="outline" />
+                <Icon name="ChatBubbleLeftRightIcon" size={22} variant="outline" />
                 {!collapsed && (
-                  <span className="font-sans text-sm font-medium truncate">AI Chat</span>
+                  <span className="font-sans text-base font-medium truncate">AI Chat</span>
                 )}
                 {collapsed && (
                   <span className="absolute left-full ml-2 px-2 py-1 bg-card border border-border text-foreground text-xs rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-card">
