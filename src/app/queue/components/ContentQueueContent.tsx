@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { PlusIcon, ListBulletIcon, ViewColumnsIcon, ArrowDownTrayIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
 
 interface QueueItem {
   id: string;
@@ -44,6 +45,7 @@ export default function ContentQueueContent() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
   const [newItem, setNewItem] = useState({ title: '', platform: 'YouTube Shorts', niche: 'AI & Tech', notes: '' });
+  const router = useRouter();
 
   const handleDragStart = (id: string) => setDragId(id);
   const handleDrop = (status: QueueItem['status']) => {
@@ -187,9 +189,21 @@ export default function ContentQueueContent() {
                         )}
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-foreground/55 font-sans">{item.addedAt}</span>
-                          <span className="text-base font-mono-custom font-extrabold text-primary">
-                            {item.nemoScore}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => router.push(`/carousel?topic=${encodeURIComponent(item.title)}`)}
+                              className="text-xs font-bold font-sans px-2 py-1 rounded-lg border border-border text-foreground/60 hover:text-white hover:border-[#002FA7] transition-all"
+                              style={{ background: 'transparent' }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#002FA7'; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                              title="Make Carousel"
+                            >
+                              🎠 Make Carousel
+                            </button>
+                            <span className="text-base font-mono-custom font-extrabold text-primary">
+                              {item.nemoScore}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     ))}

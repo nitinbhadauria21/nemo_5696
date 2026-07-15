@@ -21,6 +21,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Explore', href: '/explore', icon: 'MagnifyingGlassIcon', group: 'main' },
   { label: 'Trend Detail', href: '/trend-detail', icon: 'FireIcon', group: 'main' },
   { label: 'Content Queue', href: '/queue', icon: 'QueueListIcon', group: 'create' },
+  { label: 'Carousel Studio', href: '/carousel', icon: 'RectangleGroupIcon', group: 'create' },
   { label: 'Viral Script Writer', href: '/viral-script-writer', icon: 'PencilSquareIcon', group: 'create' },
   { label: 'Saved Scripts', href: '/saved-scripts', icon: 'ArchiveBoxIcon', group: 'create' },
   { label: 'Analytics', href: '/analytics', icon: 'PresentationChartLineIcon', group: 'insights' },

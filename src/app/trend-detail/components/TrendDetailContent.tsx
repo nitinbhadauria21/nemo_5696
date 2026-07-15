@@ -12,6 +12,7 @@ import AIAnalysisSection from './AIAnalysisSection';
 import RealTimeTrendingPosts from './RealTimeTrendingPosts';
 import CountrySelector from '@/components/ui/CountrySelector';
 import { COUNTRIES } from '@/lib/countries';
+import { useRouter } from 'next/navigation';
 
 const TREND = {
   id: 'trend-001',
@@ -42,6 +43,7 @@ export default function TrendDetailContent() {
   const [bookmarked, setBookmarked] = useState(true);
   const [copiedHashtags, setCopiedHashtags] = useState(false);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const router = useRouter();
 
   const copyAllHashtags = () => {
     navigator.clipboard.writeText(TREND.hashtags.join(' ')).then(() => {
@@ -97,6 +99,12 @@ export default function TrendDetailContent() {
             >
               <Share2 size={15} />
               Share
+            </button>
+            <button
+              onClick={() => router.push(`/carousel?topic=${encodeURIComponent(TREND.title)}`)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl border-2 border-border bg-card text-sm font-bold font-sans hover:bg-muted transition-all"
+            >
+              🎠 Create Carousel
             </button>
             <button className="btn-flame flex items-center gap-1.5 px-4 py-2 text-sm rounded-xl">
               <Plus size={15} />
