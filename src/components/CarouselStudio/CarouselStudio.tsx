@@ -9,11 +9,19 @@ import {
 } from './types';
 import SlideCanvas from './SlideCanvas';
 
+// ─── Brand Colors ────────────────────────────────────────────────────────────
+const BRAND_ORANGE = '#EA7112';
+const BRAND_DARK = '#1A1A2E';
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
+
+function SectionDivider() {
+  return <div className="border-t border-border my-1" />;
+}
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-mono-custom font-bold uppercase tracking-widest text-foreground/55 mb-3">
+    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-foreground/45 mb-3 mt-1">
       {children}
     </p>
   );
@@ -25,9 +33,9 @@ function SegBtn({
   return (
     <button
       onClick={onClick}
-      className="flex-1 py-2 text-sm font-bold font-sans rounded-lg transition-all"
+      className="flex-1 py-1.5 text-xs font-bold rounded-md transition-all whitespace-nowrap"
       style={{
-        background: active ? '#002FA7' : undefined,
+        background: active ? BRAND_ORANGE : 'transparent',
         color: active ? '#fff' : undefined,
       }}
     >
@@ -44,15 +52,51 @@ function ColorSwatch({
       onClick={onClick}
       title={hex}
       style={{
-        width: 28,
-        height: 28,
+        width: 26,
+        height: 26,
         borderRadius: '50%',
         background: hex,
-        border: selected ? '3px solid #1A1A2E' : '2px solid #e5e7eb',
-        outline: selected ? '2px solid #002FA7' : 'none',
+        border: selected ? `3px solid ${BRAND_DARK}` : '2px solid #e5e7eb',
+        outline: selected ? `2px solid ${BRAND_ORANGE}` : 'none',
         cursor: 'pointer',
         flexShrink: 0,
       }}
+    />
+  );
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="block text-xs font-semibold text-foreground/65 mb-1.5 uppercase tracking-wide">
+      {children}
+    </label>
+  );
+}
+
+function TextInput({
+  value, onChange, placeholder, className = '',
+}: { value: string; onChange: (v: string) => void; placeholder?: string; className?: string }) {
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={`w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-foreground/35 focus:outline-none focus:border-orange-400 transition-colors ${className}`}
+    />
+  );
+}
+
+function TextArea({
+  value, onChange, placeholder, rows = 3,
+}: { value: string; onChange: (v: string) => void; placeholder?: string; rows?: number }) {
+  return (
+    <textarea
+      rows={rows}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-foreground/35 focus:outline-none focus:border-orange-400 transition-colors resize-none"
     />
   );
 }
@@ -64,10 +108,10 @@ function Slider({
   onChange: (v: number) => void;
 }) {
   return (
-    <div className="mb-3">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-sm font-sans font-semibold text-foreground/70">{label}</span>
-        <span className="text-sm font-mono-custom font-bold text-foreground">{value}{unit}</span>
+    <div className="mb-4">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs font-semibold text-foreground/65 uppercase tracking-wide">{label}</span>
+        <span className="text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-md">{value}{unit}</span>
       </div>
       <input
         type="range"
@@ -76,8 +120,8 @@ function Slider({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-2 rounded-full appearance-none cursor-pointer"
-        style={{ accentColor: '#002FA7' }}
+        className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+        style={{ accentColor: BRAND_ORANGE }}
       />
     </div>
   );
@@ -97,7 +141,6 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
   const [exporting, setExporting] = useState(false);
   const previewRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // Pre-fill title from topic param on first load
   useEffect(() => {
     if (initialTopic) {
       setSlides((prev) => {
@@ -118,8 +161,6 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
     });
   }, [currentIndex]);
 
-  // ── Slide navigation ──────────────────────────────────────────────────────
-
   const addSlide = () => {
     const newSlide = defaultSlide(defaultSig);
     setSlides((prev) => {
@@ -138,8 +179,6 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
     toast('Slide deleted');
   };
 
-  // ── Image upload ──────────────────────────────────────────────────────────
-
   const handleImageUpload = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -154,8 +193,6 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) handleImageUpload(file);
   };
-
-  // ── Export ────────────────────────────────────────────────────────────────
 
   const exportSlide = async (slideIndex: number) => {
     const dims = FORMAT_DIMENSIONS[format];
@@ -231,22 +268,20 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
 
   const dims = FORMAT_DIMENSIONS[format];
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
     <div className="flex flex-col lg:flex-row gap-0 min-h-0 flex-1">
 
       {/* ── LEFT PANEL ── */}
       <div
-        className="w-full lg:w-[340px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-card overflow-y-auto"
+        className="w-full lg:w-[320px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-card overflow-y-auto"
         style={{ maxHeight: 'calc(100vh - 130px)' }}
       >
-        <div className="p-4 space-y-5">
+        <div className="px-4 py-4 space-y-0">
 
           {/* §01 FORMAT */}
-          <div>
+          <div className="pb-4">
             <SectionTitle>§01 Format</SectionTitle>
-            <div className="flex items-center gap-1 bg-muted rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
               {(['3:4', '4:5', '1:1', '9:16'] as Format[]).map((f) => (
                 <SegBtn key={f} active={format === f} onClick={() => setFormat(f)}>
                   {FORMAT_DIMENSIONS[f].label}
@@ -255,28 +290,30 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
             </div>
           </div>
 
+          <SectionDivider />
+
           {/* §02 IMAGE */}
-          <div>
+          <div className="py-4">
             <SectionTitle>§02 Image for This Slide</SectionTitle>
             {!slide.img ? (
               <div
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
                 onClick={() => document.getElementById('img-upload')?.click()}
-                className="border-2 border-dashed border-border rounded-xl p-5 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
+                className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-orange-400 hover:bg-orange-50/30 transition-all"
               >
-                <p className="text-sm font-sans text-foreground/60">Drop image here or click to upload</p>
+                <p className="text-sm text-foreground/60">Drop image here or click to upload</p>
                 <p className="text-xs text-foreground/40 mt-1">PNG, JPG, WEBP</p>
               </div>
             ) : (
-              <div className="relative rounded-xl overflow-hidden border-2 border-border">
+              <div className="relative rounded-lg overflow-hidden border border-border">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={slide.img} alt="Uploaded slide background" className="w-full h-28 object-cover" />
+                <img src={slide.img} alt="Uploaded slide background" className="w-full h-24 object-cover" />
                 <button
                   onClick={() => updateSlide({ img: null })}
-                  className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg hover:bg-black/80 transition-all"
+                  className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md hover:bg-black/80 transition-all"
                 >
-                  Remove image
+                  Remove
                 </button>
               </div>
             )}
@@ -291,154 +328,133 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
                 e.target.value = '';
               }}
             />
-            <div className="mt-3 space-y-1">
+            <div className="mt-4">
               <Slider label="Image Scale" value={slide.imgScale} min={100} max={220} step={1} unit="%" onChange={(v) => updateSlide({ imgScale: v })} />
               <Slider label="Horizontal Position" value={slide.imgPosX} min={0} max={100} step={1} unit="%" onChange={(v) => updateSlide({ imgPosX: v })} />
               <Slider label="Vertical Position" value={slide.imgPosY} min={0} max={100} step={1} unit="%" onChange={(v) => updateSlide({ imgPosY: v })} />
             </div>
           </div>
 
+          <SectionDivider />
+
           {/* §03 LAYOUT & TEXT */}
-          <div>
+          <div className="py-4">
             <SectionTitle>§03 Layout &amp; Text</SectionTitle>
 
             {/* Slide type */}
-            <div className="flex items-center gap-1 bg-muted rounded-xl p-1 mb-3">
-              {(['cover', 'bignum', 'numbered', 'free', 'outro'] as SlideType[]).map((t) => {
-                const labels: Record<SlideType, string> = { cover: 'Cover', bignum: 'Big №', numbered: 'Numbered', free: 'Free', outro: 'Outro' };
-                return (
-                  <SegBtn key={t} active={slide.type === t} onClick={() => updateSlide({ type: t })}>
-                    {labels[t]}
-                  </SegBtn>
-                );
-              })}
+            <div className="mb-1">
+              <FieldLabel>Slide Type</FieldLabel>
+              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                {(['cover', 'bignum', 'numbered', 'free', 'outro'] as SlideType[]).map((t) => {
+                  const labels: Record<SlideType, string> = { cover: 'Cover', bignum: 'Big №', numbered: 'Num', free: 'Free', outro: 'Outro' };
+                  return (
+                    <SegBtn key={t} active={slide.type === t} onClick={() => updateSlide({ type: t })}>
+                      {labels[t]}
+                    </SegBtn>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Text position */}
-            <div className="flex items-center gap-1 bg-muted rounded-xl p-1 mb-4">
-              {(['center', 'bottom'] as TextPos[]).map((p) => (
-                <SegBtn key={p} active={slide.textPos === p} onClick={() => updateSlide({ textPos: p })}>
-                  {p.charAt(0).toUpperCase() + p.slice(1)}
-                </SegBtn>
-              ))}
+            <div className="mt-3 mb-4">
+              <FieldLabel>Text Position</FieldLabel>
+              <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                {(['center', 'bottom'] as TextPos[]).map((p) => (
+                  <SegBtn key={p} active={slide.textPos === p} onClick={() => updateSlide({ textPos: p })}>
+                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                  </SegBtn>
+                ))}
+              </div>
             </div>
 
             {/* Conditional fields */}
             <div className="space-y-3">
 
-              {/* Kicker (hidden on bignum) */}
               {slide.type !== 'bignum' && (
                 <div>
-                  <label className="block text-sm font-bold font-sans text-foreground/70 mb-1">Kicker</label>
-                  <input
-                    type="text"
+                  <FieldLabel>Kicker</FieldLabel>
+                  <TextInput
                     value={slide.kicker}
-                    onChange={(e) => updateSlide({ kicker: e.target.value })}
+                    onChange={(v) => updateSlide({ kicker: v })}
                     placeholder="SHORT LABEL"
-                    className="w-full px-3 py-2 rounded-xl border-2 border-border bg-background text-sm font-sans text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/50 transition-all"
                   />
                 </div>
               )}
 
-              {/* Slide number (numbered only) */}
               {slide.type === 'numbered' && (
                 <div>
-                  <label className="block text-sm font-bold font-sans text-foreground/70 mb-1">Slide Number</label>
-                  <input
-                    type="text"
+                  <FieldLabel>Slide Number</FieldLabel>
+                  <TextInput
                     value={slide.num}
-                    onChange={(e) => updateSlide({ num: e.target.value })}
+                    onChange={(v) => updateSlide({ num: v })}
                     placeholder="01"
-                    className="w-full px-3 py-2 rounded-xl border-2 border-border bg-background text-sm font-sans text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/50 transition-all"
                   />
                 </div>
               )}
 
-              {/* Big Number fields */}
               {slide.type === 'bignum' && (
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-xs font-bold font-sans text-foreground/70 mb-1">Number</label>
-                    <input
-                      type="text"
-                      value={slide.bignum}
-                      onChange={(e) => updateSlide({ bignum: e.target.value })}
-                      placeholder="47"
-                      className="w-full px-2 py-2 rounded-xl border-2 border-border bg-background text-sm font-sans text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/50 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold font-sans text-foreground/70 mb-1">Suffix</label>
-                    <input
-                      type="text"
-                      value={slide.bigsuffix}
-                      onChange={(e) => updateSlide({ bigsuffix: e.target.value })}
-                      placeholder="%"
-                      className="w-full px-2 py-2 rounded-xl border-2 border-border bg-background text-sm font-sans text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/50 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold font-sans text-foreground/70 mb-1">Label</label>
-                    <input
-                      type="text"
-                      value={slide.toplabel}
-                      onChange={(e) => updateSlide({ toplabel: e.target.value })}
-                      placeholder="label"
-                      className="w-full px-2 py-2 rounded-xl border-2 border-border bg-background text-sm font-sans text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/50 transition-all"
-                    />
+                <div>
+                  <FieldLabel>Big Number Fields</FieldLabel>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <p className="text-[10px] text-foreground/50 mb-1">Number</p>
+                      <TextInput value={slide.bignum} onChange={(v) => updateSlide({ bignum: v })} placeholder="47" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-foreground/50 mb-1">Suffix</p>
+                      <TextInput value={slide.bigsuffix} onChange={(v) => updateSlide({ bigsuffix: v })} placeholder="%" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-foreground/50 mb-1">Label</p>
+                      <TextInput value={slide.toplabel} onChange={(v) => updateSlide({ toplabel: v })} placeholder="label" />
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Title */}
               <div>
-                <label className="block text-sm font-bold font-sans text-foreground/70 mb-1">
-                  Title <span className="text-foreground/40 font-normal">(*word* = italic)</span>
-                </label>
-                <textarea
+                <FieldLabel>Title <span className="normal-case font-normal text-foreground/40">(*word* = italic)</span></FieldLabel>
+                <TextArea
                   rows={3}
                   value={slide.title}
-                  onChange={(e) => updateSlide({ title: e.target.value })}
+                  onChange={(v) => updateSlide({ title: v })}
                   placeholder="Your main headline here..."
-                  className="w-full px-3 py-2 rounded-xl border-2 border-border bg-background text-sm font-sans text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/50 transition-all resize-none"
                 />
               </div>
 
-              {/* Body */}
               <div>
-                <label className="block text-sm font-bold font-sans text-foreground/70 mb-1">Body (optional)</label>
-                <textarea
+                <FieldLabel>Body (optional)</FieldLabel>
+                <TextArea
                   rows={3}
                   value={slide.body}
-                  onChange={(e) => updateSlide({ body: e.target.value })}
+                  onChange={(v) => updateSlide({ body: v })}
                   placeholder="Supporting paragraph text..."
-                  className="w-full px-3 py-2 rounded-xl border-2 border-border bg-background text-sm font-sans text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/50 transition-all resize-none"
                 />
               </div>
 
-              {/* Signature (outro only) */}
               {slide.type === 'outro' && (
                 <div>
-                  <label className="block text-sm font-bold font-sans text-foreground/70 mb-1">Signature / Handle</label>
-                  <input
-                    type="text"
+                  <FieldLabel>Signature / Handle</FieldLabel>
+                  <TextInput
                     value={slide.sig}
-                    onChange={(e) => updateSlide({ sig: e.target.value })}
+                    onChange={(v) => updateSlide({ sig: v })}
                     placeholder="@nemo"
-                    className="w-full px-3 py-2 rounded-xl border-2 border-border bg-background text-sm font-sans text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/50 transition-all"
                   />
                 </div>
               )}
             </div>
           </div>
 
+          <SectionDivider />
+
           {/* §04 STYLE */}
-          <div>
+          <div className="py-4">
             <SectionTitle>§04 Style</SectionTitle>
 
             <div className="mb-4">
-              <p className="text-sm font-bold font-sans text-foreground/70 mb-2">Accent Color</p>
-              <div className="flex items-center gap-2">
+              <FieldLabel>Accent Color</FieldLabel>
+              <div className="flex items-center gap-2 mt-1">
                 {ACCENT_COLORS.map((c) => (
                   <ColorSwatch
                     key={`accent-${c.hex}`}
@@ -451,8 +467,8 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
             </div>
 
             <div className="mb-4">
-              <p className="text-sm font-bold font-sans text-foreground/70 mb-2">Label Color</p>
-              <div className="flex items-center gap-2">
+              <FieldLabel>Label Color</FieldLabel>
+              <div className="flex items-center gap-2 mt-1">
                 {ACCENT_COLORS.map((c) => (
                   <ColorSwatch
                     key={`label-${c.hex}`}
@@ -465,8 +481,8 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
             </div>
 
             <div>
-              <p className="text-sm font-bold font-sans text-foreground/70 mb-2">Gradient Overlay</p>
-              <div className="flex items-center gap-1 bg-muted rounded-xl p-1">
+              <FieldLabel>Gradient Overlay</FieldLabel>
+              <div className="flex items-center gap-1 bg-muted rounded-lg p-1 mt-1">
                 {(['bottom', 'full', 'none'] as Scrim[]).map((s) => (
                   <SegBtn key={s} active={slide.scrim === s} onClick={() => updateSlide({ scrim: s })}>
                     {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -476,27 +492,29 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
             </div>
           </div>
 
+          <SectionDivider />
+
           {/* §05 EXPORT */}
-          <div>
+          <div className="py-4">
             <SectionTitle>§05 Export</SectionTitle>
             <div className="space-y-2">
               <button
                 onClick={handleExportCurrent}
                 disabled={exporting}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-border text-sm font-bold font-sans text-foreground hover:bg-muted transition-all disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-border text-sm font-semibold text-foreground hover:bg-muted transition-all disabled:opacity-50"
               >
                 📥 Export This Slide
               </button>
               <button
                 onClick={handleExportAll}
                 disabled={exporting}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold font-sans text-white transition-all disabled:opacity-50"
-                style={{ background: '#002FA7' }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold text-white transition-all disabled:opacity-50"
+                style={{ background: BRAND_ORANGE }}
               >
                 📦 Export All Slides ({slides.length})
               </button>
             </div>
-            <p className="text-xs italic text-foreground/45 mt-2 leading-relaxed">
+            <p className="text-[11px] italic text-foreground/40 mt-3 leading-relaxed">
               Images stay local in your browser. Nothing is uploaded to Nemo servers.
             </p>
           </div>
@@ -508,34 +526,34 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
       <div className="flex-1 flex flex-col items-center bg-background overflow-y-auto p-4 sm:p-6">
 
         {/* Slide navigation bar */}
-        <div className="flex items-center gap-2 mb-5 bg-card border-2 border-border rounded-2xl px-4 py-2.5 w-full max-w-xl">
+        <div className="flex items-center gap-2 mb-5 bg-card border border-border rounded-xl px-3 py-2 w-full max-w-xl">
           <button
             onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
             disabled={currentIndex === 0}
-            className="px-3 py-1.5 rounded-lg text-sm font-bold font-sans border-2 border-border text-foreground/70 hover:text-foreground hover:bg-muted transition-all disabled:opacity-40"
+            className="px-3 py-1.5 rounded-lg text-sm font-semibold border border-border text-foreground/70 hover:text-foreground hover:bg-muted transition-all disabled:opacity-40"
           >
             ← Prev
           </button>
-          <span className="flex-1 text-center text-sm font-mono-custom font-bold text-foreground">
+          <span className="flex-1 text-center text-sm font-semibold text-foreground">
             Slide {currentIndex + 1} of {slides.length}
           </span>
           <button
             onClick={() => setCurrentIndex((i) => Math.min(slides.length - 1, i + 1))}
             disabled={currentIndex === slides.length - 1}
-            className="px-3 py-1.5 rounded-lg text-sm font-bold font-sans border-2 border-border text-foreground/70 hover:text-foreground hover:bg-muted transition-all disabled:opacity-40"
+            className="px-3 py-1.5 rounded-lg text-sm font-semibold border border-border text-foreground/70 hover:text-foreground hover:bg-muted transition-all disabled:opacity-40"
           >
             Next →
           </button>
           <button
             onClick={addSlide}
-            className="px-3 py-1.5 rounded-lg text-sm font-bold font-sans border-2 border-border text-foreground/70 hover:text-foreground hover:bg-muted transition-all"
+            className="px-3 py-1.5 rounded-lg text-sm font-semibold border border-border text-foreground/70 hover:text-foreground hover:bg-muted transition-all"
           >
-            + Add Slide
+            + Add
           </button>
           <button
             onClick={deleteSlide}
             disabled={slides.length <= 1}
-            className="px-3 py-1.5 rounded-lg text-sm font-bold font-sans border-2 border-red-200 text-red-500 hover:bg-red-50 transition-all disabled:opacity-40"
+            className="px-3 py-1.5 rounded-lg text-sm font-semibold border border-red-200 text-red-500 hover:bg-red-50 transition-all disabled:opacity-40"
           >
             🗑
           </button>
@@ -543,7 +561,7 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
 
         {/* Preview shell */}
         <div
-          className="rounded-2xl overflow-hidden flex-shrink-0"
+          className="rounded-xl overflow-hidden flex-shrink-0"
           style={{
             width: dims.previewW,
             height: dims.previewH,
@@ -569,7 +587,7 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
                 style={{
                   width: i === currentIndex ? 20 : 8,
                   height: 8,
-                  background: i === currentIndex ? '#002FA7' : '#d1d5db',
+                  background: i === currentIndex ? BRAND_ORANGE : '#d1d5db',
                 }}
               />
             ))}
@@ -577,7 +595,7 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
         )}
 
         {/* Format info */}
-        <p className="text-xs font-mono-custom text-foreground/40 mt-3">
+        <p className="text-xs text-foreground/40 mt-3">
           {dims.label} · Preview {dims.previewW}×{dims.previewH}px · Export {dims.w}×{dims.h}px
         </p>
       </div>
