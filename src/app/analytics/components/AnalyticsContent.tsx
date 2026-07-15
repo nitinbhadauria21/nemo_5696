@@ -23,10 +23,10 @@ export default function AnalyticsContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-background/90 backdrop-blur border-b border-border px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
+      <div className="sticky top-0 z-30 bg-background/98 backdrop-blur border-b border-border px-5 py-3.5 flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="font-display text-xl font-bold text-foreground">Analytics</h1>
-          <p className="text-xs text-muted-foreground font-sans">Performance insights for your content strategy</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Analytics</h1>
+          <p className="text-base text-foreground/65 font-sans">Performance insights for your content strategy</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           {/* Country selector */}
@@ -41,8 +41,8 @@ export default function AnalyticsContent() {
               <button
                 key={`range-${r}`}
                 onClick={() => setRange(r)}
-                className={`px-4 py-1.5 rounded-full text-xs font-mono-custom font-bold uppercase transition-all duration-150 ${
-                  range === r ? 'bg-primary text-white shadow-flame-sm' : 'text-muted-foreground hover:text-foreground'
+                className={`px-4 py-1.5 rounded-full text-sm font-mono-custom font-bold uppercase transition-all duration-150 ${
+                  range === r ? 'bg-primary text-white shadow-flame-sm' : 'text-foreground/65 hover:text-foreground'
                 }`}
               >
                 {r}
@@ -52,10 +52,10 @@ export default function AnalyticsContent() {
         </div>
       </div>
 
-      <div className="px-6 py-5 max-w-screen-2xl mx-auto space-y-5">
+      <div className="px-5 py-4 max-w-screen-2xl mx-auto space-y-4">
         {/* Active country filter banner */}
         {selectedCountryNames.length > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20 text-sm font-sans">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20 text-base font-sans">
             <span className="text-primary font-semibold">📍 Analytics filtered for:</span>
             <span className="text-foreground">
               {selectedCountryNames.map((c) => `${c!.flag} ${c!.name}`).join(' · ')}

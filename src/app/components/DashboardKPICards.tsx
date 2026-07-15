@@ -4,7 +4,7 @@ import { TrendingUp, Zap, BarChart2, Radio } from 'lucide-react';
 const KPI_DATA = [
   {
     id: 'kpi-total',
-    label: 'TOTAL DETECTED',
+    label: 'Total Detected',
     value: '80',
     sub: 'Active trends',
     icon: TrendingUp,
@@ -12,15 +12,15 @@ const KPI_DATA = [
   },
   {
     id: 'kpi-rising',
-    label: 'RISING FAST',
+    label: 'Rising Fast',
     value: '80',
-    sub: '+ High Momentum',
+    sub: 'High momentum',
     icon: Zap,
     accent: 'amber',
   },
   {
     id: 'kpi-spike',
-    label: 'AVG SPIKE SCORE',
+    label: 'Avg Spike Score',
     value: '+271%',
     sub: 'Across all niches',
     icon: BarChart2,
@@ -28,7 +28,7 @@ const KPI_DATA = [
   },
   {
     id: 'kpi-source',
-    label: 'TOP SOURCE',
+    label: 'Top Source',
     value: 'YouTube',
     sub: 'Highest volume',
     icon: Radio,
@@ -36,30 +36,30 @@ const KPI_DATA = [
   },
 ];
 
-const ACCENT_MAP: Record<string, { border: string; icon: string; value: string; sub: string }> = {
+const ACCENT_MAP: Record<string, { bg: string; icon: string; value: string; border: string }> = {
   flame: {
-    border: 'border-l-primary',
-    icon: 'text-primary bg-primary/10',
+    bg: 'bg-primary/8',
+    border: 'border-primary/25',
+    icon: 'text-primary bg-primary/12',
     value: 'text-primary',
-    sub: 'text-gray-800 dark:text-gray-100',
   },
   amber: {
-    border: 'border-l-secondary',
-    icon: 'text-secondary bg-secondary/10',
+    bg: 'bg-secondary/8',
+    border: 'border-secondary/25',
+    icon: 'text-secondary bg-secondary/12',
     value: 'text-secondary',
-    sub: 'text-gray-800 dark:text-gray-100',
   },
   green: {
-    border: 'border-l-accent',
-    icon: 'text-accent bg-accent/10',
+    bg: 'bg-accent/8',
+    border: 'border-accent/25',
+    icon: 'text-accent bg-accent/12',
     value: 'text-accent',
-    sub: 'text-gray-800 dark:text-gray-100',
   },
   muted: {
-    border: 'border-l-border',
+    bg: 'bg-card',
+    border: 'border-border',
     icon: 'text-foreground bg-muted',
-    value: 'text-gray-900 dark:text-gray-50',
-    sub: 'text-gray-800 dark:text-gray-100',
+    value: 'text-foreground',
   },
 };
 
@@ -72,19 +72,19 @@ export default function DashboardKPICards() {
         return (
           <div
             key={kpi.id}
-            className={`card-surface p-3 xl:p-5 border-l-4 ${a.border} flex items-center gap-3 overflow-hidden`}
+            className={`${a.bg} border ${a.border} rounded-2xl p-4 flex items-center gap-3`}
           >
-            <div className={`w-9 h-9 xl:w-10 xl:h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${a.icon}`}>
-              <IconComponent size={16} />
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${a.icon}`}>
+              <IconComponent size={20} />
             </div>
-            <div className="min-w-0 flex-1 overflow-hidden">
-              <p className="text-[9px] xl:text-[10px] font-mono-custom uppercase tracking-widest text-gray-900 dark:text-gray-100 leading-tight mb-1 truncate">
+            <div className="min-w-0 flex-1">
+              <p className="font-mono-custom text-sm font-bold text-foreground/60 uppercase tracking-wider leading-tight mb-1 truncate">
                 {kpi.label}
               </p>
-              <p className={`font-mono-custom font-bold tabular-nums text-lg xl:text-2xl leading-none truncate ${a.value}`}>
+              <p className={`font-display font-extrabold tabular-nums text-2xl leading-none truncate ${a.value}`}>
                 {kpi.value}
               </p>
-              <p className={`text-[11px] font-sans mt-1 truncate ${a.sub}`}>
+              <p className="text-sm font-sans text-foreground/65 mt-1 truncate">
                 {kpi.sub}
               </p>
             </div>

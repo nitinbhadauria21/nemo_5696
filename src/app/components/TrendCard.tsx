@@ -11,7 +11,7 @@ interface TrendCardProps {
 }
 
 const PLATFORM_LABELS: Record<TrendPlatform, string> = {
-  google: 'Google Trends',
+  google: 'Google',
   youtube: 'YouTube',
   instagram: 'Instagram',
   linkedin: 'LinkedIn',
@@ -31,9 +31,9 @@ const PLATFORM_COLORS: Record<TrendPlatform, string> = {
 };
 
 const STATUS_CONFIG = {
-  hot: { label: 'HOT', dot: 'bg-primary', text: 'text-primary' },
-  rising: { label: 'RISING', dot: 'bg-secondary', text: 'text-secondary' },
-  fading: { label: 'FADING', dot: 'bg-muted-foreground', text: 'text-muted-foreground' },
+  hot: { label: 'HOT 🔥', dot: 'bg-primary', text: 'text-primary', bg: 'bg-primary/10 border-primary/25' },
+  rising: { label: 'RISING 📈', dot: 'bg-secondary', text: 'text-secondary', bg: 'bg-secondary/10 border-secondary/25' },
+  fading: { label: 'FADING', dot: 'bg-muted-foreground', text: 'text-muted-foreground', bg: 'bg-muted border-border' },
 };
 
 const CONTENT_TYPE_COLORS: Record<TrendContentType, string> = {
@@ -64,93 +64,88 @@ export default function TrendCard({ trend, onBookmarkToggle }: TrendCardProps) {
   const spikePositive = trend.spike >= 0;
 
   return (
-    <div className="card-surface flex flex-col group hover:border-primary/30 transition-colors duration-200">
-      {/* Card Header: Platform · Time · Status */}
-      <div className="px-4 pt-3.5 pb-2.5 border-b border-border flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-          <span className={`text-[11px] font-mono-custom font-bold uppercase tracking-wide truncate ${PLATFORM_COLORS[primaryPlatform]}`}>
+    <div className="bg-card border-2 border-border rounded-2xl flex flex-col group hover:border-primary/40 hover:shadow-flame-sm transition-all duration-200 trend-card-hover">
+      {/* Card Header */}
+      <div className="px-4 pt-3.5 pb-3 border-b border-border flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+          <span className={`text-sm font-bold font-mono-custom uppercase tracking-wide truncate ${PLATFORM_COLORS[primaryPlatform]}`}>
             {PLATFORM_LABELS[primaryPlatform]}
           </span>
-          <span className="text-muted-foreground text-[11px] font-sans flex-shrink-0">·</span>
-          <span className="text-[11px] font-sans text-muted-foreground flex-shrink-0">{trend.timeAgo}</span>
+          <span className="text-foreground/40 text-sm">·</span>
+          <span className="text-sm font-sans text-foreground/60 flex-shrink-0">{trend.timeAgo}</span>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${statusConfig.dot}`} />
-          <span className={`text-[10px] font-mono-custom font-bold uppercase tracking-widest ${statusConfig.text}`}>
-            {statusConfig.label}
-          </span>
-        </div>
+        <span className={`text-sm font-mono-custom font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border flex-shrink-0 ${statusConfig.bg} ${statusConfig.text}`}>
+          {statusConfig.label}
+        </span>
       </div>
 
       {/* Card Body */}
-      <div className="px-4 py-3 flex-1 flex flex-col gap-2.5">
+      <div className="px-4 py-3.5 flex-1 flex flex-col gap-2.5">
         {/* Content Type + Category */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={`text-[10px] font-mono-custom font-bold uppercase tracking-widest px-2 py-0.5 rounded ${CONTENT_TYPE_COLORS[trend.contentType]}`}>
+          <span className={`text-sm font-mono-custom font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg ${CONTENT_TYPE_COLORS[trend.contentType]}`}>
             {trend.contentType}
           </span>
-          <span className="text-[10px] font-sans text-muted-foreground uppercase tracking-wide">
+          <span className="text-sm font-sans text-foreground/65 font-medium">
             {trend.category}
           </span>
         </div>
 
         {/* Title */}
-        <h3 className="text-sm font-sans font-semibold text-foreground leading-snug line-clamp-2">
+        <h3 className="text-base font-bold text-foreground leading-snug line-clamp-2 font-display group-hover:text-primary transition-colors">
           {trend.title}
         </h3>
 
-        {/* Trending Audio (for HOOK type) */}
+        {/* Trending Audio */}
         {trend.trendingAudio && (
-          <div className="flex items-center gap-1.5 text-[11px] font-sans text-muted-foreground">
-            <Music2 size={11} className="text-primary flex-shrink-0" />
+          <div className="flex items-center gap-1.5 text-sm font-sans text-foreground/60">
+            <Music2 size={13} className="text-primary flex-shrink-0" />
             <span className="truncate italic">{trend.trendingAudio}</span>
           </div>
         )}
       </div>
 
       {/* Metrics Row */}
-      <div className="px-4 py-2.5 bg-muted/40 border-t border-border grid grid-cols-3 gap-2">
+      <div className="px-4 py-3 bg-muted/50 border-t border-border grid grid-cols-3 gap-2">
         <div className="flex flex-col gap-0.5">
-          <span className="text-[9px] font-mono-custom uppercase tracking-widest text-muted-foreground">Velocity</span>
-          <span className="text-xs font-mono-custom font-bold text-foreground tabular-nums">
+          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">Velocity</span>
+          <span className="text-base font-mono-custom font-bold text-foreground tabular-nums">
             {trend.velocity.toFixed(2)}x
-            <span className="text-[9px] font-sans text-muted-foreground ml-0.5">vs 72h</span>
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-[9px] font-mono-custom uppercase tracking-widest text-muted-foreground">Spike</span>
-          <span className={`text-xs font-mono-custom font-bold tabular-nums ${spikePositive ? 'text-accent' : 'text-red-500'}`}>
+          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">Spike</span>
+          <span className={`text-base font-mono-custom font-bold tabular-nums ${spikePositive ? 'text-accent' : 'text-red-500'}`}>
             {spikePositive ? '+' : ''}{trend.spike}%
-            <span className="text-[9px] font-sans text-muted-foreground ml-0.5">24h</span>
           </span>
         </div>
         <div className="flex flex-col gap-0.5 items-end">
-          <span className="text-[9px] font-mono-custom uppercase tracking-widest text-muted-foreground">Score</span>
-          <span className={`text-sm font-mono-custom font-bold tabular-nums ${getScoreColor(trend.nemoScore)}`}>
-            {trend.nemoScore}<span className="text-[9px] text-muted-foreground">/100</span>
+          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">Score</span>
+          <span className={`text-lg font-mono-custom font-extrabold tabular-nums ${getScoreColor(trend.nemoScore)}`}>
+            {trend.nemoScore}
           </span>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-2.5 border-t border-border flex items-center justify-between">
+      <div className="px-4 py-3 border-t border-border flex items-center justify-between">
         <button
           onClick={handleBookmark}
-          className="p-1 rounded hover:bg-muted transition-colors"
+          className="p-1.5 rounded-lg hover:bg-muted transition-colors"
           aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this trend'}
         >
           {bookmarked ? (
-            <BookmarkCheck size={14} className="text-primary" />
+            <BookmarkCheck size={17} className="text-primary" />
           ) : (
-            <Bookmark size={14} className="text-muted-foreground" />
+            <Bookmark size={17} className="text-foreground/50" />
           )}
         </button>
         <Link
           href="/trend-detail"
-          className="flex items-center gap-1 text-xs font-sans font-semibold text-primary hover:underline"
+          className="flex items-center gap-1.5 text-base font-bold text-primary hover:underline font-sans"
         >
           View Details
-          <ChevronRight size={12} />
+          <ChevronRight size={15} />
         </Link>
       </div>
     </div>
