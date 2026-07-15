@@ -55,7 +55,7 @@ export default function ReportsContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+      <div className="sticky top-0 z-20 bg-background/98 backdrop-blur-md border-b border-border px-5 sm:px-6 py-3.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
             <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -63,35 +63,35 @@ export default function ReportsContent() {
             </svg>
           </div>
           <div>
-            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">Reports</h1>
-            <p className="text-sm text-muted-foreground font-sans mt-0.5">Trend timing analysis · Week of Jul 14, 2026</p>
+            <h1 className="font-display text-2xl font-bold text-foreground">Reports</h1>
+            <p className="text-base text-foreground/65 font-sans mt-0.5">Trend timing analysis · Week of Jul 14, 2026</p>
           </div>
         </div>
         <div className="relative">
           <button
             disabled={!isPro}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-bold transition-all ${
               isPro
-                ? 'bg-primary text-white hover:bg-primary/90' :'bg-muted text-muted-foreground cursor-not-allowed border-2 border-border'
+                ? 'bg-primary text-white hover:bg-primary/90' : 'bg-muted text-foreground/55 cursor-not-allowed border-2 border-border'
             }`}
             title={!isPro ? 'Pro feature — upgrade to download PDF' : 'Download PDF Report'}
           >
             {!isPro && <LockClosedIcon className="w-4 h-4" />}
             <ArrowDownTrayIcon className="w-4 h-4" />
             <span className="hidden sm:inline font-bold">Download PDF</span>
-            {!isPro && <span className="text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold ml-1">Pro</span>}
+            {!isPro && <span className="text-sm bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold ml-1">Pro</span>}
           </button>
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 py-6 max-w-screen-xl mx-auto space-y-6">
+      <div className="px-4 sm:px-5 py-4 max-w-screen-xl mx-auto space-y-5">
 
         {/* Trend Timing Chart */}
         <div className="bg-card border-2 border-border rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="font-display font-bold text-foreground text-xl">Trend Timing Chart</h2>
-              <p className="text-sm text-muted-foreground font-sans mt-0.5">Best hours to post based on trend activity</p>
+              <p className="text-base text-foreground/65 font-sans mt-0.5">Best hours to post based on trend activity</p>
             </div>
             <span className="font-mono-custom text-sm font-bold bg-primary/10 text-primary px-3 py-1.5 rounded-full">
               Today

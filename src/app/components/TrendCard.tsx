@@ -66,40 +66,40 @@ export default function TrendCard({ trend, onBookmarkToggle }: TrendCardProps) {
   return (
     <div className="bg-card border-2 border-border rounded-2xl flex flex-col group hover:border-primary/40 hover:shadow-flame-sm transition-all duration-200 trend-card-hover">
       {/* Card Header */}
-      <div className="px-4 pt-4 pb-3 border-b border-border flex items-center justify-between gap-2">
+      <div className="px-4 pt-3.5 pb-3 border-b border-border flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-          <span className={`text-xs font-bold font-mono-custom uppercase tracking-wide truncate ${PLATFORM_COLORS[primaryPlatform]}`}>
+          <span className={`text-sm font-bold font-mono-custom uppercase tracking-wide truncate ${PLATFORM_COLORS[primaryPlatform]}`}>
             {PLATFORM_LABELS[primaryPlatform]}
           </span>
-          <span className="text-muted-foreground text-xs">·</span>
-          <span className="text-xs font-sans text-muted-foreground flex-shrink-0">{trend.timeAgo}</span>
+          <span className="text-foreground/40 text-sm">·</span>
+          <span className="text-sm font-sans text-foreground/60 flex-shrink-0">{trend.timeAgo}</span>
         </div>
-        <span className={`text-[11px] font-mono-custom font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border flex-shrink-0 ${statusConfig.bg} ${statusConfig.text}`}>
+        <span className={`text-sm font-mono-custom font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border flex-shrink-0 ${statusConfig.bg} ${statusConfig.text}`}>
           {statusConfig.label}
         </span>
       </div>
 
       {/* Card Body */}
-      <div className="px-4 py-3.5 flex-1 flex flex-col gap-3">
+      <div className="px-4 py-3.5 flex-1 flex flex-col gap-2.5">
         {/* Content Type + Category */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={`text-[11px] font-mono-custom font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg ${CONTENT_TYPE_COLORS[trend.contentType]}`}>
+          <span className={`text-sm font-mono-custom font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg ${CONTENT_TYPE_COLORS[trend.contentType]}`}>
             {trend.contentType}
           </span>
-          <span className="text-xs font-sans text-muted-foreground font-medium">
+          <span className="text-sm font-sans text-foreground/65 font-medium">
             {trend.category}
           </span>
         </div>
 
         {/* Title */}
-        <h3 className="text-base font-bold text-foreground leading-snug line-clamp-2 font-sans group-hover:text-primary transition-colors">
+        <h3 className="text-base font-bold text-foreground leading-snug line-clamp-2 font-display group-hover:text-primary transition-colors">
           {trend.title}
         </h3>
 
         {/* Trending Audio */}
         {trend.trendingAudio && (
-          <div className="flex items-center gap-1.5 text-xs font-sans text-muted-foreground">
-            <Music2 size={12} className="text-primary flex-shrink-0" />
+          <div className="flex items-center gap-1.5 text-sm font-sans text-foreground/60">
+            <Music2 size={13} className="text-primary flex-shrink-0" />
             <span className="truncate italic">{trend.trendingAudio}</span>
           </div>
         )}
@@ -108,19 +108,19 @@ export default function TrendCard({ trend, onBookmarkToggle }: TrendCardProps) {
       {/* Metrics Row */}
       <div className="px-4 py-3 bg-muted/50 border-t border-border grid grid-cols-3 gap-2">
         <div className="flex flex-col gap-0.5">
-          <span className="font-mono-custom text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Velocity</span>
-          <span className="text-sm font-mono-custom font-bold text-foreground tabular-nums">
+          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">Velocity</span>
+          <span className="text-base font-mono-custom font-bold text-foreground tabular-nums">
             {trend.velocity.toFixed(2)}x
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="font-mono-custom text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Spike</span>
-          <span className={`text-sm font-mono-custom font-bold tabular-nums ${spikePositive ? 'text-accent' : 'text-red-500'}`}>
+          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">Spike</span>
+          <span className={`text-base font-mono-custom font-bold tabular-nums ${spikePositive ? 'text-accent' : 'text-red-500'}`}>
             {spikePositive ? '+' : ''}{trend.spike}%
           </span>
         </div>
         <div className="flex flex-col gap-0.5 items-end">
-          <span className="font-mono-custom text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Score</span>
+          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">Score</span>
           <span className={`text-lg font-mono-custom font-extrabold tabular-nums ${getScoreColor(trend.nemoScore)}`}>
             {trend.nemoScore}
           </span>
@@ -135,17 +135,17 @@ export default function TrendCard({ trend, onBookmarkToggle }: TrendCardProps) {
           aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this trend'}
         >
           {bookmarked ? (
-            <BookmarkCheck size={16} className="text-primary" />
+            <BookmarkCheck size={17} className="text-primary" />
           ) : (
-            <Bookmark size={16} className="text-muted-foreground" />
+            <Bookmark size={17} className="text-foreground/50" />
           )}
         </button>
         <Link
           href="/trend-detail"
-          className="flex items-center gap-1.5 text-sm font-bold text-primary hover:underline font-sans"
+          className="flex items-center gap-1.5 text-base font-bold text-primary hover:underline font-sans"
         >
           View Details
-          <ChevronRight size={14} />
+          <ChevronRight size={15} />
         </Link>
       </div>
     </div>

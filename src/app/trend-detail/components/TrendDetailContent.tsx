@@ -58,20 +58,20 @@ export default function TrendDetailContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4">
+      <div className="sticky top-0 z-20 bg-background/98 backdrop-blur-md border-b border-border px-5 sm:px-6 py-3.5">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm font-bold font-sans flex-shrink-0"
+              className="flex items-center gap-1.5 text-foreground/60 hover:text-foreground transition-colors text-base font-bold font-sans flex-shrink-0"
             >
               <ArrowLeft size={17} />
               Back
             </Link>
             <div className="w-px h-5 bg-border" />
             <StatusBadge status={TREND.status} size="sm" />
-            <span className="text-sm text-muted-foreground font-sans font-medium hidden sm:block">{TREND.category}</span>
-            <h1 className="font-display text-lg font-extrabold text-foreground truncate hidden md:block">
+            <span className="text-base text-foreground/65 font-sans font-medium hidden sm:block">{TREND.category}</span>
+            <h1 className="font-display text-xl font-bold text-foreground truncate hidden md:block">
               {TREND.title}
             </h1>
           </div>
@@ -86,14 +86,14 @@ export default function TrendDetailContent() {
                 setBookmarked((b) => !b);
                 toast(bookmarked ? 'Bookmark removed' : 'Trend saved');
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-border bg-card text-sm font-bold font-sans hover:bg-muted transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-border bg-card text-base font-bold font-sans hover:bg-muted transition-all"
             >
               {bookmarked ? <BookmarkCheck size={15} className="text-primary" /> : <Bookmark size={15} />}
               {bookmarked ? 'Saved' : 'Save'}
             </button>
             <button
               onClick={() => toast('Share link copied!')}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-border bg-card text-sm font-bold font-sans hover:bg-muted transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-border bg-card text-base font-bold font-sans hover:bg-muted transition-all"
             >
               <Share2 size={15} />
               Share

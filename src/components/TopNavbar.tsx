@@ -81,14 +81,14 @@ export default function TopNavbar() {
   };
 
   return (
-    <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center gap-4" style={{ boxShadow: '0 1px 0 var(--border), 0 4px 16px rgba(0,0,0,0.04)' }}>
+    <div className="sticky top-0 z-30 bg-background/98 backdrop-blur-md border-b border-border px-5 py-3 flex items-center gap-4" style={{ boxShadow: '0 1px 0 var(--border), 0 4px 16px rgba(0,0,0,0.06)' }}>
       {/* ── Global Search ── */}
       <div ref={searchRef} className="relative flex-1 max-w-2xl">
         <div className="relative">
           <Icon
             name="MagnifyingGlassIcon"
-            size={17}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+            size={18}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-foreground/50 pointer-events-none"
           />
           <input
             type="text"
@@ -96,14 +96,14 @@ export default function TopNavbar() {
             onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
             onFocus={() => setSearchOpen(true)}
             placeholder="Search trends, scripts, niches…"
-            className="w-full pl-10 pr-10 py-2.5 rounded-2xl bg-card border-2 border-border text-foreground placeholder:text-muted-foreground text-sm font-sans font-medium focus:outline-none focus:border-primary/50 focus:ring-0 transition-all"
+            className="w-full pl-11 pr-10 py-2.5 rounded-2xl bg-card border-2 border-border text-foreground placeholder:text-foreground/45 text-base font-sans font-medium focus:outline-none focus:border-primary/60 focus:ring-0 transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => { setSearchQuery(''); setSearchOpen(false); }}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-foreground/50 hover:text-foreground transition-colors"
             >
-              <Icon name="XMarkIcon" size={15} />
+              <Icon name="XMarkIcon" size={16} />
             </button>
           )}
         </div>
@@ -113,8 +113,8 @@ export default function TopNavbar() {
           <div className="absolute top-full left-0 right-0 mt-2 bg-card border-2 border-border rounded-2xl shadow-nav overflow-hidden z-50 animate-scale-in">
             {searchResults.length > 0 ? (
               <>
-                <div className="px-4 py-2.5 border-b border-border bg-muted/40">
-                  <p className="font-mono-custom text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="px-4 py-2.5 border-b border-border bg-muted/60">
+                  <p className="font-mono-custom text-sm font-bold text-foreground/70 uppercase tracking-wider">
                     {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
                   </p>
                 </div>
@@ -123,18 +123,18 @@ export default function TopNavbar() {
                     <li key={trend.id}>
                       <button
                         onClick={() => handleSearchSelect(`/trend-detail?id=${trend.id}`)}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left"
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/60 transition-colors text-left"
                       >
-                        <div className="w-8 h-8 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
-                          <Icon name="FireIcon" size={14} className="text-white" />
+                        <div className="w-9 h-9 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
+                          <Icon name="FireIcon" size={15} className="text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-foreground truncate font-sans">{trend.title}</p>
-                          <p className="text-xs text-muted-foreground font-mono-custom">{trend.category} · Score {trend.nemoScore}</p>
+                          <p className="text-base font-bold text-foreground truncate font-sans">{trend.title}</p>
+                          <p className="text-sm text-foreground/60 font-mono-custom">{trend.category} · Score {trend.nemoScore}</p>
                         </div>
-                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                          trend.status === 'hot' ? 'bg-red-500/12 text-red-500' :
-                          trend.status === 'rising' ? 'bg-orange-500/12 text-orange-500' : 'bg-muted text-muted-foreground'
+                        <span className={`text-sm font-bold px-2.5 py-1 rounded-full ${
+                          trend.status === 'hot' ? 'bg-red-500/15 text-red-600' :
+                          trend.status === 'rising' ? 'bg-orange-500/15 text-orange-600' : 'bg-muted text-foreground/60'
                         }`}>
                           {trend.status.toUpperCase()}
                         </span>
@@ -142,10 +142,10 @@ export default function TopNavbar() {
                     </li>
                   ))}
                 </ul>
-                <div className="px-4 py-2.5 border-t border-border bg-muted/20">
+                <div className="px-4 py-2.5 border-t border-border bg-muted/30">
                   <button
                     onClick={() => handleSearchSelect('/explore')}
-                    className="text-sm font-semibold text-primary hover:underline font-sans"
+                    className="text-base font-semibold text-primary hover:underline font-sans"
                   >
                     View all results in Explore →
                   </button>
@@ -153,9 +153,9 @@ export default function TopNavbar() {
               </>
             ) : (
               <div className="px-4 py-8 text-center">
-                <Icon name="MagnifyingGlassIcon" size={28} className="text-muted-foreground mx-auto mb-3" />
+                <Icon name="MagnifyingGlassIcon" size={28} className="text-foreground/40 mx-auto mb-3" />
                 <p className="text-base font-semibold text-foreground font-sans mb-1">No results found</p>
-                <p className="text-sm text-muted-foreground font-sans">Try different keywords</p>
+                <p className="text-base text-foreground/60 font-sans">Try different keywords</p>
               </div>
             )}
           </div>
@@ -169,24 +169,24 @@ export default function TopNavbar() {
         <div ref={notifRef} className="relative">
           <button
             onClick={() => { setNotifOpen((v) => !v); setUserMenuOpen(false); }}
-            className="relative w-10 h-10 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all border border-transparent hover:border-border"
+            className="relative w-10 h-10 rounded-xl flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-muted transition-all border border-transparent hover:border-border"
             aria-label="Notifications"
           >
             <Icon name="BellIcon" size={20} />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1 leading-none">
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center px-1 leading-none">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>
 
           {notifOpen && (
-            <div className="absolute top-full right-0 mt-2 w-[340px] bg-card border-2 border-border rounded-2xl shadow-nav overflow-hidden z-50 animate-scale-in">
+            <div className="absolute top-full right-0 mt-2 w-[360px] bg-card border-2 border-border rounded-2xl shadow-nav overflow-hidden z-50 animate-scale-in">
               <div className="flex items-center justify-between px-4 py-3.5 border-b border-border">
                 <div className="flex items-center gap-2.5">
-                  <h3 className="text-base font-bold text-foreground font-sans">Notifications</h3>
+                  <h3 className="text-base font-bold text-foreground font-display">Notifications</h3>
                   {unreadCount > 0 && (
-                    <span className="text-xs bg-red-500/12 text-red-500 px-2 py-0.5 rounded-full font-bold font-mono-custom">
+                    <span className="text-sm bg-red-500/15 text-red-600 px-2 py-0.5 rounded-full font-bold font-mono-custom">
                       {unreadCount} new
                     </span>
                   )}
@@ -201,30 +201,30 @@ export default function TopNavbar() {
               <ul className="max-h-80 overflow-y-auto">
                 {notifications.map((notif) => (
                   <li key={notif.id}>
-                    <div className={`flex items-start gap-3 px-4 py-3.5 hover:bg-muted/40 transition-colors cursor-pointer border-b border-border/50 last:border-0 ${!notif.read ? 'bg-primary/4' : ''}`}>
+                    <div className={`flex items-start gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/50 last:border-0 ${!notif.read ? 'bg-primary/5' : ''}`}>
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        notif.type === 'trend' ? 'bg-orange-500/12' :
-                        notif.type === 'upgrade' ? 'bg-amber-500/12' : 'bg-blue-500/12'
+                        notif.type === 'trend' ? 'bg-orange-500/15' :
+                        notif.type === 'upgrade' ? 'bg-amber-500/15' : 'bg-blue-500/15'
                       }`}>
                         <Icon name={notifIcon(notif.type) as any} size={16} className={notifColor(notif.type)} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <p className={`text-sm font-bold font-sans truncate ${!notif.read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          <p className={`text-base font-bold font-sans truncate ${!notif.read ? 'text-foreground' : 'text-foreground/70'}`}>
                             {notif.title}
                           </p>
                           {!notif.read && <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />}
                         </div>
-                        <p className="text-sm text-muted-foreground font-sans mt-0.5 line-clamp-2">{notif.message}</p>
-                        <p className="text-xs text-muted-foreground font-mono-custom mt-1">{notif.time}</p>
+                        <p className="text-sm text-foreground/65 font-sans mt-0.5 line-clamp-2">{notif.message}</p>
+                        <p className="text-sm text-foreground/50 font-mono-custom mt-1">{notif.time}</p>
                       </div>
                     </div>
                   </li>
                 ))}
               </ul>
 
-              <div className="px-4 py-3 border-t border-border bg-muted/20">
-                <Link href="/settings-developer-tools" onClick={() => setNotifOpen(false)} className="text-sm font-semibold text-primary hover:underline font-sans">
+              <div className="px-4 py-3 border-t border-border bg-muted/30">
+                <Link href="/settings-developer-tools" onClick={() => setNotifOpen(false)} className="text-base font-semibold text-primary hover:underline font-sans">
                   Notification settings →
                 </Link>
               </div>
@@ -236,17 +236,17 @@ export default function TopNavbar() {
         <div ref={userMenuRef} className="relative">
           <button
             onClick={() => { setUserMenuOpen((v) => !v); setNotifOpen(false); }}
-            className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl hover:bg-muted/60 transition-all border border-transparent hover:border-border"
+            className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl hover:bg-muted transition-all border border-transparent hover:border-border"
             aria-label="User menu"
           >
             <div className="w-8 h-8 rounded-full flame-gradient flex items-center justify-center flex-shrink-0">
               <span className="text-white text-sm font-display font-bold">N</span>
             </div>
             <div className="hidden sm:block text-left">
-              <p className="text-sm font-bold text-foreground font-sans leading-tight">Nitin Sharma</p>
-              <p className="text-xs text-muted-foreground font-mono-custom leading-tight">Pro Plan</p>
+              <p className="text-base font-bold text-foreground font-sans leading-tight">Nitin Sharma</p>
+              <p className="text-sm text-foreground/60 font-mono-custom leading-tight">Pro Plan</p>
             </div>
-            <Icon name="ChevronDownIcon" size={14} className={`text-muted-foreground transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
+            <Icon name="ChevronDownIcon" size={14} className={`text-foreground/60 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {userMenuOpen && (
@@ -257,10 +257,10 @@ export default function TopNavbar() {
                     <span className="text-white text-base font-display font-bold">N</span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-foreground font-sans truncate">Nitin Sharma</p>
+                    <p className="text-base font-bold text-foreground font-sans truncate">Nitin Sharma</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold leading-none">Pro</span>
-                      <span className="text-xs text-muted-foreground font-mono-custom">20/∞ used</span>
+                      <span className="text-sm bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold leading-none">Pro</span>
+                      <span className="text-sm text-foreground/60 font-mono-custom">20/∞ used</span>
                     </div>
                   </div>
                 </div>
@@ -272,14 +272,14 @@ export default function TopNavbar() {
                     <Link
                       href={item.href}
                       onClick={() => setUserMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-2.5 text-sm font-semibold font-sans transition-colors ${
-                        item.highlight ? 'text-amber-500 hover:bg-amber-500/10' : 'text-foreground hover:bg-muted/50'
+                      className={`flex items-center gap-3 px-4 py-2.5 text-base font-semibold font-sans transition-colors ${
+                        item.highlight ? 'text-amber-600 hover:bg-amber-500/10' : 'text-foreground hover:bg-muted/60'
                       }`}
                     >
-                      <Icon name={item.icon as any} size={17} className={item.highlight ? 'text-amber-500' : 'text-muted-foreground'} />
+                      <Icon name={item.icon as any} size={17} className={item.highlight ? 'text-amber-600' : 'text-foreground/60'} />
                       {item.label}
                       {item.highlight && (
-                        <span className="ml-auto text-[10px] bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold">HOT</span>
+                        <span className="ml-auto text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold">HOT</span>
                       )}
                     </Link>
                   </li>
@@ -290,9 +290,9 @@ export default function TopNavbar() {
                 <Link
                   href="/sign-up-login-screen"
                   onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-500/10 font-sans transition-colors"
+                  className="flex items-center gap-3 px-4 py-2.5 text-base font-semibold text-red-600 hover:bg-red-500/10 font-sans transition-colors"
                 >
-                  <Icon name="ArrowRightOnRectangleIcon" size={17} className="text-red-500" />
+                  <Icon name="ArrowRightOnRectangleIcon" size={17} className="text-red-600" />
                   Log Out
                 </Link>
               </div>

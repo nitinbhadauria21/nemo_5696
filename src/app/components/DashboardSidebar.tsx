@@ -16,10 +16,10 @@ const PLATFORM_STATUS = [
 
 export default function DashboardSidebar() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       {/* Trending For You */}
       <div className="card-surface p-4">
-        <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-3">
+        <h3 className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold mb-3">
           Trending For You
         </h3>
         <ul className="space-y-3">
@@ -27,7 +27,7 @@ export default function DashboardSidebar() {
             <li key={`sidebar-trend-${trend?.id}`}>
               <Link href="/trend-detail" className="flex items-start gap-2 group">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-sans font-medium text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                  <p className="text-base font-sans font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                     {trend?.title}
                   </p>
                   <div className="flex items-center gap-1.5 mt-1">
@@ -44,21 +44,21 @@ export default function DashboardSidebar() {
       </div>
       {/* Platform Status */}
       <div className="card-surface p-4">
-        <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-3">
+        <h3 className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold mb-3">
           Platform Status
         </h3>
         <ul className="space-y-2.5">
           {PLATFORM_STATUS?.map((ps) => (
             <li key={ps?.id} className="flex items-center justify-between">
-              <span className="text-xs font-sans text-foreground">{ps?.name}</span>
+              <span className="text-base font-sans text-foreground font-medium">{ps?.name}</span>
               <div className="flex items-center gap-2">
-                <span className={`text-xs font-mono-custom font-bold tabular-nums ${ps?.color}`}>
+                <span className={`text-sm font-mono-custom font-bold tabular-nums ${ps?.color}`}>
                   {ps?.trends}%
                 </span>
                 <span
-                  className={`text-xs font-mono-custom uppercase px-1.5 py-0.5 rounded-full ${
-                    ps?.status === 'live' ?'bg-accent/10 text-accent'
-                      : ps?.status === 'limited' ?'bg-secondary/10 text-secondary' :'bg-muted text-muted-foreground'
+                  className={`text-sm font-mono-custom uppercase px-1.5 py-0.5 rounded-full ${
+                    ps?.status === 'live' ? 'bg-accent/10 text-accent'
+                      : ps?.status === 'limited' ? 'bg-secondary/10 text-secondary' : 'bg-muted text-foreground/60'
                   }`}
                 >
                   {ps?.status}
@@ -70,9 +70,9 @@ export default function DashboardSidebar() {
       </div>
       {/* Auto-refresh notice */}
       <div className="card-surface p-3 border-primary/20">
-        <p className="text-xs text-muted-foreground font-sans leading-relaxed">
+        <p className="text-base text-foreground/65 font-sans leading-relaxed">
           <span className="text-primary font-semibold">Auto-refresh</span> every 10 min.
-          Next refresh in <span className="font-mono-custom text-foreground">8:42</span>
+          Next refresh in <span className="font-mono-custom text-foreground font-bold">8:42</span>
         </p>
       </div>
     </div>

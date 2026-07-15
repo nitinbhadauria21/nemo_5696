@@ -65,26 +65,26 @@ const ACCENT_MAP: Record<string, { bg: string; icon: string; value: string; bord
 
 export default function DashboardKPICards() {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {KPI_DATA.map((kpi) => {
         const a = ACCENT_MAP[kpi.accent];
         const IconComponent = kpi.icon;
         return (
           <div
             key={kpi.id}
-            className={`${a.bg} border ${a.border} rounded-2xl p-4 xl:p-5 flex items-center gap-4`}
+            className={`${a.bg} border ${a.border} rounded-2xl p-4 flex items-center gap-3`}
           >
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${a.icon}`}>
               <IconComponent size={20} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-mono-custom text-xs font-semibold text-muted-foreground uppercase tracking-wider leading-tight mb-1 truncate">
+              <p className="font-mono-custom text-sm font-bold text-foreground/60 uppercase tracking-wider leading-tight mb-1 truncate">
                 {kpi.label}
               </p>
               <p className={`font-display font-extrabold tabular-nums text-2xl leading-none truncate ${a.value}`}>
                 {kpi.value}
               </p>
-              <p className="text-sm font-sans text-muted-foreground mt-1 truncate">
+              <p className="text-sm font-sans text-foreground/65 mt-1 truncate">
                 {kpi.sub}
               </p>
             </div>

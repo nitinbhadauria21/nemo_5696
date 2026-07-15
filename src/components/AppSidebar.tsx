@@ -89,7 +89,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
           return (
             <div key={group.id} className={`mb-1 ${collapsed ? 'px-1' : 'px-3'}`}>
               {!collapsed && (
-                <p className="font-mono-custom text-[10px] font-600 uppercase tracking-[0.12em] text-white/45 px-2 mb-1.5 mt-3">
+                <p className="font-mono-custom text-xs font-bold uppercase tracking-[0.1em] text-white/70 px-2 mb-1.5 mt-3">
                   {group.label}
                 </p>
               )}
@@ -103,26 +103,26 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
                         href={item.href}
                         className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative ${
                           isActive
-                            ? 'bg-white/22 text-white nav-active-glow' :'text-white/65 hover:text-white hover:bg-white/12'
+                            ? 'bg-white/25 text-white nav-active-glow' : 'text-white/85 hover:text-white hover:bg-white/15'
                         } ${collapsed ? 'justify-center px-0 mx-0.5' : ''}`}
                         title={collapsed ? item.label : undefined}
                       >
                         {isActive && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-white/80" />
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-white" />
                         )}
                         <Icon
                           name={item.icon as any}
                           size={20}
                           variant={isActive ? 'solid' : 'outline'}
-                          className={isActive ? 'text-white' : 'text-white/70 group-hover:text-white transition-colors'}
+                          className={isActive ? 'text-white' : 'text-white/85 group-hover:text-white transition-colors'}
                         />
                         {!collapsed && (
-                          <span className="font-sans text-[0.9rem] font-600 truncate leading-none">
+                          <span className="font-display text-[1rem] font-600 truncate leading-none text-white">
                             {item.label}
                           </span>
                         )}
                         {!collapsed && item.badge && (
-                          <span className="ml-auto text-[10px] font-mono-custom font-bold bg-white/20 text-white px-1.5 py-0.5 rounded-full">
+                          <span className="ml-auto text-xs font-mono-custom font-bold bg-white/25 text-white px-2 py-0.5 rounded-full">
                             {item.badge}
                           </span>
                         )}
@@ -143,7 +143,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
         {/* AI Chat nav item */}
         <div className={`mt-1 mb-1 ${collapsed ? 'px-1' : 'px-3'}`}>
           {!collapsed && (
-            <p className="font-mono-custom text-[10px] font-600 uppercase tracking-[0.12em] text-white/45 px-2 mb-1.5 mt-3">
+            <p className="font-mono-custom text-xs font-bold uppercase tracking-[0.1em] text-white/70 px-2 mb-1.5 mt-3">
               AI Tools
             </p>
           )}
@@ -152,17 +152,17 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
             <li>
               <button
                 onClick={onOpenChat}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative w-full text-white/65 hover:text-white hover:bg-white/12 ${
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative w-full text-white/85 hover:text-white hover:bg-white/15 ${
                   collapsed ? 'justify-center px-0 mx-0.5' : ''
                 }`}
                 title={collapsed ? 'AI Chat' : undefined}
               >
-                <Icon name="ChatBubbleLeftRightIcon" size={20} variant="outline" className="text-white/70 group-hover:text-white transition-colors" />
+                <Icon name="ChatBubbleLeftRightIcon" size={20} variant="outline" className="text-white/85 group-hover:text-white transition-colors" />
                 {!collapsed && (
-                  <span className="font-sans text-[0.9rem] font-600 truncate leading-none">AI Chat</span>
+                  <span className="font-display text-[1rem] font-600 truncate leading-none text-white">AI Chat</span>
                 )}
                 {!collapsed && (
-                  <span className="ml-auto text-[10px] font-mono-custom font-bold bg-accent/30 text-white px-1.5 py-0.5 rounded-full">
+                  <span className="ml-auto text-xs font-mono-custom font-bold bg-accent/40 text-white px-2 py-0.5 rounded-full">
                     NEW
                   </span>
                 )}
@@ -189,7 +189,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
                 const next = THEME_OPTIONS[(idx + 1) % THEME_OPTIONS.length];
                 setMode(next.mode);
               }}
-              className="flex items-center justify-center w-full py-2.5 rounded-xl text-white/65 hover:text-white hover:bg-white/12 transition-all duration-200"
+              className="flex items-center justify-center w-full py-2.5 rounded-xl text-white/85 hover:text-white hover:bg-white/15 transition-all duration-200"
               title={`Theme: ${mode}`}
               suppressHydrationWarning
             >
@@ -204,10 +204,10 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
           </div>
         ) : (
           <div>
-            <p className="font-mono-custom text-[10px] font-600 uppercase tracking-[0.12em] text-white/45 px-1 mb-2">
+            <p className="font-mono-custom text-xs font-bold uppercase tracking-[0.1em] text-white/70 px-1 mb-2">
               Theme
             </p>
-            <div className="flex items-center gap-1 bg-white/12 rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-white/15 rounded-xl p-1">
               {THEME_OPTIONS.map((opt) => {
                 const isActive = mode === opt.mode;
                 return (
@@ -216,10 +216,10 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
                     onClick={() => setMode(opt.mode)}
                     title={`${opt.label} mode`}
                     suppressHydrationWarning
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
                       isActive
-                        ? 'bg-white/28 text-white shadow-sm'
-                        : 'text-white/55 hover:text-white'
+                        ? 'bg-white/30 text-white shadow-sm'
+                        : 'text-white/75 hover:text-white'
                     }`}
                   >
                     <Icon name={opt.icon as any} size={13} />
@@ -234,7 +234,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
         {/* Collapse button */}
         <button
           onClick={onToggle}
-          className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/65 hover:text-white hover:bg-white/12 transition-all duration-200 ${
+          className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/85 hover:text-white hover:bg-white/15 transition-all duration-200 ${
             collapsed ? 'justify-center px-0' : ''
           }`}
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
@@ -243,27 +243,27 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
             name={collapsed ? 'ChevronDoubleRightIcon' : 'ChevronDoubleLeftIcon'}
             size={17}
           />
-          {!collapsed && <span className="text-sm font-semibold">Collapse</span>}
+          {!collapsed && <span className="text-sm font-semibold text-white">Collapse</span>}
         </button>
 
         {/* User profile */}
         <Link
           href="/sign-up-login-screen"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/65 hover:text-white hover:bg-white/12 transition-all duration-200 ${
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/85 hover:text-white hover:bg-white/15 transition-all duration-200 ${
             collapsed ? 'justify-center px-0' : ''
           }`}
           title={collapsed ? 'Account' : undefined}
         >
-          <div className="w-8 h-8 rounded-full bg-white/25 flex items-center justify-center flex-shrink-0 border border-white/30">
+          <div className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0 border border-white/40">
             <span className="text-white text-sm font-display font-bold">N</span>
           </div>
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <p className="text-sm font-bold text-white truncate">Nitin Sharma</p>
-                <span className="text-[10px] bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">Pro</span>
+                <span className="text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">Pro</span>
               </div>
-              <p className="text-xs text-white/55 truncate font-mono-custom">20/∞ trends used</p>
+              <p className="text-xs text-white/70 truncate font-mono-custom">20/∞ trends used</p>
             </div>
           )}
         </Link>
@@ -272,7 +272,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
         {!collapsed && (
           <Link
             href="/pricing"
-            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/18 hover:bg-white/28 text-white text-sm font-bold transition-all duration-200 border border-white/20"
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-bold transition-all duration-200 border border-white/30"
           >
             <Icon name="SparklesIcon" size={14} />
             Upgrade Plan
@@ -281,9 +281,9 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
 
         {/* Social connect status */}
         {!collapsed && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/15 border border-accent/25">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/20 border border-accent/35">
             <div className="w-2 h-2 rounded-full bg-accent animate-pulse flex-shrink-0" />
-            <span className="text-xs text-white/80 font-sans font-semibold">3 accounts connected</span>
+            <span className="text-xs text-white font-sans font-semibold">3 accounts connected</span>
           </div>
         )}
       </div>

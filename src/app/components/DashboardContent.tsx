@@ -71,30 +71,30 @@ export default function DashboardContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Page Header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+      <div className="sticky top-0 z-20 bg-background/98 backdrop-blur-md border-b border-border px-5 sm:px-6 py-3.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 overflow-hidden">
           <div className="min-w-0 overflow-hidden">
-            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground leading-tight truncate">
+            <h1 className="font-display text-2xl font-bold text-foreground leading-tight truncate">
               Nemo Live Trend Report
             </h1>
-            <p className="text-sm text-muted-foreground font-sans truncate mt-0.5">
+            <p className="text-base text-foreground/65 font-sans truncate mt-0.5">
               Jul 14, 2026 · Real-time trend intelligence
             </p>
           </div>
           <LiveBadge />
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button className="btn-flame px-4 sm:px-5 py-2.5 text-sm whitespace-nowrap rounded-xl">
+          <button className="btn-flame px-5 py-2.5 whitespace-nowrap rounded-xl">
             + Add to Queue
           </button>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="px-4 sm:px-6 py-6 max-w-screen-2xl mx-auto">
-        <div className="flex gap-6">
+      <div className="px-4 sm:px-5 py-4 max-w-screen-2xl mx-auto">
+        <div className="flex gap-5">
           {/* Left: main feed */}
-          <div className="flex-1 min-w-0 flex flex-col gap-5">
+          <div className="flex-1 min-w-0 flex flex-col gap-4">
             {/* KPI Stats Bar */}
             <DashboardKPICards />
 
@@ -107,7 +107,7 @@ export default function DashboardContent() {
 
             {/* Active country filter banner */}
             {selectedCountryNames.length > 0 && (
-              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary/8 border border-primary/20 text-sm font-sans">
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary/8 border border-primary/20 text-base font-sans">
                 <span className="text-primary font-bold">📍 Location filter active:</span>
                 <span className="text-foreground font-medium">
                   {selectedCountryNames.map((c) => `${c!.flag} ${c!.name}`).join(' · ')}
@@ -118,30 +118,30 @@ export default function DashboardContent() {
             {/* Section Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 flex-wrap">
-                <h2 className="font-display font-bold text-foreground text-lg">
+                <h2 className="font-display font-bold text-foreground text-xl">
                   {activeFilters.countries.length > 0 ? 'Filtered Trends' : 'All Trends'}{' '}
                   <span className="text-primary">{filteredTrends.length} detected</span>
                 </h2>
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-mono-custom font-bold uppercase tracking-wider">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-sm font-mono-custom font-bold uppercase tracking-wider">
                     🔥 {hotCount} Hot
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-mono-custom font-bold uppercase tracking-wider">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-sm font-mono-custom font-bold uppercase tracking-wider">
                     📈 {risingCount} Rising
                   </span>
                 </div>
               </div>
-              <span className="text-sm text-muted-foreground font-sans font-medium hidden sm:block">
+              <span className="text-base text-foreground/60 font-sans font-medium hidden sm:block">
                 Sorted by NEMO Score
               </span>
             </div>
 
             {/* Trend Grid */}
             {filteredTrends.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="flex flex-col items-center justify-center py-16 text-center">
                 <span className="text-5xl mb-4">🌍</span>
                 <p className="font-display font-bold text-foreground text-xl mb-2">No trends found</p>
-                <p className="text-base text-muted-foreground font-sans">
+                <p className="text-base text-foreground/65 font-sans">
                   Try selecting different countries or clear the location filter
                 </p>
               </div>

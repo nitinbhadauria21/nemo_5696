@@ -72,7 +72,7 @@ export default function SettingsContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4">
+      <div className="sticky top-0 z-20 bg-background/98 backdrop-blur-md border-b border-border px-5 sm:px-6 py-3.5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
             <User size={20} className="text-white" />

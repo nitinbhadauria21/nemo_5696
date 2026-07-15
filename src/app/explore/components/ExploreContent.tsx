@@ -86,9 +86,9 @@ function ExploreTrendCard({ trend }: { trend: TrendItem }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <StatusBadge status={trend.status} />
-            <span className="text-xs text-muted-foreground font-mono-custom font-semibold">{trend.category}</span>
+            <span className="text-sm text-foreground/65 font-mono-custom font-semibold">{trend.category}</span>
           </div>
-          <h3 className="text-base font-bold text-foreground leading-snug line-clamp-2 font-sans group-hover:text-primary transition-colors">
+          <h3 className="text-base font-bold text-foreground leading-snug line-clamp-2 font-display group-hover:text-primary transition-colors">
             {trend.title}
           </h3>
         </div>
@@ -96,9 +96,9 @@ function ExploreTrendCard({ trend }: { trend: TrendItem }) {
           <NemoScoreBadge score={trend.nemoScore} size="sm" />
           <button
             onClick={(e) => { e.stopPropagation(); setBookmarked(v => !v); }}
-            className="text-muted-foreground hover:text-primary transition-colors p-1"
+            className="text-foreground/50 hover:text-primary transition-colors p-1"
           >
-            <Icon name={bookmarked ? 'BookmarkIcon' : 'BookmarkIcon'} size={15} variant={bookmarked ? 'solid' : 'outline'} className={bookmarked ? 'text-primary' : ''} />
+            <Icon name={bookmarked ? 'BookmarkIcon' : 'BookmarkIcon'} size={16} variant={bookmarked ? 'solid' : 'outline'} className={bookmarked ? 'text-primary' : ''} />
           </button>
         </div>
       </div>
@@ -114,9 +114,9 @@ function ExploreTrendCard({ trend }: { trend: TrendItem }) {
       </div>
 
       {/* Stats row */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground font-mono-custom border-t border-border pt-2.5">
+      <div className="flex items-center justify-between text-sm text-foreground/60 font-mono-custom border-t border-border pt-2.5">
         <span className="flex items-center gap-1 font-semibold">
-          <Icon name="ArrowTrendingUpIcon" size={13} className="text-primary" />
+          <Icon name="ArrowTrendingUpIcon" size={14} className="text-primary" />
           +{trend.velocity.toFixed(1)}x
         </span>
         <span className="font-semibold">{(trend.mentions24h / 1000).toFixed(0)}k mentions</span>

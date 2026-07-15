@@ -62,13 +62,13 @@ module.exports = {
         full: '9999px',
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'DM Sans', 'system-ui', 'sans-serif'],
-        display: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['DM Sans', 'system-ui', 'sans-serif'],
+        display: ['Fredoka', 'system-ui', 'sans-serif'],
+        mono: ['Space Mono', 'monospace'],
       },
       fontSize: {
-        'xs': ['0.75rem', { lineHeight: '1.4' }],
-        'sm': ['0.875rem', { lineHeight: '1.5' }],
+        'xs': ['0.875rem', { lineHeight: '1.5' }],
+        'sm': ['0.9375rem', { lineHeight: '1.5' }],
         'base': ['1rem', { lineHeight: '1.6' }],
         'lg': ['1.125rem', { lineHeight: '1.5' }],
         'xl': ['1.25rem', { lineHeight: '1.4' }],

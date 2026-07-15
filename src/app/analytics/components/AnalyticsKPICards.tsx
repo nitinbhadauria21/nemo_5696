@@ -50,19 +50,19 @@ export default function AnalyticsKPICards() {
       {ANALYTICS_KPIS?.map((kpi) => {
         const IconComponent = kpi?.icon;
         return (
-          <div key={kpi?.id} className="card-surface p-4 xl:p-5 flex flex-col gap-2">
+          <div key={kpi?.id} className="card-surface p-4 flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">
+              <span className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold">
                 {kpi?.label}
               </span>
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${kpi?.accentBg}`}>
-                <IconComponent size={16} className={kpi?.accentIcon} />
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${kpi?.accentBg}`}>
+                <IconComponent size={17} className={kpi?.accentIcon} />
               </div>
             </div>
             <span className="font-mono-custom font-bold text-2xl xl:text-3xl text-foreground tabular-nums">
               {kpi?.value}
             </span>
-            <span className={`text-xs font-sans ${kpi?.deltaPositive ? 'text-accent' : 'text-red-400'}`}>
+            <span className={`text-sm font-sans font-semibold ${kpi?.deltaPositive ? 'text-accent' : 'text-red-500'}`}>
               {kpi?.delta}
             </span>
           </div>

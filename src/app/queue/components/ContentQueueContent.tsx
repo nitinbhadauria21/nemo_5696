@@ -92,14 +92,14 @@ export default function ContentQueueContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+      <div className="sticky top-0 z-20 bg-background/98 backdrop-blur-md border-b border-border px-5 sm:px-6 py-3.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
             <ViewColumnsIcon className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">Content Queue</h1>
-            <p className="text-sm text-muted-foreground font-sans mt-0.5">{items.length} items · Drag to move between stages</p>
+            <h1 className="font-display text-2xl font-bold text-foreground">Content Queue</h1>
+            <p className="text-base text-foreground/65 font-sans mt-0.5">{items.length} items · Drag to move between stages</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -107,14 +107,14 @@ export default function ContentQueueContent() {
           <div className="flex items-center bg-muted rounded-xl p-1 gap-1">
             <button
               onClick={() => setViewMode('kanban')}
-              className={`p-2.5 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`p-2.5 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-card shadow-sm text-foreground' : 'text-foreground/50 hover:text-foreground'}`}
               title="Kanban view"
             >
               <ViewColumnsIcon className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`p-2.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-card shadow-sm text-foreground' : 'text-foreground/50 hover:text-foreground'}`}
               title="List view"
             >
               <ListBulletIcon className="w-4 h-4" />
@@ -122,14 +122,14 @@ export default function ContentQueueContent() {
           </div>
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border-2 border-border text-sm font-bold font-sans text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border-2 border-border text-base font-bold font-sans text-foreground/65 hover:text-foreground hover:bg-muted transition-all"
           >
             <ArrowDownTrayIcon className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
           </button>
           <button
             onClick={() => setShowAddModal(true)}
-            className="btn-flame flex items-center gap-2 px-4 py-2.5 text-sm rounded-xl"
+            className="btn-flame flex items-center gap-2 px-4 py-2.5 rounded-xl"
           >
             <PlusIcon className="w-4 h-4" />
             Add Manually
@@ -137,10 +137,10 @@ export default function ContentQueueContent() {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 py-6">
+      <div className="px-4 sm:px-5 py-4">
         {/* Kanban View */}
         {viewMode === 'kanban' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {COLUMNS.map((col) => {
               const colItems = items.filter((i) => i.status === col.id);
               return (
@@ -148,12 +148,12 @@ export default function ContentQueueContent() {
                   key={col.id}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => handleDrop(col.id)}
-                  className={`rounded-2xl border-2 ${col.color} ${col.bg} p-4 min-h-[420px]`}
+                  className={`rounded-2xl border-2 ${col.color} ${col.bg} p-4 min-h-[400px]`}
                 >
-                  <div className="flex items-center gap-2.5 mb-5">
+                  <div className="flex items-center gap-2.5 mb-4">
                     <div className={`w-3 h-3 rounded-full ${col.dot}`} />
-                    <h3 className="font-display font-bold text-foreground text-base">{col.label}</h3>
-                    <span className="ml-auto text-sm font-mono-custom font-bold bg-card border border-border text-muted-foreground px-2.5 py-0.5 rounded-full">
+                    <h3 className="font-display font-bold text-foreground text-lg">{col.label}</h3>
+                    <span className="ml-auto text-sm font-mono-custom font-bold bg-card border border-border text-foreground/65 px-2.5 py-0.5 rounded-full">
                       {colItems.length}
                     </span>
                   </div>
@@ -163,30 +163,30 @@ export default function ContentQueueContent() {
                         key={item.id}
                         draggable
                         onDragStart={() => handleDragStart(item.id)}
-                        className="bg-card border-2 border-border rounded-xl p-4 cursor-grab active:cursor-grabbing hover:border-primary/30 hover:shadow-card transition-all group"
+                        className="bg-card border-2 border-border rounded-xl p-3.5 cursor-grab active:cursor-grabbing hover:border-primary/30 hover:shadow-card transition-all group"
                       >
-                        <div className="flex items-start justify-between gap-2 mb-3">
+                        <div className="flex items-start justify-between gap-2 mb-2.5">
                           <p className="text-base font-bold font-sans text-foreground leading-snug flex-1">{item.title}</p>
                           <button
                             onClick={() => removeItem(item.id)}
-                            className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-500 transition-all flex-shrink-0 p-0.5"
+                            className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-red-500 transition-all flex-shrink-0 p-0.5"
                           >
                             <XMarkIcon className="w-4 h-4" />
                           </button>
                         </div>
-                        <div className="flex flex-wrap gap-1.5 mb-3">
-                          <span className={`text-xs px-2.5 py-1 rounded-full font-bold font-sans ${PLATFORM_COLORS[item.platform] || 'bg-muted text-muted-foreground'}`}>
+                        <div className="flex flex-wrap gap-1.5 mb-2.5">
+                          <span className={`text-sm px-2.5 py-0.5 rounded-full font-bold font-sans ${PLATFORM_COLORS[item.platform] || 'bg-muted text-foreground/65'}`}>
                             {item.platform}
                           </span>
-                          <span className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground font-sans font-semibold border border-border">
+                          <span className="text-sm px-2.5 py-0.5 rounded-full bg-muted text-foreground/65 font-sans font-semibold border border-border">
                             {item.niche}
                           </span>
                         </div>
                         {item.notes && (
-                          <p className="text-sm text-muted-foreground font-sans italic mb-3">{item.notes}</p>
+                          <p className="text-sm text-foreground/60 font-sans italic mb-2.5">{item.notes}</p>
                         )}
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground font-sans">{item.addedAt}</span>
+                          <span className="text-sm text-foreground/55 font-sans">{item.addedAt}</span>
                           <span className="text-base font-mono-custom font-extrabold text-primary">
                             {item.nemoScore}
                           </span>
@@ -194,8 +194,8 @@ export default function ContentQueueContent() {
                       </div>
                     ))}
                     {colItems.length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <p className="text-sm text-muted-foreground font-sans font-medium">Drop items here</p>
+                      <div className="flex flex-col items-center justify-center py-10 text-center">
+                        <p className="text-base text-foreground/50 font-sans font-medium">Drop items here</p>
                       </div>
                     )}
                   </div>
