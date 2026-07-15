@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import AppSidebar from './AppSidebar';
 import AIChatPanel from './AIChatPanel';
 import Icon from '@/components/ui/AppIcon';
+import TopNavbar from './TopNavbar';
 import { Toaster } from 'react-hot-toast';
 
 interface AppLayoutProps {
@@ -22,6 +23,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           collapsed ? 'ml-16' : 'ml-60'
         }`}
       >
+        <TopNavbar />
         {children}
       </main>
 
