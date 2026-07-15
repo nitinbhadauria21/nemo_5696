@@ -20,6 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Trend Detail', href: '/trend-detail', icon: 'FireIcon' },
   { label: 'Analytics', href: '/analytics', icon: 'ChartBarIcon' },
   { label: 'Viral Script Writer', href: '/viral-script-writer', icon: 'PencilSquareIcon' },
+  { label: 'Saved Scripts', href: '/saved-scripts', icon: 'ArchiveBoxIcon' },
   { label: 'Settings', href: '/settings-developer-tools', icon: 'Cog6ToothIcon' },
 ];
 
