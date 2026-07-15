@@ -55,7 +55,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
           ) : (
             /* Expanded: white wordmark for gradient sidebar */
             <AppImage
-              src="/assets/images/Nemo_Logo_in_LD_-1784112287144.png"
+              src="/assets/images/Nemo_Logo_in_LD___1_-1784112484010.png"
               alt="Nemo Wordmark"
               width={160}
               height={48}
