@@ -23,6 +23,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Viral Script Writer', href: '/viral-script-writer', icon: 'PencilSquareIcon' },
   { label: 'Saved Scripts', href: '/saved-scripts', icon: 'ArchiveBoxIcon' },
   { label: 'Settings', href: '/settings-developer-tools', icon: 'Cog6ToothIcon' },
+  { label: 'Checkout', href: '/checkout', icon: 'CreditCardIcon' },
 ];
 
 interface AppSidebarProps {
