@@ -29,13 +29,13 @@ export type {
   NemoScoreInputs,
   NemoScoreResult,
   TrendRecord,
-} from './types.js';
+} from './types';
 
 export {
   PLATFORM_WEIGHTS,
   NEMO_SCORE_WEIGHTS,
   SCORING_TIME_RULES,
-} from './types.js';
+} from './types';
 
 // Scoring Engine — Four Formulas + Final Nemo Score
 export {
@@ -57,7 +57,7 @@ export {
   isRedditControversial,
   computeNoveltyScore,
   computeLinkedInShareWeight,
-} from './scoringEngine.js';
+} from './scoringEngine';
 
 // Platform Signal Collectors
 export {
@@ -76,7 +76,7 @@ export {
   collectLinkedInSignals,
   scoreLinkedInSignals,
   buildTrendRecord,
-} from './platformCollectors.js';
+} from './platformCollectors';
 
 // Database Schema
 export {
@@ -87,4 +87,4 @@ export {
   SCHEMA_NEMO_SCORE_WEIGHTS,
   NEW_SIGNALS_V1,
   REMOVED_SIGNALS_V1,
-} from './schema.js';
+} from './schema';
