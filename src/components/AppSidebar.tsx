@@ -19,11 +19,13 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/', icon: 'HomeIcon' },
   { label: 'Explore', href: '/explore', icon: 'MagnifyingGlassIcon' },
   { label: 'Trend Detail', href: '/trend-detail', icon: 'FireIcon' },
-  { label: 'Analytics', href: '/analytics', icon: 'ChartBarIcon' },
+  { label: 'Content Queue', href: '/queue', icon: 'QueueListIcon' },
+  { label: 'Reports', href: '/reports', icon: 'ChartBarIcon' },
+  { label: 'Analytics', href: '/analytics', icon: 'PresentationChartLineIcon' },
   { label: 'Viral Script Writer', href: '/viral-script-writer', icon: 'PencilSquareIcon' },
   { label: 'Saved Scripts', href: '/saved-scripts', icon: 'ArchiveBoxIcon' },
   { label: 'Settings', href: '/settings-developer-tools', icon: 'Cog6ToothIcon' },
-  { label: 'Checkout', href: '/checkout', icon: 'CreditCardIcon' },
+  { label: 'Pricing', href: '/pricing', icon: 'CreditCardIcon' },
 ];
 
 interface AppSidebarProps {
@@ -220,12 +222,34 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
             <span className="text-white text-xs font-display font-bold">N</span>
           </div>
           {!collapsed && (
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-white truncate">Nitin Sharma</p>
-              <p className="text-xs text-white/60 truncate">Pro Plan</p>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-medium text-white truncate">Nitin Sharma</p>
+                <span className="text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">Pro</span>
+              </div>
+              <p className="text-xs text-white/60 truncate">20/∞ trends used</p>
             </div>
           )}
         </Link>
+
+        {/* Upgrade CTA — only show for free users, hidden when collapsed */}
+        {!collapsed && (
+          <Link
+            href="/pricing"
+            className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-all"
+          >
+            <Icon name="SparklesIcon" size={13} />
+            Upgrade Plan
+          </Link>
+        )}
+
+        {/* Social connect status */}
+        {!collapsed && (
+          <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-500/20">
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
+            <span className="text-xs text-green-200 font-sans">3 accounts connected</span>
+          </div>
+        )}
       </div>
     </aside>
   );
