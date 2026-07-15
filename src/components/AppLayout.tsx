@@ -16,7 +16,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background flex">
-      <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+      <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} onOpenChat={() => setChatOpen(true)} />
       <main
         className={`flex-1 min-h-screen sidebar-transition ${
           collapsed ? 'ml-16' : 'ml-60'

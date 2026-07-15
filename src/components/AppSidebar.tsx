@@ -25,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
 interface AppSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  onOpenChat?: () => void;
 }
 
 type ThemeMode = 'light' | 'dark' | 'auto';
@@ -35,7 +36,7 @@ const THEME_OPTIONS: { mode: ThemeMode; icon: string; label: string }[] = [
   { mode: 'auto', icon: 'ComputerDesktopIcon', label: 'Auto' },
 ];
 
-export default function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
+export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSidebarProps) {
   const pathname = usePathname();
   const { mode, setMode } = useTheme();
 
@@ -119,6 +120,27 @@ export default function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
                 </li>
               );
             })}
+
+            {/* AI Chat nav item */}
+            <li key="nav-ai-chat">
+              <button
+                onClick={onOpenChat}
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 relative w-full text-muted-foreground hover:text-foreground hover:bg-muted ${
+                  collapsed ? 'justify-center px-0 mx-1' : ''
+                }`}
+                title={collapsed ? 'AI Chat' : undefined}
+              >
+                <Icon name="ChatBubbleLeftRightIcon" size={20} variant="outline" />
+                {!collapsed && (
+                  <span className="font-sans text-sm font-medium truncate">AI Chat</span>
+                )}
+                {collapsed && (
+                  <span className="absolute left-full ml-2 px-2 py-1 bg-card border border-border text-foreground text-xs rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-card">
+                    AI Chat
+                  </span>
+                )}
+              </button>
+            </li>
           </ul>
         </div>
       </nav>
