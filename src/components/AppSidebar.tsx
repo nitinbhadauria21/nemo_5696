@@ -51,7 +51,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
         <div className="flex items-center gap-2 min-w-0">
           {collapsed ? (
             /* Collapsed: always use the orange gradient N icon */
-            <AppLogo size={36} src="/assets/images/1-1783875917780.png" />
+            <AppLogo size={36} src="/assets/images/3-1784112678359.png" />
           ) : (
             /* Expanded: white wordmark for gradient sidebar */
             <AppImage
