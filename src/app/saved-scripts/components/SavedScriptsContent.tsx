@@ -589,57 +589,57 @@ export default function SavedScriptsContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-background/90 backdrop-blur border-b border-border px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
-            <Icon name="ArchiveBoxIcon" size={18} className="text-white" />
+          <div className="w-10 h-10 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
+            <Icon name="ArchiveBoxIcon" size={20} className="text-white" />
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold text-foreground">Saved Scripts</h1>
-            <p className="text-xs text-muted-foreground font-sans">Manage and export your viral script library</p>
+            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">Saved Scripts</h1>
+            <p className="text-sm text-muted-foreground font-sans mt-0.5">Manage and export your viral script library</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-mono-custom text-muted-foreground bg-muted px-3 py-1.5 rounded-full border border-border">
+          <span className="font-mono-custom text-sm font-bold text-muted-foreground bg-muted px-3 py-2 rounded-xl border-2 border-border">
             {scripts.length} scripts
           </span>
         </div>
       </div>
 
-      <div className="px-6 py-5 max-w-screen-xl mx-auto space-y-5">
+      <div className="px-5 sm:px-6 py-6 max-w-screen-xl mx-auto space-y-5">
 
         {/* KPI row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: 'Total Scripts', value: scripts.length.toString(), icon: 'DocumentTextIcon', color: 'text-primary' },
             { label: 'Avg Virality Score', value: `${avgScore}%`, icon: 'FireIcon', color: 'text-orange-500' },
             { label: 'Platforms Used', value: [...new Set(scripts.map((s) => s.platform))].length.toString(), icon: 'DevicePhoneMobileIcon', color: 'text-blue-500' },
             { label: 'Script Versions', value: scripts.reduce((a, s) => a + s.versions.length, 0).toString(), icon: 'DocumentDuplicateIcon', color: 'text-purple-500' },
           ].map((stat) => (
-            <div key={stat.label} className="card-surface border border-border rounded-2xl p-4 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-                <Icon name={stat.icon as any} size={18} className={stat.color} />
+            <div key={stat.label} className="bg-card border-2 border-border rounded-2xl p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+                <Icon name={stat.icon as any} size={20} className={stat.color} />
               </div>
               <div className="min-w-0">
-                <p className="text-lg font-mono-custom font-bold text-foreground tabular-nums">{stat.value}</p>
-                <p className="text-xs text-muted-foreground font-sans leading-tight">{stat.label}</p>
+                <p className="text-2xl font-mono-custom font-extrabold text-foreground tabular-nums">{stat.value}</p>
+                <p className="text-sm text-muted-foreground font-sans font-medium leading-tight">{stat.label}</p>
               </div>
             </div>
           ))}
         </div>
 
         {/* Filters row */}
-        <div className="card-surface border border-border rounded-2xl p-4">
+        <div className="bg-card border-2 border-border rounded-2xl p-4">
           <div className="flex flex-wrap gap-3 items-center">
             {/* Search */}
             <div className="relative flex-1 min-w-[180px]">
-              <Icon name="MagnifyingGlassIcon" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Icon name="MagnifyingGlassIcon" size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search scripts..."
-                className="w-full bg-muted border border-border rounded-xl pl-9 pr-3 py-2.5 text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                className="w-full bg-muted border-2 border-border rounded-xl pl-10 pr-3 py-2.5 text-sm font-bold font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-all"
               />
             </div>
 
@@ -647,7 +647,7 @@ export default function SavedScriptsContent() {
             <select
               value={platformFilter}
               onChange={(e) => setPlatformFilter(e.target.value)}
-              className="bg-muted border border-border rounded-xl px-3 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              className="bg-muted border-2 border-border rounded-xl px-3 py-2.5 text-sm font-bold font-sans text-foreground focus:outline-none focus:border-primary/50 transition-all"
             >
               {PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}
             </select>
@@ -656,7 +656,7 @@ export default function SavedScriptsContent() {
             <select
               value={nicheFilter}
               onChange={(e) => setNicheFilter(e.target.value)}
-              className="bg-muted border border-border rounded-xl px-3 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              className="bg-muted border-2 border-border rounded-xl px-3 py-2.5 text-sm font-bold font-sans text-foreground focus:outline-none focus:border-primary/50 transition-all"
             >
               {NICHES.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
@@ -665,13 +665,13 @@ export default function SavedScriptsContent() {
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="bg-muted border border-border rounded-xl px-3 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+              className="bg-muted border-2 border-border rounded-xl px-3 py-2.5 text-sm font-bold font-sans text-foreground focus:outline-none focus:border-primary/50 transition-all"
             >
               {DATE_RANGES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
 
             {/* Sort */}
-            <div className="flex items-center gap-1 bg-muted border border-border rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-muted border-2 border-border rounded-xl p-1">
               {[{ label: 'Date', value: 'date' as const }, { label: 'Score', value: 'score' as const }].map((opt) => (
                 <button
                   key={opt.value}

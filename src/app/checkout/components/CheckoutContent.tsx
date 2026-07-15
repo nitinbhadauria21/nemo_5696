@@ -113,21 +113,21 @@ export default function CheckoutContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-background/90 backdrop-blur border-b border-border px-6 py-3">
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link
               href="/settings-developer-tools"
-              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm font-sans"
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm font-bold font-sans"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={17} />
               Back to Settings
             </Link>
-            <div className="w-px h-4 bg-border" />
-            <span className="text-sm font-display font-bold text-foreground">Checkout</span>
+            <div className="w-px h-5 bg-border" />
+            <span className="text-base font-display font-extrabold text-foreground">Checkout</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground font-sans">
-            <Lock size={12} className="text-accent" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground font-sans font-medium">
+            <Lock size={14} className="text-accent" />
             <span>Secured by 256-bit SSL</span>
           </div>
         </div>
@@ -136,8 +136,8 @@ export default function CheckoutContent() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {/* Page title */}
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-foreground mb-1">Complete Your Purchase</h1>
-          <p className="text-sm text-muted-foreground font-sans">You're one step away from unlocking the full power of NEMO.</p>
+          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-foreground mb-2">Complete Your Purchase</h1>
+          <p className="text-base text-muted-foreground font-sans font-medium">You&apos;re one step away from unlocking the full power of NEMO.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -145,44 +145,44 @@ export default function CheckoutContent() {
           <div className="lg:col-span-3 space-y-5">
 
             {/* Billing Toggle */}
-            <div className="card-surface p-5">
-              <h2 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-4">Billing Cycle</h2>
+            <div className="bg-card border-2 border-border rounded-2xl p-5">
+              <h2 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Billing Cycle</h2>
               <div className="flex items-center gap-3">
-                <div className="flex bg-muted rounded-xl p-1 gap-1 flex-1">
+                <div className="flex bg-muted rounded-xl p-1 gap-1 flex-1 border border-border">
                   <button
                     onClick={() => setBilling('monthly')}
-                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-sans font-medium transition-all duration-200 ${
-                      billing === 'monthly' ?'bg-card text-foreground shadow-sm border border-border' :'text-muted-foreground hover:text-foreground'
+                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold font-sans transition-all duration-200 ${
+                      billing === 'monthly' ?'bg-card text-foreground shadow-card border border-border' :'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     Monthly
                   </button>
                   <button
                     onClick={() => setBilling('annual')}
-                    className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-sans font-medium transition-all duration-200 relative ${
-                      billing === 'annual' ?'bg-card text-foreground shadow-sm border border-border' :'text-muted-foreground hover:text-foreground'
+                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold font-sans transition-all duration-200 relative ${
+                      billing === 'annual' ?'bg-card text-foreground shadow-card border border-border' :'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     Annual
-                    <span className="ml-2 text-xs font-mono-custom bg-accent/15 text-accent px-1.5 py-0.5 rounded-full">
+                    <span className="ml-2 text-xs font-mono-custom font-bold bg-accent/15 text-accent px-1.5 py-0.5 rounded-full">
                       Save 25%
                     </span>
                   </button>
                 </div>
               </div>
               {billing === 'annual' && (
-                <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/8 border border-accent/20">
-                  <Zap size={14} className="text-accent flex-shrink-0" />
-                  <p className="text-xs font-sans text-accent">
-                    You save <span className="font-bold">{formatPrice(annualSavings)}</span> per year with annual billing
+                <div className="mt-3 flex items-center gap-2 px-4 py-3 rounded-xl bg-accent/8 border border-accent/20">
+                  <Zap size={15} className="text-accent flex-shrink-0" />
+                  <p className="text-sm font-bold font-sans text-accent">
+                    You save <span className="font-extrabold">{formatPrice(annualSavings)}</span> per year with annual billing
                   </p>
                 </div>
               )}
             </div>
 
             {/* Payment Method Tabs */}
-            <div className="card-surface p-5">
-              <h2 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-4">Payment Method</h2>
+            <div className="bg-card border-2 border-border rounded-2xl p-5">
+              <h2 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Payment Method</h2>
 
               {/* Tabs */}
               <div className="flex gap-2 mb-5">
@@ -194,7 +194,7 @@ export default function CheckoutContent() {
                   <button
                     key={id}
                     onClick={() => setPaymentMethod(id)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-sm font-sans font-medium transition-all duration-150 ${
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl border-2 text-sm font-bold font-sans transition-all duration-150 ${
                       paymentMethod === id
                         ? 'border-primary bg-primary/8 text-primary' :'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground'
                     }`}
@@ -334,7 +334,7 @@ export default function CheckoutContent() {
             </div>
 
             {/* Coupon Code */}
-            <div className="card-surface p-5">
+            <div className="bg-card border-2 border-border rounded-2xl p-5">
               <h2 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-3">Promo Code</h2>
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -371,7 +371,7 @@ export default function CheckoutContent() {
           {/* RIGHT: Order Summary */}
           <div className="lg:col-span-2 space-y-4">
             {/* Plan Card */}
-            <div className="card-surface p-5 border-primary/20">
+            <div className="bg-card border-2 border-border rounded-2xl p-5 border-primary/20">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -415,7 +415,7 @@ export default function CheckoutContent() {
             </div>
 
             {/* Price Breakdown */}
-            <div className="card-surface p-5">
+            <div className="bg-card border-2 border-border rounded-2xl p-5">
               <h2 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-4">Order Summary</h2>
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm font-sans">

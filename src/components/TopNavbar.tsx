@@ -6,8 +6,6 @@ import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import { MOCK_TRENDS } from '@/lib/mockData';
 
-// ─── Mock Notifications ───────────────────────────────────────────────────────
-
 interface Notification {
   id: string;
   title: string;
@@ -25,15 +23,11 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   { id: '5', title: 'Weekly Report Ready', message: 'Your analytics report for this week is ready', time: '1d ago', read: true, type: 'system' },
 ];
 
-// ─── User Menu Items ──────────────────────────────────────────────────────────
-
 const USER_MENU_ITEMS = [
   { label: 'Profile', icon: 'UserCircleIcon', href: '/settings-developer-tools' },
   { label: 'Settings', icon: 'Cog6ToothIcon', href: '/settings-developer-tools' },
   { label: 'Upgrade', icon: 'SparklesIcon', href: '/pricing', highlight: true },
 ];
-
-// ─── Notification Icon Helper ─────────────────────────────────────────────────
 
 function notifIcon(type: Notification['type']): string {
   if (type === 'trend') return 'FireIcon';
@@ -42,34 +36,24 @@ function notifIcon(type: Notification['type']): string {
 }
 
 function notifColor(type: Notification['type']): string {
-  if (type === 'trend') return 'text-orange-400';
-  if (type === 'upgrade') return 'text-amber-400';
-  return 'text-blue-400';
+  if (type === 'trend') return 'text-orange-500';
+  if (type === 'upgrade') return 'text-amber-500';
+  return 'text-blue-500';
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function TopNavbar() {
   const router = useRouter();
-
-  // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-
-  // Notification state
   const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
-
-  // User menu state
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Derived
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Live search results
   const searchResults = searchQuery.trim().length >= 2
     ? MOCK_TRENDS.filter((t) =>
         t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -78,26 +62,17 @@ export default function TopNavbar() {
       ).slice(0, 6)
     : [];
 
-  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSearchOpen(false);
-      }
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
-        setNotifOpen(false);
-      }
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
-        setUserMenuOpen(false);
-      }
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setUserMenuOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
+  const markAllRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
 
   const handleSearchSelect = (href: string) => {
     setSearchQuery('');
@@ -106,14 +81,14 @@ export default function TopNavbar() {
   };
 
   return (
-    <div className="sticky top-0 z-30 bg-background/90 backdrop-blur border-b border-border px-4 py-2.5 flex items-center gap-3">
+    <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center gap-4" style={{ boxShadow: '0 1px 0 var(--border), 0 4px 16px rgba(0,0,0,0.04)' }}>
       {/* ── Global Search ── */}
-      <div ref={searchRef} className="relative flex-1 max-w-xl">
+      <div ref={searchRef} className="relative flex-1 max-w-2xl">
         <div className="relative">
           <Icon
             name="MagnifyingGlassIcon"
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+            size={17}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
           />
           <input
             type="text"
@@ -121,25 +96,25 @@ export default function TopNavbar() {
             onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
             onFocus={() => setSearchOpen(true)}
             placeholder="Search trends, scripts, niches…"
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground text-sm font-sans focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition-all"
+            className="w-full pl-10 pr-10 py-2.5 rounded-2xl bg-card border-2 border-border text-foreground placeholder:text-muted-foreground text-sm font-sans font-medium focus:outline-none focus:border-primary/50 focus:ring-0 transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => { setSearchQuery(''); setSearchOpen(false); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Icon name="XMarkIcon" size={14} />
+              <Icon name="XMarkIcon" size={15} />
             </button>
           )}
         </div>
 
         {/* Live Dropdown */}
-        {searchOpen && (searchQuery.trim().length >= 2) && (
-          <div className="absolute top-full left-0 right-0 mt-1.5 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50">
+        {searchOpen && searchQuery.trim().length >= 2 && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-card border-2 border-border rounded-2xl shadow-nav overflow-hidden z-50 animate-scale-in">
             {searchResults.length > 0 ? (
               <>
-                <div className="px-3 py-2 border-b border-border">
-                  <p className="text-xs text-muted-foreground font-mono-custom uppercase tracking-wide">
+                <div className="px-4 py-2.5 border-b border-border bg-muted/40">
+                  <p className="font-mono-custom text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
                   </p>
                 </div>
@@ -148,18 +123,18 @@ export default function TopNavbar() {
                     <li key={trend.id}>
                       <button
                         onClick={() => handleSearchSelect(`/trend-detail?id=${trend.id}`)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors text-left"
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left"
                       >
-                        <div className="w-7 h-7 rounded-lg flame-gradient flex items-center justify-center flex-shrink-0">
-                          <Icon name="FireIcon" size={13} className="text-white" />
+                        <div className="w-8 h-8 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
+                          <Icon name="FireIcon" size={14} className="text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate font-sans">{trend.title}</p>
+                          <p className="text-sm font-bold text-foreground truncate font-sans">{trend.title}</p>
                           <p className="text-xs text-muted-foreground font-mono-custom">{trend.category} · Score {trend.nemoScore}</p>
                         </div>
-                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                          trend.status === 'hot' ? 'bg-red-500/15 text-red-400' :
-                          trend.status === 'rising'? 'bg-orange-500/15 text-orange-400' : 'bg-muted text-muted-foreground'
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                          trend.status === 'hot' ? 'bg-red-500/12 text-red-500' :
+                          trend.status === 'rising' ? 'bg-orange-500/12 text-orange-500' : 'bg-muted text-muted-foreground'
                         }`}>
                           {trend.status.toUpperCase()}
                         </span>
@@ -167,19 +142,20 @@ export default function TopNavbar() {
                     </li>
                   ))}
                 </ul>
-                <div className="px-3 py-2 border-t border-border">
+                <div className="px-4 py-2.5 border-t border-border bg-muted/20">
                   <button
-                    onClick={() => handleSearchSelect(`/explore`)}
-                    className="text-xs text-primary hover:underline font-sans"
+                    onClick={() => handleSearchSelect('/explore')}
+                    className="text-sm font-semibold text-primary hover:underline font-sans"
                   >
                     View all results in Explore →
                   </button>
                 </div>
               </>
             ) : (
-              <div className="px-4 py-6 text-center">
-                <Icon name="MagnifyingGlassIcon" size={24} className="text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground font-sans">No results for &quot;{searchQuery}&quot;</p>
+              <div className="px-4 py-8 text-center">
+                <Icon name="MagnifyingGlassIcon" size={28} className="text-muted-foreground mx-auto mb-3" />
+                <p className="text-base font-semibold text-foreground font-sans mb-1">No results found</p>
+                <p className="text-sm text-muted-foreground font-sans">Try different keywords</p>
               </div>
             )}
           </div>
@@ -187,13 +163,13 @@ export default function TopNavbar() {
       </div>
 
       {/* ── Right Actions ── */}
-      <div className="flex items-center gap-1.5 ml-auto">
+      <div className="flex items-center gap-2 ml-auto flex-shrink-0">
 
         {/* Notification Bell */}
         <div ref={notifRef} className="relative">
           <button
             onClick={() => { setNotifOpen((v) => !v); setUserMenuOpen(false); }}
-            className="relative w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+            className="relative w-10 h-10 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all border border-transparent hover:border-border"
             aria-label="Notifications"
           >
             <Icon name="BellIcon" size={20} />
@@ -204,61 +180,51 @@ export default function TopNavbar() {
             )}
           </button>
 
-          {/* Notification Dropdown */}
           {notifOpen && (
-            <div className="absolute top-full right-0 mt-1.5 w-80 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-foreground font-sans">Notifications</h3>
+            <div className="absolute top-full right-0 mt-2 w-[340px] bg-card border-2 border-border rounded-2xl shadow-nav overflow-hidden z-50 animate-scale-in">
+              <div className="flex items-center justify-between px-4 py-3.5 border-b border-border">
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-base font-bold text-foreground font-sans">Notifications</h3>
                   {unreadCount > 0 && (
-                    <span className="text-xs bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded-full font-bold">
+                    <span className="text-xs bg-red-500/12 text-red-500 px-2 py-0.5 rounded-full font-bold font-mono-custom">
                       {unreadCount} new
                     </span>
                   )}
                 </div>
                 {unreadCount > 0 && (
-                  <button
-                    onClick={markAllRead}
-                    className="text-xs text-primary hover:underline font-sans"
-                  >
+                  <button onClick={markAllRead} className="text-sm font-semibold text-primary hover:underline font-sans">
                     Mark all read
                   </button>
                 )}
               </div>
 
-              <ul className="max-h-72 overflow-y-auto">
+              <ul className="max-h-80 overflow-y-auto">
                 {notifications.map((notif) => (
                   <li key={notif.id}>
-                    <div className={`flex items-start gap-3 px-4 py-3 hover:bg-muted/40 transition-colors cursor-pointer ${!notif.read ? 'bg-primary/5' : ''}`}>
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        notif.type === 'trend' ? 'bg-orange-500/15' :
-                        notif.type === 'upgrade'? 'bg-amber-500/15' : 'bg-blue-500/15'
+                    <div className={`flex items-start gap-3 px-4 py-3.5 hover:bg-muted/40 transition-colors cursor-pointer border-b border-border/50 last:border-0 ${!notif.read ? 'bg-primary/4' : ''}`}>
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                        notif.type === 'trend' ? 'bg-orange-500/12' :
+                        notif.type === 'upgrade' ? 'bg-amber-500/12' : 'bg-blue-500/12'
                       }`}>
-                        <Icon name={notifIcon(notif.type) as any} size={15} className={notifColor(notif.type)} />
+                        <Icon name={notifIcon(notif.type) as any} size={16} className={notifColor(notif.type)} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <p className={`text-xs font-semibold font-sans truncate ${!notif.read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          <p className={`text-sm font-bold font-sans truncate ${!notif.read ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {notif.title}
                           </p>
-                          {!notif.read && (
-                            <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                          )}
+                          {!notif.read && <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />}
                         </div>
-                        <p className="text-xs text-muted-foreground font-sans mt-0.5 line-clamp-2">{notif.message}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono-custom mt-1">{notif.time}</p>
+                        <p className="text-sm text-muted-foreground font-sans mt-0.5 line-clamp-2">{notif.message}</p>
+                        <p className="text-xs text-muted-foreground font-mono-custom mt-1">{notif.time}</p>
                       </div>
                     </div>
                   </li>
                 ))}
               </ul>
 
-              <div className="px-4 py-2.5 border-t border-border">
-                <Link
-                  href="/settings-developer-tools"
-                  onClick={() => setNotifOpen(false)}
-                  className="text-xs text-primary hover:underline font-sans"
-                >
+              <div className="px-4 py-3 border-t border-border bg-muted/20">
+                <Link href="/settings-developer-tools" onClick={() => setNotifOpen(false)} className="text-sm font-semibold text-primary hover:underline font-sans">
                   Notification settings →
                 </Link>
               </div>
@@ -270,51 +236,47 @@ export default function TopNavbar() {
         <div ref={userMenuRef} className="relative">
           <button
             onClick={() => { setUserMenuOpen((v) => !v); setNotifOpen(false); }}
-            className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-muted/60 transition-all"
+            className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl hover:bg-muted/60 transition-all border border-transparent hover:border-border"
             aria-label="User menu"
           >
             <div className="w-8 h-8 rounded-full flame-gradient flex items-center justify-center flex-shrink-0">
               <span className="text-white text-sm font-display font-bold">N</span>
             </div>
             <div className="hidden sm:block text-left">
-              <p className="text-xs font-semibold text-foreground font-sans leading-tight">Nitin Sharma</p>
-              <p className="text-[10px] text-muted-foreground font-mono-custom leading-tight">Pro Plan</p>
+              <p className="text-sm font-bold text-foreground font-sans leading-tight">Nitin Sharma</p>
+              <p className="text-xs text-muted-foreground font-mono-custom leading-tight">Pro Plan</p>
             </div>
             <Icon name="ChevronDownIcon" size={14} className={`text-muted-foreground transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
           </button>
 
-          {/* User Dropdown */}
           {userMenuOpen && (
-            <div className="absolute top-full right-0 mt-1.5 w-52 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-50">
-              {/* User info header */}
-              <div className="px-4 py-3 border-b border-border">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full flame-gradient flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-sm font-display font-bold">N</span>
+            <div className="absolute top-full right-0 mt-2 w-56 bg-card border-2 border-border rounded-2xl shadow-nav overflow-hidden z-50 animate-scale-in">
+              <div className="px-4 py-3.5 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flame-gradient flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-base font-display font-bold">N</span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground font-sans truncate">Nitin Sharma</p>
+                    <p className="text-sm font-bold text-foreground font-sans truncate">Nitin Sharma</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold leading-none">Pro</span>
-                      <span className="text-[10px] text-muted-foreground font-mono-custom">20/∞ used</span>
+                      <span className="text-xs text-muted-foreground font-mono-custom">20/∞ used</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Menu items */}
-              <ul className="py-1">
+              <ul className="py-1.5">
                 {USER_MENU_ITEMS.map((item) => (
                   <li key={item.label}>
                     <Link
                       href={item.href}
                       onClick={() => setUserMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-2.5 text-sm font-sans transition-colors ${
-                        item.highlight
-                          ? 'text-amber-500 hover:bg-amber-500/10' :'text-foreground hover:bg-muted/50'
+                      className={`flex items-center gap-3 px-4 py-2.5 text-sm font-semibold font-sans transition-colors ${
+                        item.highlight ? 'text-amber-500 hover:bg-amber-500/10' : 'text-foreground hover:bg-muted/50'
                       }`}
                     >
-                      <Icon name={item.icon as any} size={16} className={item.highlight ? 'text-amber-500' : 'text-muted-foreground'} />
+                      <Icon name={item.icon as any} size={17} className={item.highlight ? 'text-amber-500' : 'text-muted-foreground'} />
                       {item.label}
                       {item.highlight && (
                         <span className="ml-auto text-[10px] bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold">HOT</span>
@@ -324,14 +286,13 @@ export default function TopNavbar() {
                 ))}
               </ul>
 
-              {/* Divider + Log Out */}
-              <div className="border-t border-border py-1">
+              <div className="border-t border-border py-1.5">
                 <Link
                   href="/sign-up-login-screen"
                   onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 font-sans transition-colors"
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-500/10 font-sans transition-colors"
                 >
-                  <Icon name="ArrowRightOnRectangleIcon" size={16} className="text-red-400" />
+                  <Icon name="ArrowRightOnRectangleIcon" size={17} className="text-red-500" />
                   Log Out
                 </Link>
               </div>

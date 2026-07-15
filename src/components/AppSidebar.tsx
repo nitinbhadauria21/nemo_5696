@@ -13,19 +13,27 @@ interface NavItem {
   href: string;
   icon: string;
   badge?: string | number;
+  group?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/', icon: 'HomeIcon' },
-  { label: 'Explore', href: '/explore', icon: 'MagnifyingGlassIcon' },
-  { label: 'Trend Detail', href: '/trend-detail', icon: 'FireIcon' },
-  { label: 'Content Queue', href: '/queue', icon: 'QueueListIcon' },
-  { label: 'Reports', href: '/reports', icon: 'ChartBarIcon' },
-  { label: 'Analytics', href: '/analytics', icon: 'PresentationChartLineIcon' },
-  { label: 'Viral Script Writer', href: '/viral-script-writer', icon: 'PencilSquareIcon' },
-  { label: 'Saved Scripts', href: '/saved-scripts', icon: 'ArchiveBoxIcon' },
-  { label: 'Settings', href: '/settings-developer-tools', icon: 'Cog6ToothIcon' },
-  { label: 'Pricing', href: '/pricing', icon: 'CreditCardIcon' },
+  { label: 'Dashboard', href: '/', icon: 'HomeIcon', group: 'main' },
+  { label: 'Explore', href: '/explore', icon: 'MagnifyingGlassIcon', group: 'main' },
+  { label: 'Trend Detail', href: '/trend-detail', icon: 'FireIcon', group: 'main' },
+  { label: 'Content Queue', href: '/queue', icon: 'QueueListIcon', group: 'create' },
+  { label: 'Viral Script Writer', href: '/viral-script-writer', icon: 'PencilSquareIcon', group: 'create' },
+  { label: 'Saved Scripts', href: '/saved-scripts', icon: 'ArchiveBoxIcon', group: 'create' },
+  { label: 'Analytics', href: '/analytics', icon: 'PresentationChartLineIcon', group: 'insights' },
+  { label: 'Reports', href: '/reports', icon: 'ChartBarIcon', group: 'insights' },
+  { label: 'Pricing', href: '/pricing', icon: 'CreditCardIcon', group: 'account' },
+  { label: 'Settings', href: '/settings-developer-tools', icon: 'Cog6ToothIcon', group: 'account' },
+];
+
+const NAV_GROUPS = [
+  { id: 'main', label: 'Discover' },
+  { id: 'create', label: 'Create' },
+  { id: 'insights', label: 'Insights' },
+  { id: 'account', label: 'Account' },
 ];
 
 interface AppSidebarProps {
@@ -49,89 +57,117 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
   return (
     <aside
       className={`fixed left-0 top-0 h-full z-40 flex flex-col sidebar-transition overflow-hidden ${
-        collapsed ? 'w-16' : 'w-60'
-      } flame-gradient border-r border-transparent`}
+        collapsed ? 'w-[68px]' : 'w-64'
+      } flame-gradient border-r border-white/10`}
+      style={{ boxShadow: '4px 0 32px rgba(0,0,0,0.18)' }}
     >
       {/* Logo */}
-      <div className={`flex items-center gap-3 px-4 py-5 border-b border-white/20 min-h-[68px] ${collapsed ? 'justify-center px-0' : ''}`}>
-        <div className="flex items-center gap-2 min-w-0">
-          {collapsed ? (
-            /* Collapsed: always use the orange gradient N icon */
-            <AppLogo size={36} src="/assets/images/3-1784112678359.png" />
-          ) : (
-            /* Expanded: white wordmark for gradient sidebar */
+      <div className={`flex items-center gap-3 px-4 py-5 border-b border-white/15 min-h-[72px] ${collapsed ? 'justify-center px-0' : ''}`}>
+        {collapsed ? (
+          <AppLogo size={38} src="/assets/images/3-1784112678359.png" />
+        ) : (
+          <div className="flex items-center gap-2.5 min-w-0">
             <AppImage
               src="/assets/images/Nemo_Logo_in_LD___1_-1784112484010.png"
               alt="Nemo Wordmark"
-              width={160}
-              height={48}
+              width={148}
+              height={44}
               className="flex-shrink-0 object-contain"
               priority={true}
             />
-          )}
-        </div>
+            <span className="text-[10px] font-mono-custom font-bold bg-white/20 text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider flex-shrink-0">
+              Beta
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-4 overflow-y-auto scrollbar-thin">
-        <div className={`px-2 mb-2 ${collapsed ? 'px-1' : ''}`}>
+      <nav className="flex-1 py-3 overflow-y-auto scrollbar-thin">
+        {NAV_GROUPS.map((group) => {
+          const groupItems = NAV_ITEMS.filter((item) => item.group === group.id);
+          return (
+            <div key={group.id} className={`mb-1 ${collapsed ? 'px-1' : 'px-3'}`}>
+              {!collapsed && (
+                <p className="font-mono-custom text-[10px] font-600 uppercase tracking-[0.12em] text-white/45 px-2 mb-1.5 mt-3">
+                  {group.label}
+                </p>
+              )}
+              {collapsed && <div className="my-2 border-t border-white/10" />}
+              <ul className="space-y-0.5">
+                {groupItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <li key={`nav-${item.href}`}>
+                      <Link
+                        href={item.href}
+                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative ${
+                          isActive
+                            ? 'bg-white/22 text-white nav-active-glow' :'text-white/65 hover:text-white hover:bg-white/12'
+                        } ${collapsed ? 'justify-center px-0 mx-0.5' : ''}`}
+                        title={collapsed ? item.label : undefined}
+                      >
+                        {isActive && (
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full bg-white/80" />
+                        )}
+                        <Icon
+                          name={item.icon as any}
+                          size={20}
+                          variant={isActive ? 'solid' : 'outline'}
+                          className={isActive ? 'text-white' : 'text-white/70 group-hover:text-white transition-colors'}
+                        />
+                        {!collapsed && (
+                          <span className="font-sans text-[0.9rem] font-600 truncate leading-none">
+                            {item.label}
+                          </span>
+                        )}
+                        {!collapsed && item.badge && (
+                          <span className="ml-auto text-[10px] font-mono-custom font-bold bg-white/20 text-white px-1.5 py-0.5 rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                        {collapsed && (
+                          <span className="absolute left-full ml-3 px-3 py-1.5 bg-card border border-border text-foreground text-sm font-sans font-semibold rounded-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all whitespace-nowrap z-50 shadow-nav">
+                            {item.label}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
+
+        {/* AI Chat nav item */}
+        <div className={`mt-1 mb-1 ${collapsed ? 'px-1' : 'px-3'}`}>
           {!collapsed && (
-            <p className="text-xs font-mono-custom uppercase tracking-widest text-white/60 px-3 mb-3">
-              Navigation
+            <p className="font-mono-custom text-[10px] font-600 uppercase tracking-[0.12em] text-white/45 px-2 mb-1.5 mt-3">
+              AI Tools
             </p>
           )}
-          <ul className="space-y-1">
-            {NAV_ITEMS.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <li key={`nav-${item.href}`}>
-                  <Link
-                    href={item.href}
-                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 relative ${
-                      isActive
-                        ? 'bg-white/25 text-white' :'text-white/70 hover:text-white hover:bg-white/15'
-                    } ${collapsed ? 'justify-center px-0 mx-1' : ''}`}
-                    title={collapsed ? item.label : undefined}
-                  >
-                    <Icon
-                      name={item.icon as any}
-                      size={22}
-                      variant={isActive ? 'solid' : 'outline'}
-                      className={isActive ? 'text-white' : ''}
-                    />
-                    {!collapsed && (
-                      <span className="font-sans text-base font-medium truncate">{item.label}</span>
-                    )}
-                    {!collapsed && item.badge && (
-                      <span className="ml-auto text-xs font-mono-custom bg-white/20 text-white px-1.5 py-0.5 rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
-                    {collapsed && (
-                      <span className="absolute left-full ml-2 px-2 py-1 bg-card border border-border text-foreground text-xs rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-card">
-                        {item.label}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-
-            {/* AI Chat nav item */}
-            <li key="nav-ai-chat">
+          {collapsed && <div className="my-2 border-t border-white/10" />}
+          <ul className="space-y-0.5">
+            <li>
               <button
                 onClick={onOpenChat}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 relative w-full text-white/70 hover:text-white hover:bg-white/15 ${
-                  collapsed ? 'justify-center px-0 mx-1' : ''
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative w-full text-white/65 hover:text-white hover:bg-white/12 ${
+                  collapsed ? 'justify-center px-0 mx-0.5' : ''
                 }`}
                 title={collapsed ? 'AI Chat' : undefined}
               >
-                <Icon name="ChatBubbleLeftRightIcon" size={22} variant="outline" />
+                <Icon name="ChatBubbleLeftRightIcon" size={20} variant="outline" className="text-white/70 group-hover:text-white transition-colors" />
                 {!collapsed && (
-                  <span className="font-sans text-base font-medium truncate">AI Chat</span>
+                  <span className="font-sans text-[0.9rem] font-600 truncate leading-none">AI Chat</span>
+                )}
+                {!collapsed && (
+                  <span className="ml-auto text-[10px] font-mono-custom font-bold bg-accent/30 text-white px-1.5 py-0.5 rounded-full">
+                    NEW
+                  </span>
                 )}
                 {collapsed && (
-                  <span className="absolute left-full ml-2 px-2 py-1 bg-card border border-border text-foreground text-xs rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-card">
+                  <span className="absolute left-full ml-3 px-3 py-1.5 bg-card border border-border text-foreground text-sm font-sans font-semibold rounded-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all whitespace-nowrap z-50 shadow-nav">
                     AI Chat
                   </span>
                 )}
@@ -141,12 +177,11 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
         </div>
       </nav>
 
-      {/* Bottom: theme + collapse */}
-      <div className="border-t border-white/20 p-3 space-y-2">
+      {/* Bottom: theme + user + collapse */}
+      <div className="border-t border-white/15 p-3 space-y-2">
 
         {/* Theme Toggle */}
         {collapsed ? (
-          /* Collapsed: cycle through modes on click */
           <div className="relative group">
             <button
               onClick={() => {
@@ -154,7 +189,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
                 const next = THEME_OPTIONS[(idx + 1) % THEME_OPTIONS.length];
                 setMode(next.mode);
               }}
-              className="flex items-center justify-center w-full py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/15 transition-all duration-150"
+              className="flex items-center justify-center w-full py-2.5 rounded-xl text-white/65 hover:text-white hover:bg-white/12 transition-all duration-200"
               title={`Theme: ${mode}`}
               suppressHydrationWarning
             >
@@ -163,17 +198,16 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
                 size={18}
               />
             </button>
-            <span className="absolute left-full ml-2 px-2 py-1 bg-card border border-border text-foreground text-xs rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-card capitalize">
+            <span className="absolute left-full ml-3 px-3 py-1.5 bg-card border border-border text-foreground text-sm font-sans font-semibold rounded-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all whitespace-nowrap z-50 shadow-nav capitalize">
               {mode} mode
             </span>
           </div>
         ) : (
-          /* Expanded: 3-button pill switcher */
           <div>
-            <p className="text-xs font-mono-custom uppercase tracking-widest text-white/60 px-1 mb-1.5">
+            <p className="font-mono-custom text-[10px] font-600 uppercase tracking-[0.12em] text-white/45 px-1 mb-2">
               Theme
             </p>
-            <div className="flex items-center gap-1 bg-white/15 rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-white/12 rounded-xl p-1">
               {THEME_OPTIONS.map((opt) => {
                 const isActive = mode === opt.mode;
                 return (
@@ -182,13 +216,13 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
                     onClick={() => setMode(opt.mode)}
                     title={`${opt.label} mode`}
                     suppressHydrationWarning
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                       isActive
-                        ? 'bg-white/30 text-white shadow-card'
-                        : 'text-white/60 hover:text-white'
+                        ? 'bg-white/28 text-white shadow-sm'
+                        : 'text-white/55 hover:text-white'
                     }`}
                   >
-                    <Icon name={opt.icon as any} size={14} />
+                    <Icon name={opt.icon as any} size={13} />
                     <span>{opt.label}</span>
                   </button>
                 );
@@ -197,57 +231,59 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
           </div>
         )}
 
+        {/* Collapse button */}
         <button
           onClick={onToggle}
-          className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/15 transition-all duration-150 ${
+          className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/65 hover:text-white hover:bg-white/12 transition-all duration-200 ${
             collapsed ? 'justify-center px-0' : ''
           }`}
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <Icon
             name={collapsed ? 'ChevronDoubleRightIcon' : 'ChevronDoubleLeftIcon'}
-            size={18}
+            size={17}
           />
-          {!collapsed && <span className="text-sm font-medium">Collapse</span>}
+          {!collapsed && <span className="text-sm font-semibold">Collapse</span>}
         </button>
 
+        {/* User profile */}
         <Link
           href="/sign-up-login-screen"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/15 transition-all duration-150 ${
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/65 hover:text-white hover:bg-white/12 transition-all duration-200 ${
             collapsed ? 'justify-center px-0' : ''
           }`}
           title={collapsed ? 'Account' : undefined}
         >
-          <div className="w-7 h-7 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-display font-bold">N</span>
+          <div className="w-8 h-8 rounded-full bg-white/25 flex items-center justify-center flex-shrink-0 border border-white/30">
+            <span className="text-white text-sm font-display font-bold">N</span>
           </div>
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <p className="text-sm font-medium text-white truncate">Nitin Sharma</p>
-                <span className="text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">Pro</span>
+                <p className="text-sm font-bold text-white truncate">Nitin Sharma</p>
+                <span className="text-[10px] bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">Pro</span>
               </div>
-              <p className="text-xs text-white/60 truncate">20/∞ trends used</p>
+              <p className="text-xs text-white/55 truncate font-mono-custom">20/∞ trends used</p>
             </div>
           )}
         </Link>
 
-        {/* Upgrade CTA — only show for free users, hidden when collapsed */}
+        {/* Upgrade CTA */}
         {!collapsed && (
           <Link
             href="/pricing"
-            className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-all"
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/18 hover:bg-white/28 text-white text-sm font-bold transition-all duration-200 border border-white/20"
           >
-            <Icon name="SparklesIcon" size={13} />
+            <Icon name="SparklesIcon" size={14} />
             Upgrade Plan
           </Link>
         )}
 
         {/* Social connect status */}
         {!collapsed && (
-          <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-green-500/20">
-            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
-            <span className="text-xs text-green-200 font-sans">3 accounts connected</span>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/15 border border-accent/25">
+            <div className="w-2 h-2 rounded-full bg-accent animate-pulse flex-shrink-0" />
+            <span className="text-xs text-white/80 font-sans font-semibold">3 accounts connected</span>
           </div>
         )}
       </div>

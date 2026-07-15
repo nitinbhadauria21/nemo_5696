@@ -43,113 +43,119 @@ const NICHE_DATA = [
 ];
 
 const PLATFORM_COLORS: Record<string, string> = {
-  YouTube: 'bg-red-100 text-red-700',
-  Instagram: 'bg-pink-100 text-pink-700',
-  TikTok: 'bg-gray-100 text-gray-700',
-  LinkedIn: 'bg-blue-100 text-blue-700',
+  YouTube: 'bg-red-500/10 text-red-600 border border-red-500/20',
+  Instagram: 'bg-pink-500/10 text-pink-600 border border-pink-500/20',
+  TikTok: 'bg-slate-500/10 text-slate-600 border border-slate-500/20',
+  LinkedIn: 'bg-blue-500/10 text-blue-600 border border-blue-500/20',
 };
 
 export default function ReportsContent() {
-  const [isPro] = useState(false); // Simulate free user for gating demo
+  const [isPro] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
-        <div>
-          <h1 className="font-display text-xl font-bold text-foreground">Reports</h1>
-          <p className="text-xs text-muted-foreground font-sans">Trend timing analysis · Week of Jul 14, 2026</p>
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">Reports</h1>
+            <p className="text-sm text-muted-foreground font-sans mt-0.5">Trend timing analysis · Week of Jul 14, 2026</p>
+          </div>
         </div>
         <div className="relative">
           <button
             disabled={!isPro}
-            onClick={() => {}}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
               isPro
-                ? 'bg-primary text-white hover:bg-primary/90' :'bg-muted text-muted-foreground cursor-not-allowed'
+                ? 'bg-primary text-white hover:bg-primary/90' :'bg-muted text-muted-foreground cursor-not-allowed border-2 border-border'
             }`}
             title={!isPro ? 'Pro feature — upgrade to download PDF' : 'Download PDF Report'}
           >
-            {!isPro && <LockClosedIcon className="w-3.5 h-3.5" />}
+            {!isPro && <LockClosedIcon className="w-4 h-4" />}
             <ArrowDownTrayIcon className="w-4 h-4" />
-            <span className="hidden sm:inline">Download PDF</span>
+            <span className="hidden sm:inline font-bold">Download PDF</span>
             {!isPro && <span className="text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold ml-1">Pro</span>}
           </button>
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 py-5 max-w-screen-xl mx-auto space-y-6">
+      <div className="px-4 sm:px-6 py-6 max-w-screen-xl mx-auto space-y-6">
 
         {/* Trend Timing Chart */}
-        <div className="card-surface p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-card border-2 border-border rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="font-sans font-bold text-foreground text-base">Trend Timing Chart</h2>
-              <p className="text-xs text-muted-foreground font-sans">Best hours to post based on trend activity</p>
+              <h2 className="font-display font-bold text-foreground text-xl">Trend Timing Chart</h2>
+              <p className="text-sm text-muted-foreground font-sans mt-0.5">Best hours to post based on trend activity</p>
             </div>
-            <span className="text-xs font-mono-custom bg-primary/10 text-primary px-2.5 py-1 rounded-full font-bold">
+            <span className="font-mono-custom text-sm font-bold bg-primary/10 text-primary px-3 py-1.5 rounded-full">
               Today
             </span>
           </div>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={240}>
             <LineChart data={TREND_TIMING_DATA} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="hour" tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} />
-              <YAxis tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} />
+              <XAxis dataKey="hour" tick={{ fontSize: 12, fill: 'var(--muted-foreground)', fontWeight: 600 }} />
+              <YAxis tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }} />
               <Tooltip
-                contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, fontSize: 12 }}
-                labelStyle={{ color: 'var(--foreground)', fontWeight: 600 }}
+                contentStyle={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: 12, fontSize: 13 }}
+                labelStyle={{ color: 'var(--foreground)', fontWeight: 700 }}
               />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Line type="monotone" dataKey="score" stroke="#FF3D00" strokeWidth={2.5} dot={{ r: 3 }} name="Nemo Score" />
-              <Line type="monotone" dataKey="volume" stroke="#FFB000" strokeWidth={2} dot={false} name="Volume" strokeDasharray="4 2" />
+              <Legend wrapperStyle={{ fontSize: 13, fontWeight: 600 }} />
+              <Line type="monotone" dataKey="score" stroke="#FF4500" strokeWidth={3} dot={{ r: 4 }} name="Nemo Score" />
+              <Line type="monotone" dataKey="volume" stroke="#FFB800" strokeWidth={2.5} dot={false} name="Volume" strokeDasharray="4 2" />
             </LineChart>
           </ResponsiveContainer>
-          <p className="text-xs text-muted-foreground font-sans mt-2 text-center">
+          <p className="text-sm text-muted-foreground font-sans mt-3 text-center font-medium">
             🔥 Peak posting windows: <strong className="text-foreground">12pm – 2pm</strong> and <strong className="text-foreground">6pm – 8pm</strong>
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* Top 10 Trends */}
-          <div className="card-surface p-5">
-            <h2 className="font-sans font-bold text-foreground text-base mb-4">Top 10 Trends This Week</h2>
-            <div className="space-y-2.5">
+          <div className="bg-card border-2 border-border rounded-2xl p-5">
+            <h2 className="font-display font-bold text-foreground text-xl mb-5">Top 10 Trends This Week</h2>
+            <div className="space-y-3">
               {TOP_TRENDS.map((trend) => (
                 <div key={`top-${trend.rank}`} className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                     trend.rank <= 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
                   }`}>
                     {trend.rank}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-sans font-semibold text-foreground truncate">{trend.title}</p>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${PLATFORM_COLORS[trend.platform] || 'bg-muted text-muted-foreground'}`}>
+                    <p className="text-sm font-bold font-sans text-foreground truncate">{trend.title}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${PLATFORM_COLORS[trend.platform] || 'bg-muted text-muted-foreground'}`}>
                         {trend.platform}
                       </span>
-                      <span className="text-xs text-green-600 font-sans font-semibold">{trend.change}</span>
+                      <span className="text-sm text-accent font-bold font-sans">{trend.change}</span>
                     </div>
                   </div>
-                  <span className="text-sm font-mono-custom font-bold text-primary flex-shrink-0">{trend.nemoScore}</span>
+                  <span className="text-lg font-mono-custom font-extrabold text-primary flex-shrink-0">{trend.nemoScore}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Niche Summary Bar Chart */}
-          <div className="card-surface p-5">
-            <h2 className="font-sans font-bold text-foreground text-base mb-4">Niche Performance Summary</h2>
-            <ResponsiveContainer width="100%" height={260}>
+          <div className="bg-card border-2 border-border rounded-2xl p-5">
+            <h2 className="font-display font-bold text-foreground text-xl mb-5">Niche Performance Summary</h2>
+            <ResponsiveContainer width="100%" height={280}>
               <BarChart data={NICHE_DATA} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} />
-                <YAxis dataKey="niche" type="category" tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} width={70} />
+                <XAxis type="number" tick={{ fontSize: 12, fill: 'var(--muted-foreground)', fontWeight: 600 }} />
+                <YAxis dataKey="niche" type="category" tick={{ fontSize: 12, fill: 'var(--muted-foreground)', fontWeight: 600 }} width={75} />
                 <Tooltip
-                  contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, fontSize: 12 }}
+                  contentStyle={{ background: 'var(--card)', border: '2px solid var(--border)', borderRadius: 12, fontSize: 13 }}
                 />
-                <Bar dataKey="trends" fill="#FF3D00" radius={[0, 6, 6, 0]} name="Trends" />
-                <Bar dataKey="avgScore" fill="#FFB000" radius={[0, 6, 6, 0]} name="Avg Score" />
+                <Bar dataKey="trends" fill="#FF4500" radius={[0, 6, 6, 0]} name="Trends" />
+                <Bar dataKey="avgScore" fill="#FFB800" radius={[0, 6, 6, 0]} name="Avg Score" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -157,21 +163,20 @@ export default function ReportsContent() {
 
         {/* PDF Download — Pro gated */}
         {!isPro && (
-          <div className="relative rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-8 text-center overflow-hidden">
+          <div className="relative rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-10 text-center overflow-hidden">
             <div className="absolute inset-0 backdrop-blur-[2px] bg-background/60 flex flex-col items-center justify-center z-10 rounded-2xl">
-              <LockClosedIcon className="w-8 h-8 text-primary mb-3" />
-              <h3 className="font-display text-lg font-bold text-foreground mb-1">PDF Reports — Pro Feature</h3>
-              <p className="text-sm text-muted-foreground font-sans mb-4 max-w-xs">
+              <LockClosedIcon className="w-10 h-10 text-primary mb-4" />
+              <h3 className="font-display text-2xl font-extrabold text-foreground mb-2">PDF Reports — Pro Feature</h3>
+              <p className="text-base text-muted-foreground font-sans mb-5 max-w-xs">
                 Download weekly trend reports as beautifully formatted PDFs. Upgrade to Pro to unlock.
               </p>
               <a
                 href="/pricing"
-                className="px-6 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-all"
+                className="btn-flame px-6 py-3 text-base rounded-xl"
               >
                 Upgrade to Pro — ₹799/mo
               </a>
             </div>
-            {/* Blurred preview */}
             <div className="blur-sm pointer-events-none">
               <div className="h-32 bg-muted rounded-xl" />
             </div>

@@ -840,58 +840,58 @@ Calculate an honest viralScore (0–100).`;
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-background/90 backdrop-blur border-b border-border px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
-            <Icon name="PencilSquareIcon" size={18} className="text-white" />
+          <div className="w-10 h-10 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
+            <Icon name="PencilSquareIcon" size={20} className="text-white" />
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold text-foreground">Viral Script Writer</h1>
-            <p className="text-xs text-muted-foreground font-sans">NemoScript — Perfect Viral Script Formula</p>
+            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">Viral Script Writer</h1>
+            <p className="text-sm text-muted-foreground font-sans mt-0.5">NemoScript — Perfect Viral Script Formula</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-mono-custom text-primary font-bold">
-            <Icon name="SparklesIcon" size={12} variant="solid" />
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm font-mono-custom text-primary font-bold">
+            <Icon name="SparklesIcon" size={14} variant="solid" />
             NemoScript AI
           </div>
         </div>
       </div>
 
-      <div className="px-6 py-5 max-w-screen-xl mx-auto">
+      <div className="px-5 sm:px-6 py-6 max-w-screen-xl mx-auto">
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
 
           {/* ── Left: Input Panel ── */}
           <div className="xl:col-span-2 space-y-5">
 
             {/* Mode Toggle */}
-            <div className="card-surface border border-border rounded-2xl p-1.5 flex gap-1">
+            <div className="bg-card border-2 border-border rounded-2xl p-1.5 flex gap-1">
               <button
                 onClick={() => setMode('create')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-sans font-semibold transition-all duration-200 ${
-                  mode === 'create' ? 'flame-gradient text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold font-sans transition-all duration-200 ${
+                  mode === 'create' ? 'flame-gradient text-white shadow-flame-sm' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Icon name="PlusCircleIcon" size={15} />
+                <Icon name="PlusCircleIcon" size={16} />
                 Create New
               </button>
               <button
                 onClick={() => setMode('refine')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-sans font-semibold transition-all duration-200 ${
-                  mode === 'refine' ? 'flame-gradient text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold font-sans transition-all duration-200 ${
+                  mode === 'refine' ? 'flame-gradient text-white shadow-flame-sm' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Icon name="WrenchScrewdriverIcon" size={15} />
+                <Icon name="WrenchScrewdriverIcon" size={16} />
                 Refine Draft
               </button>
             </div>
 
             {/* ── INPUT A: Core Reel Topic (Create mode) ── */}
             {mode === 'create' && (
-              <div className="card-surface border border-border rounded-2xl p-5 space-y-4">
+              <div className="bg-card border-2 border-border rounded-2xl p-5 space-y-4">
                 <div>
-                  <h2 className="text-xs font-mono-custom uppercase tracking-widest text-[#FF3D00] font-bold mb-0.5">INPUT A — Core Reel Topic / Title</h2>
-                  <p className="text-xs text-muted-foreground font-sans">The Spark — a singular, high-tension concept that creates a curiosity gap</p>
+                  <h2 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-primary mb-1">INPUT A — Core Reel Topic / Title</h2>
+                  <p className="text-sm text-muted-foreground font-sans">The Spark — a singular, high-tension concept that creates a curiosity gap</p>
                 </div>
                 <textarea
                   value={topic}

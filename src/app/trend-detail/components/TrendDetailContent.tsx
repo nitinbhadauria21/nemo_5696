@@ -58,25 +58,24 @@ export default function TrendDetailContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Sticky header */}
-      <div className="sticky top-0 z-30 bg-background/90 backdrop-blur border-b border-border px-6 py-3">
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm font-sans flex-shrink-0"
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm font-bold font-sans flex-shrink-0"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={17} />
               Back
             </Link>
-            <div className="w-px h-4 bg-border" />
+            <div className="w-px h-5 bg-border" />
             <StatusBadge status={TREND.status} size="sm" />
-            <span className="text-xs text-muted-foreground font-sans hidden sm:block">{TREND.category}</span>
-            <h1 className="font-display text-lg font-bold text-foreground truncate hidden md:block">
+            <span className="text-sm text-muted-foreground font-sans font-medium hidden sm:block">{TREND.category}</span>
+            <h1 className="font-display text-lg font-extrabold text-foreground truncate hidden md:block">
               {TREND.title}
             </h1>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Country selector in trend detail header */}
             <CountrySelector
               selectedCountries={selectedCountries}
               onChange={setSelectedCountries}
@@ -87,20 +86,20 @@ export default function TrendDetailContent() {
                 setBookmarked((b) => !b);
                 toast(bookmarked ? 'Bookmark removed' : 'Trend saved');
               }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-border bg-card text-sm font-sans font-medium hover:bg-muted transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-border bg-card text-sm font-bold font-sans hover:bg-muted transition-all"
             >
-              {bookmarked ? <BookmarkCheck size={14} className="text-primary" /> : <Bookmark size={14} />}
+              {bookmarked ? <BookmarkCheck size={15} className="text-primary" /> : <Bookmark size={15} />}
               {bookmarked ? 'Saved' : 'Save'}
             </button>
             <button
               onClick={() => toast('Share link copied!')}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-border bg-card text-sm font-sans font-medium hover:bg-muted transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-border bg-card text-sm font-bold font-sans hover:bg-muted transition-all"
             >
-              <Share2 size={14} />
+              <Share2 size={15} />
               Share
             </button>
-            <button className="btn-flame flex items-center gap-1.5 px-4 py-2 text-sm">
-              <Plus size={14} />
+            <button className="btn-flame flex items-center gap-1.5 px-4 py-2 text-sm rounded-xl">
+              <Plus size={15} />
               Add to Queue
             </button>
           </div>
@@ -109,16 +108,14 @@ export default function TrendDetailContent() {
 
       {/* Content */}
       <div className="px-4 sm:px-6 py-6 max-w-screen-2xl mx-auto">
-        {/* Active country filter banner */}
         {selectedCountryNames.length > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20 text-sm font-sans mb-5">
-            <span className="text-primary font-semibold">📍 Viewing trend data for:</span>
-            <span className="text-foreground">
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary/8 border border-primary/20 text-sm font-sans mb-5">
+            <span className="text-primary font-bold">📍 Viewing trend data for:</span>
+            <span className="text-foreground font-medium">
               {selectedCountryNames.map((c) => `${c!.flag} ${c!.name}`).join(' · ')}
             </span>
           </div>
         )}
-        {/* Live Trending Posts — shown on mobile/tablet above main content */}
         <div className="xl:hidden mb-5">
           <RealTimeTrendingPosts />
         </div>
@@ -127,33 +124,33 @@ export default function TrendDetailContent() {
           {/* Main column */}
           <div className="flex-1 min-w-0 space-y-5">
             {/* Title block */}
-            <div className="card-surface p-5">
+            <div className="bg-card border-2 border-border rounded-2xl p-5">
               <div className="flex items-start gap-4">
                 <div className="flex-1 min-w-0">
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">
+                  <h2 className="font-display text-2xl font-extrabold text-foreground mb-2">
                     {TREND.title}
                   </h2>
-                  <p className="text-sm font-sans text-muted-foreground leading-relaxed mb-4">
+                  <p className="text-base font-sans text-muted-foreground leading-relaxed mb-4">
                     {TREND.description}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {TREND.platforms.map((p) => (
                       <PlatformBadge key={`detail-plat-${p}`} platform={p} size="md" />
                     ))}
-                    <span className="text-xs font-sans text-muted-foreground px-2.5 py-1 bg-muted rounded-full">
+                    <span className="text-sm font-sans font-semibold text-muted-foreground px-3 py-1 bg-muted rounded-full">
                       {TREND.creatorsCount.toLocaleString()} creators
                     </span>
-                    <span className="text-xs font-sans text-muted-foreground px-2.5 py-1 bg-muted rounded-full">
+                    <span className="text-sm font-sans font-semibold text-muted-foreground px-3 py-1 bg-muted rounded-full">
                       {TREND.mentions24h.toLocaleString()} mentions 24h
                     </span>
-                    <span className="text-xs font-sans text-muted-foreground px-2.5 py-1 bg-muted rounded-full">
+                    <span className="text-sm font-sans font-semibold text-muted-foreground px-3 py-1 bg-muted rounded-full">
                       {TREND.timeAgo}
                     </span>
                   </div>
                 </div>
                 <div className="flex-shrink-0 flex flex-col items-center gap-2">
                   <TrendSparkline data={TREND.sparklineData} width={100} height={40} trend="up" />
-                  <span className="text-xs font-mono-custom text-muted-foreground">7-day signal</span>
+                  <span className="text-xs font-mono-custom font-semibold text-muted-foreground">7-day signal</span>
                 </div>
               </div>
             </div>
@@ -163,7 +160,7 @@ export default function TrendDetailContent() {
 
             {/* AI Sections */}
             <div className="space-y-3">
-              <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">
+              <h3 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 AI-Powered Analysis
               </h3>
               <AIAnalysisSection type="analysis" trendTitle={TREND.title} />
@@ -175,28 +172,28 @@ export default function TrendDetailContent() {
           {/* Right sidebar */}
           <div className="w-64 xl:w-72 flex-shrink-0 hidden lg:flex flex-col gap-4">
             {/* Platform signals */}
-            <div className="card-surface p-4">
-              <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-3">
+            <div className="bg-card border-2 border-border rounded-2xl p-4">
+              <h3 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
                 Platform Signals
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {PLATFORM_SIGNALS.map((sig) => (
-                  <div key={sig.id} className="flex items-center gap-2">
+                  <div key={sig.id} className="flex items-center gap-3">
                     <PlatformBadge platform={sig.platform} size="sm" />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-mono-custom font-bold text-foreground tabular-nums">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-mono-custom font-bold text-foreground tabular-nums">
                           {sig.score}
                         </span>
-                        <span className="text-xs font-sans text-accent">{sig.delta}</span>
+                        <span className="text-sm font-bold font-sans text-accent">{sig.delta}</span>
                       </div>
-                      <div className="h-1.5 bg-muted rounded-full mt-1">
+                      <div className="h-2 bg-muted rounded-full">
                         <div
                           className="h-full bg-primary rounded-full"
                           style={{ width: `${sig.score}%` }}
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground font-sans mt-0.5">{sig.volume}</p>
+                      <p className="text-xs text-muted-foreground font-sans mt-1 font-medium">{sig.volume}</p>
                     </div>
                   </div>
                 ))}
@@ -204,7 +201,7 @@ export default function TrendDetailContent() {
             </div>
 
             {/* Hashtags */}
-            <div className="card-surface p-4">
+            <div className="bg-card border-2 border-border rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">
                   Hashtags
@@ -230,7 +227,7 @@ export default function TrendDetailContent() {
             </div>
 
             {/* Key metrics */}
-            <div className="card-surface p-4">
+            <div className="bg-card border-2 border-border rounded-2xl p-4">
               <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-3">
                 Key Metrics
               </h3>

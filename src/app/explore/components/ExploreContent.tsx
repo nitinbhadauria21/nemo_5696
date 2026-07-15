@@ -80,25 +80,25 @@ function ExploreTrendCard({ trend }: { trend: TrendItem }) {
   const [bookmarked, setBookmarked] = useState(trend.isBookmarked);
 
   return (
-    <div className="card-surface border border-border rounded-2xl p-4 hover:border-primary/40 transition-all duration-200 group cursor-pointer flex flex-col gap-3">
+    <div className="bg-card border-2 border-border rounded-2xl p-4 hover:border-primary/40 hover:shadow-flame-sm transition-all duration-200 group cursor-pointer flex flex-col gap-3 trend-card-hover">
       {/* Top row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <StatusBadge status={trend.status} />
-            <span className="text-xs text-muted-foreground font-mono-custom">{trend.category}</span>
+            <span className="text-xs text-muted-foreground font-mono-custom font-semibold">{trend.category}</span>
           </div>
-          <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2 font-sans group-hover:text-primary transition-colors">
+          <h3 className="text-base font-bold text-foreground leading-snug line-clamp-2 font-sans group-hover:text-primary transition-colors">
             {trend.title}
           </h3>
         </div>
-        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+        <div className="flex flex-col items-end gap-2 flex-shrink-0">
           <NemoScoreBadge score={trend.nemoScore} size="sm" />
           <button
             onClick={(e) => { e.stopPropagation(); setBookmarked(v => !v); }}
-            className="text-muted-foreground hover:text-primary transition-colors"
+            className="text-muted-foreground hover:text-primary transition-colors p-1"
           >
-            <Icon name={bookmarked ? 'BookmarkIcon' : 'BookmarkIcon'} size={14} variant={bookmarked ? 'solid' : 'outline'} className={bookmarked ? 'text-primary' : ''} />
+            <Icon name={bookmarked ? 'BookmarkIcon' : 'BookmarkIcon'} size={15} variant={bookmarked ? 'solid' : 'outline'} className={bookmarked ? 'text-primary' : ''} />
           </button>
         </div>
       </div>
@@ -114,12 +114,12 @@ function ExploreTrendCard({ trend }: { trend: TrendItem }) {
       </div>
 
       {/* Stats row */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground font-mono-custom border-t border-border pt-2">
-        <span className="flex items-center gap-1">
-          <Icon name="ArrowTrendingUpIcon" size={12} className="text-primary" />
+      <div className="flex items-center justify-between text-xs text-muted-foreground font-mono-custom border-t border-border pt-2.5">
+        <span className="flex items-center gap-1 font-semibold">
+          <Icon name="ArrowTrendingUpIcon" size={13} className="text-primary" />
           +{trend.velocity.toFixed(1)}x
         </span>
-        <span>{(trend.mentions24h / 1000).toFixed(0)}k mentions</span>
+        <span className="font-semibold">{(trend.mentions24h / 1000).toFixed(0)}k mentions</span>
         <span>{trend.timeAgo}</span>
       </div>
     </div>
@@ -130,22 +130,22 @@ function ExploreTrendCard({ trend }: { trend: TrendItem }) {
 
 function RisingCard({ trend }: { trend: TrendItem }) {
   return (
-    <div className="flex-shrink-0 w-56 card-surface border border-border rounded-2xl p-3.5 hover:border-primary/40 transition-all duration-200 cursor-pointer group">
-      <div className="flex items-center justify-between mb-2">
+    <div className="flex-shrink-0 w-60 bg-card border-2 border-border rounded-2xl p-4 hover:border-primary/40 hover:shadow-flame-sm transition-all duration-200 cursor-pointer group trend-card-hover">
+      <div className="flex items-center justify-between mb-2.5">
         <StatusBadge status="RISING" />
         <NemoScoreBadge score={trend.nemoScore} size="sm" />
       </div>
-      <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2 font-sans mb-2 group-hover:text-primary transition-colors">
+      <p className="text-base font-bold text-foreground leading-snug line-clamp-2 font-sans mb-2.5 group-hover:text-primary transition-colors">
         {trend.title}
       </p>
       <TrendSparkline data={trend.sparklineData} trend={trend.status === 'fading' ? 'down' : 'up'} height={28} width={160} />
-      <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+      <div className="flex items-center gap-1.5 mt-2.5 flex-wrap">
         {trend.platforms.slice(0, 3).map(p => (
           <PlatformBadge key={p} platform={p} size="xs" />
         ))}
       </div>
-      <p className="text-xs font-mono-custom text-primary mt-2 flex items-center gap-1">
-        <Icon name="BoltIcon" size={11} variant="solid" />
+      <p className="text-sm font-mono-custom font-bold text-primary mt-2.5 flex items-center gap-1">
+        <Icon name="BoltIcon" size={12} variant="solid" />
         +{trend.velocity.toFixed(1)}x velocity
       </p>
     </div>
@@ -223,22 +223,22 @@ export default function ExploreContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-background/90 backdrop-blur border-b border-border px-6 py-3 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
-          <Icon name="MagnifyingGlassIcon" size={18} className="text-white" />
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
+          <Icon name="MagnifyingGlassIcon" size={20} className="text-white" />
         </div>
         <div>
-          <h1 className="font-display text-xl font-bold text-foreground">Explore</h1>
-          <p className="text-xs text-muted-foreground font-sans">Discover trending topics across all platforms</p>
+          <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">Explore</h1>
+          <p className="text-sm text-muted-foreground font-sans mt-0.5">Discover trending topics across all platforms</p>
         </div>
       </div>
 
-      <div className="px-6 py-6 max-w-screen-xl mx-auto space-y-8">
+      <div className="px-5 sm:px-6 py-6 max-w-screen-xl mx-auto space-y-8">
 
         {/* ── Full-Width Search Bar ── */}
         <div className="search-wrapper relative">
           <div className="relative">
-            <Icon name="MagnifyingGlassIcon" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <Icon name="MagnifyingGlassIcon" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <input
               ref={searchRef}
               type="text"
@@ -247,32 +247,32 @@ export default function ExploreContent() {
               onFocus={() => setShowRecentSearches(true)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(searchQuery); }}
               placeholder="Search trends, niches, hashtags…"
-              className="w-full pl-11 pr-12 py-4 rounded-2xl bg-card border border-border text-foreground placeholder:text-muted-foreground text-base font-sans focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/10 transition-all"
+              className="w-full pl-12 pr-14 py-4 rounded-2xl bg-card border-2 border-border text-foreground placeholder:text-muted-foreground text-base font-sans font-medium focus:outline-none focus:border-primary/50 transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => { setSearchQuery(''); setShowRecentSearches(false); }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
-                <Icon name="XMarkIcon" size={16} />
+                <Icon name="XMarkIcon" size={18} />
               </button>
             )}
           </div>
 
           {/* Recent Searches Dropdown */}
           {showRecentSearches && !searchQuery && recentSearches.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-card overflow-hidden z-50">
-              <div className="px-4 py-2.5 border-b border-border">
-                <p className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground font-bold">Recent Searches</p>
+            <div className="absolute top-full left-0 right-0 mt-2 bg-card border-2 border-border rounded-2xl shadow-nav overflow-hidden z-50 animate-scale-in">
+              <div className="px-4 py-3 border-b border-border bg-muted/30">
+                <p className="font-mono-custom text-xs font-bold text-muted-foreground uppercase tracking-wider">Recent Searches</p>
               </div>
               {recentSearches.map((s, i) => (
                 <button
                   key={i}
                   onClick={() => { setSearchQuery(s); handleSearchSubmit(s); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted transition-colors text-left border-b border-border/50 last:border-0"
                 >
-                  <Icon name="ClockIcon" size={14} className="text-muted-foreground flex-shrink-0" />
-                  <span className="text-sm font-sans text-foreground">{s}</span>
+                  <Icon name="ClockIcon" size={15} className="text-muted-foreground flex-shrink-0" />
+                  <span className="text-base font-sans font-medium text-foreground">{s}</span>
                 </button>
               ))}
             </div>
@@ -283,20 +283,20 @@ export default function ExploreContent() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base font-display font-bold text-foreground">Niche Heatmap</h2>
-              <p className="text-xs text-muted-foreground font-sans mt-0.5">Tile size = trend volume · Color = heat intensity</p>
+              <h2 className="text-xl font-display font-bold text-foreground">Niche Heatmap</h2>
+              <p className="text-sm text-muted-foreground font-sans mt-0.5">Tile size = trend volume · Color = heat intensity</p>
             </div>
             {activeNiche && (
               <button
                 onClick={() => setActiveNiche(null)}
-                className="flex items-center gap-1.5 text-xs font-sans text-primary hover:text-primary/80 transition-colors"
+                className="flex items-center gap-1.5 text-sm font-semibold font-sans text-primary hover:text-primary/80 transition-colors"
               >
-                <Icon name="XMarkIcon" size={13} />
+                <Icon name="XMarkIcon" size={14} />
                 Clear filter
               </button>
             )}
           </div>
-          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 auto-rows-[56px] gap-2">
+          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 auto-rows-[60px] gap-2">
             {NICHE_TILES.map((tile) => {
               const { bg, text, border } = getHeatStyle(tile.heat);
               const span = getTileSize(tile.heat);
@@ -306,12 +306,12 @@ export default function ExploreContent() {
                   key={tile.niche}
                   onClick={() => setActiveNiche(isActive ? null : tile.niche)}
                   title={`${tile.count} trending topics right now`}
-                  className={`${span} ${bg} ${border} border rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 hover:scale-[1.03] hover:shadow-card cursor-pointer ${
-                    isActive ? 'ring-2 ring-primary scale-[1.03]' : ''
+                  className={`${span} ${bg} ${border} border-2 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all duration-200 hover:scale-[1.04] cursor-pointer ${
+                    isActive ? 'ring-2 ring-primary scale-[1.04] shadow-flame-sm' : ''
                   }`}
                 >
                   <span className={`text-xs font-bold font-sans leading-tight text-center px-1 ${text}`}>{tile.niche}</span>
-                  <span className={`text-[10px] font-mono-custom ${text} opacity-80`}>{tile.count}</span>
+                  <span className={`text-[11px] font-mono-custom font-semibold ${text} opacity-80`}>{tile.count}</span>
                 </button>
               );
             })}
@@ -319,20 +319,20 @@ export default function ExploreContent() {
         </div>
 
         {/* ── Platform Tabs ── */}
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-thin pb-1">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-thin pb-1">
           {PLATFORM_TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-sans font-medium whitespace-nowrap transition-all duration-150 flex-shrink-0 ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold font-sans whitespace-nowrap transition-all duration-150 flex-shrink-0 ${
                 activeTab === tab.id
-                  ? 'bg-primary text-white shadow-card'
-                  : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/40'
+                  ? 'bg-primary text-white shadow-flame-sm'
+                  : 'bg-card border-2 border-border text-muted-foreground hover:text-foreground hover:border-primary/40'
               }`}
             >
-              <Icon name={tab.icon as any} size={15} />
+              <Icon name={tab.icon as any} size={16} />
               {tab.label}
-              <span className={`text-xs font-mono-custom px-1.5 py-0.5 rounded-full ${
+              <span className={`text-xs font-mono-custom font-bold px-1.5 py-0.5 rounded-full ${
                 activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
               }`}>
                 {tab.count}
@@ -343,13 +343,13 @@ export default function ExploreContent() {
 
         {/* ── ⚡ Rising Fastest ── */}
         <div>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 rounded-lg flame-gradient flex items-center justify-center flex-shrink-0">
-              <Icon name="BoltIcon" size={14} className="text-white" variant="solid" />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
+              <Icon name="BoltIcon" size={16} className="text-white" variant="solid" />
             </div>
             <div>
-              <h2 className="text-base font-display font-bold text-foreground">⚡ Rising Fastest</h2>
-              <p className="text-xs text-muted-foreground font-sans">Highest velocity in the last 6 hours</p>
+              <h2 className="text-xl font-display font-bold text-foreground">⚡ Rising Fastest</h2>
+              <p className="text-sm text-muted-foreground font-sans">Highest velocity in the last 6 hours</p>
             </div>
           </div>
           <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-2">
@@ -361,13 +361,12 @@ export default function ExploreContent() {
 
         {/* ── Sort & Filter Controls ── */}
         <div className="flex items-center gap-3 flex-wrap">
-          {/* Sort */}
-          <div className="flex items-center gap-1.5 bg-card border border-border rounded-xl px-3 py-2">
-            <Icon name="ArrowsUpDownIcon" size={14} className="text-muted-foreground" />
+          <div className="flex items-center gap-2 bg-card border-2 border-border rounded-xl px-3 py-2.5">
+            <Icon name="ArrowsUpDownIcon" size={15} className="text-muted-foreground" />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="text-sm font-sans text-foreground bg-transparent focus:outline-none cursor-pointer"
+              className="text-sm font-bold font-sans text-foreground bg-transparent focus:outline-none cursor-pointer"
             >
               <option value="nemo-score">Nemo Score</option>
               <option value="rising-fastest">Rising Fastest</option>
@@ -376,13 +375,12 @@ export default function ExploreContent() {
             </select>
           </div>
 
-          {/* Time */}
-          <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-card border-2 border-border rounded-xl p-1">
             {(['1h', '6h', '24h', '7d'] as TimeFilter[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTimeFilter(t)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono-custom font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-sm font-mono-custom font-bold transition-all ${
                   timeFilter === t ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -391,13 +389,12 @@ export default function ExploreContent() {
             ))}
           </div>
 
-          {/* Region */}
-          <div className="flex items-center gap-1.5 bg-card border border-border rounded-xl px-3 py-2">
-            <Icon name="GlobeAltIcon" size={14} className="text-muted-foreground" />
+          <div className="flex items-center gap-2 bg-card border-2 border-border rounded-xl px-3 py-2.5">
+            <Icon name="GlobeAltIcon" size={15} className="text-muted-foreground" />
             <select
               value={regionFilter}
               onChange={(e) => setRegionFilter(e.target.value as RegionFilter)}
-              className="text-sm font-sans text-foreground bg-transparent focus:outline-none cursor-pointer"
+              className="text-sm font-bold font-sans text-foreground bg-transparent focus:outline-none cursor-pointer"
             >
               <option value="global">Global</option>
               <option value="india">India</option>
@@ -406,13 +403,12 @@ export default function ExploreContent() {
             </select>
           </div>
 
-          {/* Results count */}
-          <span className="ml-auto text-xs font-mono-custom text-muted-foreground">
+          <span className="ml-auto text-sm font-mono-custom font-semibold text-muted-foreground">
             {sortedTrends.length} trends
           </span>
         </div>
 
-        {/* ── Trend Grid (4-column) ── */}
+        {/* ── Trend Grid ── */}
         {sortedTrends.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {sortedTrends.map((trend) => (
@@ -420,17 +416,17 @@ export default function ExploreContent() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-              <Icon name="MagnifyingGlassIcon" size={28} className="text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mb-5">
+              <Icon name="MagnifyingGlassIcon" size={32} className="text-muted-foreground" />
             </div>
-            <h3 className="text-base font-display font-bold text-foreground mb-1">No trends found</h3>
-            <p className="text-sm text-muted-foreground font-sans max-w-xs">
+            <h3 className="text-xl font-display font-bold text-foreground mb-2">No trends found</h3>
+            <p className="text-base text-muted-foreground font-sans max-w-xs">
               Try changing your filters or search query to discover more trends.
             </p>
             <button
               onClick={() => { setSearchQuery(''); setActiveNiche(null); setActiveTab('all'); }}
-              className="mt-4 px-4 py-2 rounded-xl bg-primary text-white text-sm font-sans font-medium hover:bg-primary/90 transition-colors"
+              className="mt-5 btn-flame px-5 py-2.5 text-sm rounded-xl"
             >
               Reset Filters
             </button>

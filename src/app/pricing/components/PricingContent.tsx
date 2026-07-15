@@ -126,42 +126,42 @@ export default function PricingContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="text-sm font-sans text-muted-foreground hover:text-foreground transition-colors">
+      <div className="border-b-2 border-border px-6 py-4 flex items-center justify-between">
+        <Link href="/" className="text-sm font-bold font-sans text-muted-foreground hover:text-foreground transition-colors">
           ← Back to Dashboard
         </Link>
-        <Link href="/sign-up-login-screen" className="text-sm font-sans text-primary font-semibold hover:underline">
+        <Link href="/sign-up-login-screen" className="text-sm font-bold font-sans text-primary hover:underline">
           Sign in
         </Link>
       </div>
-      <div className="max-w-5xl mx-auto px-4 py-12">
+      <div className="max-w-5xl mx-auto px-4 py-14">
         {/* Hero */}
-        <div className="text-center mb-10">
-          <h1 className="font-display text-4xl font-bold text-foreground mb-3">
+        <div className="text-center mb-12">
+          <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-foreground mb-4">
             Simple, transparent pricing
           </h1>
-          <p className="text-muted-foreground font-sans text-lg max-w-xl mx-auto">
-            Start free. Upgrade when you're ready to go viral.
+          <p className="text-muted-foreground font-sans text-lg sm:text-xl max-w-xl mx-auto font-medium">
+            Start free. Upgrade when you&apos;re ready to go viral.
           </p>
 
           {/* Billing toggle */}
-          <div className="inline-flex items-center gap-3 mt-6 p-1 bg-muted rounded-full">
+          <div className="inline-flex items-center gap-2 mt-8 p-1.5 bg-muted rounded-full border-2 border-border">
             <button
               onClick={() => setAnnual(false)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-                !annual ? 'bg-white dark:bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
+                !annual ? 'bg-card text-foreground shadow-card border border-border' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Monthly
             </button>
             <button
               onClick={() => setAnnual(true)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${
-                annual ? 'bg-white dark:bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
+                annual ? 'bg-card text-foreground shadow-card border border-border' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Annual
-              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">
+              <span className="text-xs bg-accent/15 text-accent px-2 py-0.5 rounded-full font-bold border border-accent/20">
                 Save 25%
               </span>
             </button>
@@ -169,7 +169,7 @@ export default function PricingContent() {
         </div>
 
         {/* Plan cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-14">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-16">
           {PLANS?.map((plan) => {
             const price = annual ? plan?.priceAnnual : plan?.price;
             return (
@@ -177,52 +177,52 @@ export default function PricingContent() {
                 key={plan?.id}
                 className={`relative rounded-2xl border-2 p-6 flex flex-col ${
                   plan?.highlight
-                    ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
+                    ? 'border-primary bg-primary/5 shadow-flame-md'
                     : 'border-border bg-card'
                 }`}
               >
                 {plan?.badge && (
-                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold ${
-                    plan?.highlight ? 'bg-primary text-white' : 'bg-secondary text-white'
+                  <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-bold ${
+                    plan?.highlight ? 'bg-primary text-white' : 'bg-secondary text-secondary-foreground'
                   }`}>
                     {plan?.badge}
                   </div>
                 )}
-                <div className="mb-5">
-                  <h3 className="font-display text-xl font-bold text-foreground mb-1">{plan?.name}</h3>
-                  <p className="text-xs text-muted-foreground font-sans mb-4">{plan?.description}</p>
+                <div className="mb-6">
+                  <h3 className="font-display text-2xl font-extrabold text-foreground mb-1">{plan?.name}</h3>
+                  <p className="text-sm text-muted-foreground font-sans mb-5 font-medium">{plan?.description}</p>
                   <div className="flex items-end gap-1">
-                    <span className="font-display text-4xl font-bold text-foreground">
+                    <span className="font-display text-4xl font-extrabold text-foreground">
                       {price === 0 ? 'Free' : `₹${price?.toLocaleString()}`}
                     </span>
                     {price > 0 && (
-                      <span className="text-muted-foreground font-sans text-sm mb-1">/mo</span>
+                      <span className="text-muted-foreground font-sans text-base mb-1.5 font-medium">/mo</span>
                     )}
                   </div>
                   {annual && price > 0 && (
-                    <p className="text-xs text-green-600 font-sans mt-1">
+                    <p className="text-sm text-accent font-bold font-sans mt-1">
                       Billed ₹{(price * 12)?.toLocaleString()}/year
                     </p>
                   )}
                 </div>
                 <Link
                   href={plan?.ctaHref}
-                  className={`w-full text-center py-3 rounded-xl font-semibold text-sm transition-all mb-6 ${
+                  className={`w-full text-center py-3.5 rounded-xl font-bold text-base transition-all mb-6 ${
                     plan?.highlight
-                      ? 'bg-primary text-white hover:bg-primary/90' :'border border-border text-foreground hover:bg-muted'
+                      ? 'btn-flame' :'border-2 border-border text-foreground hover:bg-muted font-bold'
                   }`}
                 >
                   {plan?.cta}
                 </Link>
-                <ul className="space-y-2.5 flex-1">
+                <ul className="space-y-3 flex-1">
                   {plan?.features?.map((f, i) => (
-                    <li key={`${plan?.id}-feat-${i}`} className="flex items-center gap-2.5">
+                    <li key={`${plan?.id}-feat-${i}`} className="flex items-center gap-3">
                       {f?.included ? (
-                        <CheckIcon className="w-4 h-4 text-primary flex-shrink-0" />
+                        <CheckIcon className="w-5 h-5 text-primary flex-shrink-0" />
                       ) : (
                         <LockClosedIcon className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
                       )}
-                      <span className={`text-xs font-sans ${f?.included ? 'text-foreground' : 'text-muted-foreground/60'}`}>
+                      <span className={`text-sm font-sans font-medium ${f?.included ? 'text-foreground' : 'text-muted-foreground/60'}`}>
                         {f?.text}
                       </span>
                     </li>
@@ -234,27 +234,27 @@ export default function PricingContent() {
         </div>
 
         {/* Comparison table */}
-        <div className="mb-14">
-          <h2 className="font-display text-2xl font-bold text-foreground text-center mb-6">
+        <div className="mb-16">
+          <h2 className="font-display text-3xl font-extrabold text-foreground text-center mb-8">
             Full feature comparison
           </h2>
-          <div className="overflow-x-auto rounded-2xl border border-border">
-            <table className="w-full text-sm font-sans">
+          <div className="overflow-x-auto rounded-2xl border-2 border-border">
+            <table className="w-full font-sans">
               <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left px-5 py-3 text-muted-foreground font-semibold">Feature</th>
-                  <th className="text-center px-5 py-3 text-muted-foreground font-semibold">Free</th>
-                  <th className="text-center px-5 py-3 text-primary font-bold">Pro</th>
-                  <th className="text-center px-5 py-3 text-muted-foreground font-semibold">Agency</th>
+                <tr className="border-b-2 border-border bg-muted/50">
+                  <th className="text-left px-5 py-4 text-base font-bold text-foreground">Feature</th>
+                  <th className="text-center px-5 py-4 text-base font-bold text-muted-foreground">Free</th>
+                  <th className="text-center px-5 py-4 text-base font-extrabold text-primary">Pro</th>
+                  <th className="text-center px-5 py-4 text-base font-bold text-muted-foreground">Agency</th>
                 </tr>
               </thead>
               <tbody>
                 {COMPARISON_ROWS?.map((row, i) => (
                   <tr key={`cmp-${i}`} className={`border-b border-border last:border-0 ${i % 2 === 0 ? '' : 'bg-muted/20'}`}>
-                    <td className="px-5 py-3 text-foreground font-medium">{row?.feature}</td>
-                    <td className="px-5 py-3 text-center text-muted-foreground">{row?.free}</td>
-                    <td className="px-5 py-3 text-center text-primary font-semibold">{row?.pro}</td>
-                    <td className="px-5 py-3 text-center text-muted-foreground">{row?.agency}</td>
+                    <td className="px-5 py-4 text-base text-foreground font-semibold">{row?.feature}</td>
+                    <td className="px-5 py-4 text-center text-base text-muted-foreground font-medium">{row?.free}</td>
+                    <td className="px-5 py-4 text-center text-base text-primary font-bold">{row?.pro}</td>
+                    <td className="px-5 py-4 text-center text-base text-muted-foreground font-medium">{row?.agency}</td>
                   </tr>
                 ))}
               </tbody>
@@ -264,25 +264,25 @@ export default function PricingContent() {
 
         {/* FAQ */}
         <div className="max-w-2xl mx-auto">
-          <h2 className="font-display text-2xl font-bold text-foreground text-center mb-6">
+          <h2 className="font-display text-3xl font-extrabold text-foreground text-center mb-8">
             Frequently asked questions
           </h2>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {FAQS?.map((faq, i) => (
-              <div key={`faq-${i}`} className="border border-border rounded-xl overflow-hidden">
+              <div key={`faq-${i}`} className="border-2 border-border rounded-2xl overflow-hidden">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/50 transition-colors"
                 >
-                  <span className="font-sans font-semibold text-foreground text-sm">{faq?.q}</span>
+                  <span className="font-sans font-bold text-foreground text-base">{faq?.q}</span>
                   <ChevronDownIcon
-                    className={`w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform ${
+                    className={`w-5 h-5 text-muted-foreground flex-shrink-0 transition-transform ${
                       openFaq === i ? 'rotate-180' : ''
                     }`}
                   />
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 pb-4 text-sm text-muted-foreground font-sans leading-relaxed border-t border-border pt-3">
+                  <div className="px-5 pb-5 text-base text-muted-foreground font-sans leading-relaxed border-t border-border pt-4 font-medium">
                     {faq?.a}
                   </div>
                 )}
