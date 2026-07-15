@@ -316,11 +316,11 @@ function getScoreBg(score: number): string {
 function SceneHeaderCard({ block }: { block: Extract<ParsedBlock, { type: 'scene-header' }> }) {
   return (
     <div className="flex items-center gap-3 pt-4 pb-1">
-      <div className="flex-shrink-0 px-2.5 py-1 rounded-full bg-[#FF3D00]/10 border border-[#FF3D00]/20">
+      <div className="flex-shrink-0 px-2.5 py-1 rounded-full bg-[#FF3D00]/15 border border-[#FF3D00]/30">
         <span className="text-[10px] font-mono tracking-widest uppercase text-[#FF3D00] font-bold">{block.sceneLabel}</span>
       </div>
-      <div className="h-px flex-1 bg-gradient-to-r from-[#FF3D00]/20 to-transparent" />
-      <span className="text-sm font-bold text-[#F7EFE7] font-display truncate max-w-[200px]">{block.sceneTitle}</span>
+      <div className="h-px flex-1 bg-gradient-to-r from-[#FF3D00]/30 to-transparent" />
+      <span className="text-sm font-bold text-foreground font-display truncate max-w-[200px]">{block.sceneTitle}</span>
     </div>
   );
 }
@@ -329,13 +329,13 @@ function SceneHeaderCard({ block }: { block: Extract<ParsedBlock, { type: 'scene
 
 function VisualCueCard({ text }: { text: string }) {
   return (
-    <div className="flex gap-3 items-start p-3.5 rounded-xl bg-[#1A1210]/80 border border-[#6B534E]/30 hover:border-[#FF3D00]/30 transition-colors">
-      <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#FF3D00]/10 border border-[#FF3D00]/20 flex items-center justify-center">
+    <div className="flex gap-3 items-start p-3.5 rounded-xl bg-orange-50 border border-orange-200 hover:border-orange-300 transition-colors">
+      <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#FF3D00]/15 border border-[#FF3D00]/30 flex items-center justify-center">
         <Icon name="VideoCameraIcon" size={15} className="text-[#FF3D00]" />
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-1">Visual Direction</p>
-        <p className="text-sm text-stone-300 leading-relaxed font-sans">{text}</p>
+        <p className="text-sm text-gray-800 leading-relaxed font-sans">{text}</p>
       </div>
     </div>
   );
@@ -345,13 +345,13 @@ function VisualCueCard({ text }: { text: string }) {
 
 function AudioScriptCard({ text }: { text: string }) {
   return (
-    <div className="flex gap-3 items-start p-3.5 rounded-xl bg-[#1A1210]/80 border border-[#6B534E]/20 hover:border-white/20 transition-colors">
-      <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center">
-        <Icon name="MicrophoneIcon" size={15} className="text-white" />
+    <div className="flex gap-3 items-start p-3.5 rounded-xl bg-gray-50 border border-gray-200 hover:border-gray-300 transition-colors">
+      <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gray-200 border border-gray-300 flex items-center justify-center">
+        <Icon name="MicrophoneIcon" size={15} className="text-gray-700" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-mono uppercase tracking-widest text-[#F7EFE7]/60 font-bold mb-1">Audio / Voiceover</p>
-        <p className="text-base italic font-medium text-[#F7EFE7] leading-relaxed font-sans">&ldquo;{text}&rdquo;</p>
+        <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 font-bold mb-1">Audio / Voiceover</p>
+        <p className="text-base italic font-medium text-gray-900 leading-relaxed font-sans">&ldquo;{text}&rdquo;</p>
       </div>
     </div>
   );
@@ -361,8 +361,8 @@ function AudioScriptCard({ text }: { text: string }) {
 
 function CTACard({ text }: { text: string }) {
   return (
-    <div className="p-6 rounded-3xl text-center shadow-lg flame-gradient mt-2">
-      <p className="text-[10px] font-mono uppercase tracking-widest text-white/70 font-bold mb-2">🔥 Final Call to Action</p>
+    <div className="p-6 rounded-3xl text-center flame-gradient mt-2">
+      <p className="text-[10px] font-mono uppercase tracking-widest text-white/80 font-bold mb-2">🔥 Final Call to Action</p>
       <p className="text-xl font-bold text-white font-display leading-snug">{text}</p>
     </div>
   );
@@ -420,17 +420,17 @@ function ScriptCard({ version, isSelected, onSelect }: { version: ScriptVersion;
       onClick={onSelect}
       className={`rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 border ${
         isSelected
-          ? 'border-[#FF3D00] ring-2 ring-[#FF3D00]/20 bg-[#1A1210]'
-          : 'border-[#6B534E]/30 bg-[#1A1210]/60 hover:border-[#FF3D00]/40'
+          ? 'border-[#FF3D00] ring-2 ring-[#FF3D00]/20 bg-white'
+          : 'border-gray-200 bg-white hover:border-[#FF3D00]/40'
       }`}
     >
       {/* Header & Metadata Zone */}
-      <div className="p-4 flex items-center justify-between gap-3 border-b border-[#6B534E]/20">
+      <div className="p-4 flex items-center justify-between gap-3 border-b border-gray-100">
         <div className="flex items-center gap-3 min-w-0">
-          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isSelected ? 'bg-[#FF3D00]' : 'bg-[#6B534E]'}`} />
+          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isSelected ? 'bg-[#FF3D00]' : 'bg-gray-300'}`} />
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-[#F7EFE7] truncate font-sans">{version.styleLabel}</p>
-            <p className="text-xs text-[#6B534E] font-mono">Version {version.id.replace('v', '')}</p>
+            <p className="text-sm font-semibold text-gray-900 truncate font-sans">{version.styleLabel}</p>
+            <p className="text-xs text-gray-500 font-mono">Version {version.id.replace('v', '')}</p>
           </div>
         </div>
         <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-mono font-bold tabular-nums ${getScoreBg(version.viralScore)} ${getScoreColor(version.viralScore)}`}>
@@ -441,16 +441,16 @@ function ScriptCard({ version, isSelected, onSelect }: { version: ScriptVersion;
 
       {/* Hook preview */}
       <div className="px-4 pt-3 pb-2">
-        <div className="p-3 bg-[#FF3D00]/5 border border-[#FF3D00]/15 rounded-xl">
+        <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl">
           <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-1">⚡ Pattern Interrupt Hook</p>
-          <p className="text-sm font-sans text-[#F7EFE7] leading-relaxed italic">&ldquo;{version.hook}&rdquo;</p>
+          <p className="text-sm font-sans text-gray-800 leading-relaxed italic">&ldquo;{version.hook}&rdquo;</p>
         </div>
       </div>
 
       {/* Expand toggle */}
       <button
         onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-        className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-sans text-[#6B534E] hover:text-[#F7EFE7] border-t border-[#6B534E]/20 transition-colors"
+        className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-sans text-gray-500 hover:text-gray-800 border-t border-gray-100 transition-colors"
       >
         <span className="flex items-center gap-1.5">
           <Icon name="RectangleStackIcon" size={13} />
@@ -460,17 +460,17 @@ function ScriptCard({ version, isSelected, onSelect }: { version: ScriptVersion;
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-[#6B534E]/20">
+        <div className="px-4 pb-4 space-y-3 border-t border-gray-100">
           {/* Audio-Visual Alternation Zone */}
           <ParsedScriptViewer version={version} />
 
           {/* Timestamps */}
           {version.timestamps?.length > 0 && (
             <div className="pt-2">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-[#6B534E] font-bold mb-2">Timestamps</p>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 font-bold mb-2">Timestamps</p>
               <div className="space-y-1">
                 {version.timestamps.map((ts, i) => (
-                  <div key={`ts-${i}`} className="flex items-center gap-2 text-xs font-sans text-[#6B534E]">
+                  <div key={`ts-${i}`} className="flex items-center gap-2 text-xs font-sans text-gray-600">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FF3D00]/50 flex-shrink-0" />
                     {ts}
                   </div>
@@ -481,9 +481,9 @@ function ScriptCard({ version, isSelected, onSelect }: { version: ScriptVersion;
 
           {/* Delivery notes */}
           {version.deliveryNotes && (
-            <div className="p-3 bg-[#FFB000]/5 border border-[#FFB000]/15 rounded-xl">
-              <p className="text-[10px] font-mono uppercase tracking-widest text-[#FFB000] font-bold mb-1">🎬 Delivery Notes</p>
-              <p className="text-xs font-sans text-[#F7EFE7]/70 leading-relaxed">{version.deliveryNotes}</p>
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-bold mb-1">🎬 Delivery Notes</p>
+              <p className="text-xs font-sans text-gray-700 leading-relaxed">{version.deliveryNotes}</p>
             </div>
           )}
 
@@ -530,34 +530,34 @@ function RetentionStrategyPanel({ audienceType, language, duration }: { audience
   const durationNote = durationPacing[duration] || '';
 
   return (
-    <div className="rounded-2xl border border-[#6B534E]/30 bg-[#1A1210]/60 overflow-hidden">
-      <div className="px-4 py-3 border-b border-[#6B534E]/20 flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg bg-[#FFB000]/10 border border-[#FFB000]/20 flex items-center justify-center flex-shrink-0">
-          <Icon name="ChartBarIcon" size={14} className="text-[#FFB000]" />
+    <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center flex-shrink-0">
+          <Icon name="ChartBarIcon" size={14} className="text-amber-600" />
         </div>
         <div>
-          <p className="text-xs font-mono uppercase tracking-widest text-[#FFB000] font-bold">Retention Strategy Panel</p>
-          <p className="text-[10px] text-[#6B534E] font-sans">Hook delivery psychology · 6-principle framework</p>
+          <p className="text-xs font-mono uppercase tracking-widest text-amber-600 font-bold">Retention Strategy Panel</p>
+          <p className="text-[10px] text-gray-500 font-sans">Hook delivery psychology · 6-principle framework</p>
         </div>
       </div>
       <div className="p-4 space-y-3">
-        <div className="p-3 bg-[#FFB000]/5 border border-[#FFB000]/10 rounded-xl">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-[#FFB000] font-bold mb-1.5">Hook Psychology — {audienceType} Audience</p>
-          <p className="text-sm font-sans text-[#F7EFE7]/80 leading-relaxed">
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+          <p className="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-bold mb-1.5">Hook Psychology — {audienceType} Audience</p>
+          <p className="text-sm font-sans text-gray-800 leading-relaxed">
             The hook {strategy}
           </p>
         </div>
-        <div className="p-3 bg-[#6B534E]/10 border border-[#6B534E]/20 rounded-xl">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-[#6B534E] font-bold mb-1.5">Language Pacing — {language}</p>
-          <p className="text-sm font-sans text-[#F7EFE7]/70 leading-relaxed">{pacing}</p>
+        <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
+          <p className="text-[10px] font-mono uppercase tracking-widest text-gray-600 font-bold mb-1.5">Language Pacing — {language}</p>
+          <p className="text-sm font-sans text-gray-700 leading-relaxed">{pacing}</p>
         </div>
         {durationNote && (
-          <div className="p-3 bg-[#FF3D00]/5 border border-[#FF3D00]/10 rounded-xl">
+          <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl">
             <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-1.5">Duration Calibration — {duration}</p>
-            <p className="text-sm font-sans text-[#F7EFE7]/70 leading-relaxed">{durationNote}</p>
+            <p className="text-sm font-sans text-gray-700 leading-relaxed">{durationNote}</p>
           </div>
         )}
-        <div className="flex items-center gap-2 text-xs font-sans text-[#6B534E]">
+        <div className="flex items-center gap-2 text-xs font-sans text-gray-500">
           <Icon name="InformationCircleIcon" size={13} />
           <span>Friction Loop → Agitation Spike → Relief Beat emotional arc applied</span>
         </div>
@@ -574,25 +574,25 @@ function ViralTriggerPanel({ scenesCount, viralScore, language }: { scenesCount:
       label: 'Information Gap Theory',
       desc: 'Opening hook creates an unresolved knowledge gap (Loewenstein 1994) that compels viewers to watch to completion to resolve the psychological "itch."',
       icon: 'MagnifyingGlassIcon',
-      color: 'text-purple-400',
+      color: 'text-purple-600',
     },
     {
       label: 'Comment-to-DM CTA',
       desc: 'Single-action CTA drives comment velocity — the highest-weighted algorithmic signal on short-form platforms — while opening a private conversion funnel.',
       icon: 'ChatBubbleLeftRightIcon',
-      color: 'text-blue-400',
+      color: 'text-blue-600',
     },
     {
       label: 'Dual-Coding Sync (Paivio)',
       desc: `Visual and audio cues are synchronized every 3–4 seconds across all ${scenesCount} scenes to reduce cognitive load and maximize retention rate.`,
       icon: 'FilmIcon',
-      color: 'text-green-400',
+      color: 'text-green-600',
     },
     {
       label: 'Loss Aversion Hook',
       desc: 'Hook framed around avoiding mistakes (Kahneman & Tversky) — people are 2× more motivated to avoid loss than to pursue gain.',
       icon: 'ExclamationTriangleIcon',
-      color: 'text-yellow-400',
+      color: 'text-yellow-600',
     },
   ];
 
@@ -605,14 +605,14 @@ function ViralTriggerPanel({ scenesCount, viralScore, language }: { scenesCount:
   const tip = recordingTips[language] || recordingTips['English'];
 
   return (
-    <div className="rounded-2xl border border-[#6B534E]/30 bg-[#1A1210]/60 overflow-hidden">
-      <div className="px-4 py-3 border-b border-[#6B534E]/20 flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg bg-[#FF3D00]/10 border border-[#FF3D00]/20 flex items-center justify-center flex-shrink-0">
+    <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg bg-orange-100 border border-orange-200 flex items-center justify-center flex-shrink-0">
           <Icon name="RocketLaunchIcon" size={14} className="text-[#FF3D00]" />
         </div>
         <div>
           <p className="text-xs font-mono uppercase tracking-widest text-[#FF3D00] font-bold">Viral Trigger Panel</p>
-          <p className="text-[10px] text-[#6B534E] font-sans">Engagement techniques applied · {scenesCount} scenes</p>
+          <p className="text-[10px] text-gray-500 font-sans">Engagement techniques applied · {scenesCount} scenes</p>
         </div>
         <div className={`ml-auto flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-mono font-bold ${getScoreBg(viralScore)} ${getScoreColor(viralScore)}`}>
           <Icon name="FireIcon" size={11} variant="solid" />
@@ -622,18 +622,18 @@ function ViralTriggerPanel({ scenesCount, viralScore, language }: { scenesCount:
       <div className="p-4 space-y-3">
         {triggers.map((t) => (
           <div key={t.label} className="flex gap-3 items-start">
-            <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center mt-0.5">
+            <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center mt-0.5">
               <Icon name={t.icon as any} size={13} className={t.color} />
             </div>
             <div>
-              <p className="text-xs font-mono font-bold text-[#F7EFE7] mb-0.5">{t.label}</p>
-              <p className="text-xs font-sans text-[#6B534E] leading-relaxed">{t.desc}</p>
+              <p className="text-xs font-mono font-bold text-gray-900 mb-0.5">{t.label}</p>
+              <p className="text-xs font-sans text-gray-600 leading-relaxed">{t.desc}</p>
             </div>
           </div>
         ))}
-        <div className="mt-2 p-3 bg-[#FF3D00]/5 border border-[#FF3D00]/10 rounded-xl">
+        <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-xl">
           <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-1">📹 Recording Tip — {language}</p>
-          <p className="text-xs font-sans text-[#F7EFE7]/70 leading-relaxed">{tip}</p>
+          <p className="text-xs font-sans text-gray-700 leading-relaxed">{tip}</p>
         </div>
       </div>
     </div>
@@ -649,13 +649,13 @@ function LoadingAnimation({ currentStep }: { currentStep: number }) {
       <div className="relative mb-8 flex items-center justify-center">
         <span className="absolute w-24 h-24 rounded-full border-2 border-[#FF3D00]/30 animate-ping" />
         <span className="absolute w-16 h-16 rounded-full border border-[#FF3D00]/20 animate-pulse" />
-        <div className="relative z-10 w-14 h-14 rounded-2xl flame-gradient flex items-center justify-center shadow-lg">
+        <div className="relative z-10 w-14 h-14 rounded-2xl flame-gradient flex items-center justify-center">
           <Icon name="FireIcon" size={28} className="text-white" variant="solid" />
         </div>
       </div>
 
-      <h3 className="font-display text-xl font-bold text-[#F7EFE7] mb-1">Engineering your viral script…</h3>
-      <p className="text-sm font-sans text-[#6B534E] max-w-xs leading-relaxed mb-8">
+      <h3 className="font-display text-xl font-bold text-foreground mb-1">Engineering your viral script…</h3>
+      <p className="text-sm font-sans text-muted-foreground max-w-xs leading-relaxed mb-8">
         Parsing visual synchronicity and informational gap theory loops — applying 6-principle psychology framework.
       </p>
 
@@ -665,25 +665,25 @@ function LoadingAnimation({ currentStep }: { currentStep: number }) {
           <div
             key={step}
             className={`flex items-center gap-3 text-sm font-sans transition-all duration-500 ${
-              i <= currentStep ? 'text-[#F7EFE7]' : 'text-[#6B534E]'
+              i <= currentStep ? 'text-foreground' : 'text-muted-foreground'
             }`}
           >
             <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
               i < currentStep
-                ? 'bg-green-500/20 border border-green-500/40'
+                ? 'bg-green-100 border border-green-300'
                 : i === currentStep
-                ? 'bg-[#FF3D00]/20 border border-[#FF3D00]/40'
-                : 'bg-[#6B534E]/10 border border-[#6B534E]/20'
+                ? 'bg-[#FF3D00]/15 border border-[#FF3D00]/40'
+                : 'bg-gray-100 border border-gray-200'
             }`}>
               {i < currentStep ? (
-                <Icon name="CheckIcon" size={11} className="text-green-400" />
+                <Icon name="CheckIcon" size={11} className="text-green-600" />
               ) : i === currentStep ? (
                 <svg className="animate-spin w-3 h-3 text-[#FF3D00]" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
               ) : (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#6B534E]/40" />
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
               )}
             </div>
             <span>{step}</span>
