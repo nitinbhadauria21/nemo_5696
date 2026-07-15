@@ -730,7 +730,7 @@ export default function ViralScriptWriterContent() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { response, isLoading, error, sendMessage } = useChat('GEMINI', 'gemini/gemini-2.5-flash', false);
+  const { response, isLoading, error, sendMessage } = useChat('GEMINI', 'gemini/gemini-2.5-pro', false);
 
   useEffect(() => {
     if (error) toast.error(error.message);
