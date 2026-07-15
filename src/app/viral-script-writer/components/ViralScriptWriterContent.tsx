@@ -730,7 +730,7 @@ export default function ViralScriptWriterContent() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { response, isLoading, error, sendMessage } = useChat('GEMINI', 'gemini/gemini-2.5-pro', false);
+  const { response, isLoading, error, sendMessage } = useChat('ANTHROPIC', 'claude-sonnet-4-6', false);
 
   useEffect(() => {
     if (error) toast.error(error.message);
@@ -889,7 +889,7 @@ Generate all scripts in ${selectedLanguage} language.`;
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-mono-custom text-primary font-bold">
             <Icon name="SparklesIcon" size={12} variant="solid" />
-            Powered by Gemini AI
+            NemoScript AI
           </div>
         </div>
       </div>
@@ -1186,7 +1186,7 @@ Generate all scripts in ${selectedLanguage} language.`;
                         &ldquo;{generatedScript.topic}&rdquo;
                       </h2>
                       <p className="text-xs text-muted-foreground font-sans mt-1">
-                        {generatedScript.versions.length} script versions · HEARS · PAW · C4 · Powered by Gemini AI
+                        {generatedScript.versions.length} script versions · HEARS · PAW · C4
                       </p>
                     </div>
                     <button
