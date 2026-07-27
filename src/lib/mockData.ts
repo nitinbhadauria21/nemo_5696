@@ -46,6 +46,7 @@ export interface TrendItem {
 
   // New signals from document
   geoRegions?: string[];
+  topContent?: { id: string; title: string; views: string; platform?: string }[];
   breakoutBoolean?: boolean;
   queryClusterId?: string;
   geoSpreadScore?: number;

@@ -140,7 +140,7 @@ export default function ResetPasswordPage() {
                 Your password has been reset successfully.
               </p>
               <Link
-                href="/sign-up-login-screen"
+                href="/login"
                 className="block w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-all"
               >
                 Sign in with new password
@@ -150,7 +150,7 @@ export default function ResetPasswordPage() {
 
           {!done && (
             <div className="mt-6 pt-5 border-t border-border text-center">
-              <Link href="/sign-up-login-screen" className="text-sm text-muted-foreground hover:text-foreground font-sans transition-colors">
+              <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground font-sans transition-colors">
                 ← Back to sign in
               </Link>
             </div>

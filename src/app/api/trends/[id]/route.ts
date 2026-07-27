@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { isSupabaseConfigured } from '@/lib/supabase/config';
-import { getTrends } from '@/lib/trends/store';
+import { getTrends, getRelatedTrends } from '@/lib/trends/store';
 import { MOCK_TRENDS } from '@/lib/mockData';
 
 export async function GET(
@@ -14,5 +12,6 @@ export async function GET(
   if (!trend) {
     return NextResponse.json({ error: 'Trend not found' }, { status: 404 });
   }
-  return NextResponse.json({ trend, source: result.source });
+  const related = await getRelatedTrends(id, trend.category, 6);
+  return NextResponse.json({ trend, related, source: result.source });
 }

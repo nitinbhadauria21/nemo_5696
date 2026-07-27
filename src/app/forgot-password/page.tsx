@@ -106,7 +106,7 @@ export default function ForgotPasswordPage() {
           )}
 
           <div className="mt-6 pt-5 border-t border-border text-center">
-            <Link href="/sign-up-login-screen" className="text-sm text-muted-foreground hover:text-foreground font-sans transition-colors">
+            <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground font-sans transition-colors">
               ← Back to sign in
             </Link>
           </div>

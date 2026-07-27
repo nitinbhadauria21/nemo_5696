@@ -286,7 +286,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
             type="button"
             onClick={() => {
               signOut().then(() => {
-                window.location.href = '/sign-up-login-screen';
+                window.location.href = '/login';
               });
             }}
             className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/15 text-xs font-semibold transition-all"

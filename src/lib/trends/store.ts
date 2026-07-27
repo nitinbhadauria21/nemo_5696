@@ -2,9 +2,54 @@ import type { TrendItem } from '@/lib/mockData';
 import { MOCK_TRENDS } from '@/lib/mockData';
 import { collectMvpTrends } from './collectors';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { persistTrendsToSupabase } from './persist';
 
 let memoryStore: TrendItem[] = [];
 let lastCollectedAt = 0;
+
+export async function runTrendIngestion(options?: { useServiceRole?: boolean }): Promise<{
+  trends: TrendItem[];
+  source: 'supabase' | 'memory';
+  collectedAt: string;
+}> {
+  const collected = await collectMvpTrends();
+  const collectedAt = new Date().toISOString();
+  const now = Date.now();
+
+  if (collected.length) {
+    memoryStore = collected;
+    lastCollectedAt = now;
+
+    if (options?.useServiceRole) {
+      const admin = createAdminClient();
+      if (admin) {
+        try {
+          await persistTrendsToSupabase(admin, collected);
+          return { trends: collected, source: 'supabase', collectedAt };
+        } catch {
+          // fall through to anon client attempt
+        }
+      }
+    }
+
+    const supabase = await createClient();
+    if (supabase) {
+      try {
+        await persistTrendsToSupabase(supabase, collected);
+        return { trends: collected, source: 'supabase', collectedAt };
+      } catch {
+        // schema may not be applied yet
+      }
+    }
+  }
+
+  return {
+    trends: collected.length ? collected : memoryStore,
+    source: 'memory',
+    collectedAt,
+  };
+}
 
 export async function getTrends(options?: { refresh?: boolean }): Promise<{
   trends: TrendItem[];
@@ -18,42 +63,7 @@ export async function getTrends(options?: { refresh?: boolean }): Promise<{
     const supabase = await createClient();
     if (supabase) {
       if (refresh || now - lastCollectedAt > 5 * 60 * 1000) {
-        const collected = await collectMvpTrends();
-        if (collected.length) {
-          memoryStore = collected;
-          lastCollectedAt = now;
-          // Best-effort upsert into trend_records when table exists
-          try {
-            await supabase.from('trend_records').upsert(
-              collected.map((t) => ({
-                trend_id: t.id,
-                topic_text: t.title,
-                platform: t.platforms[0] === 'google' ? 'google_trends' : t.platforms[0],
-                niche: 'other',
-                first_detected_at: t.firstDetectedAt,
-                collected_at: new Date().toISOString(),
-                trend_age_hours: 2,
-                creator_velocity_score: t.cvs,
-                spike_score: t.ss,
-                cross_platform_score: t.cps,
-                freshness_score: t.freshness,
-                freshness_multiplier: t.freshnessMultiplier,
-                nemo_score: t.nemoScore,
-                status: t.status === 'hot' ? 'PEAKING' : t.status === 'rising' ? 'RISING' : 'DECLINING',
-                platforms_present: t.platforms.map((p) => (p === 'google' ? 'google_trends' : p)),
-                mentions_last_24h: t.mentions24h,
-                mentions_prev_24h: t.mentionsPrev24h,
-                creators_last_6h: t.creatorsLast6h,
-                creators_last_24h: t.creatorsLast24h,
-                creators_last_72h: t.creatorsLast72h,
-                raw_platform_data: t,
-              })),
-              { onConflict: 'trend_id' }
-            );
-          } catch {
-            // schema may not be applied yet
-          }
-        }
+        await runTrendIngestion();
       }
 
       const { data, error } = await supabase
@@ -63,25 +73,30 @@ export async function getTrends(options?: { refresh?: boolean }): Promise<{
         .limit(40);
 
       if (!error && data?.length) {
-        const trends = data.map((row: any) => {
+        const trends = data.map((row: Record<string, unknown>) => {
           const raw = row.raw_platform_data as TrendItem | null;
           if (raw?.id) return raw;
           return {
             ...MOCK_TRENDS[0],
-            id: row.trend_id,
-            title: row.topic_text,
-            nemoScore: row.nemo_score,
-            cvs: row.creator_velocity_score,
-            ss: row.spike_score,
-            cps: row.cross_platform_score,
-            freshness: row.freshness_score,
-            freshnessMultiplier: row.freshness_multiplier,
-            status: row.status === 'PEAKING' ? 'hot' : row.status === 'RISING' ? 'rising' : 'fading',
-            mentions24h: row.mentions_last_24h ?? 0,
-            creatorsCount: row.creators_last_72h ?? 0,
+            id: row.trend_id as string,
+            title: row.topic_text as string,
+            nemoScore: row.nemo_score as number,
+            cvs: row.creator_velocity_score as number,
+            ss: row.spike_score as number,
+            cps: row.cross_platform_score as number,
+            freshness: row.freshness_score as number,
+            freshnessMultiplier: row.freshness_multiplier as number,
+            status:
+              row.status === 'PEAKING' ? 'hot' : row.status === 'RISING' ? 'rising' : 'fading',
+            mentions24h: (row.mentions_last_24h as number) ?? 0,
+            creatorsCount: (row.creators_last_72h as number) ?? 0,
           } as TrendItem;
         });
-        return { trends, source: 'supabase', collectedAt: new Date(lastCollectedAt || now).toISOString() };
+        return {
+          trends,
+          source: 'supabase',
+          collectedAt: new Date(lastCollectedAt || now).toISOString(),
+        };
       }
     }
   } catch {
@@ -89,9 +104,9 @@ export async function getTrends(options?: { refresh?: boolean }): Promise<{
   }
 
   if (refresh || !memoryStore.length || now - lastCollectedAt > 5 * 60 * 1000) {
-    const collected = await collectMvpTrends();
-    if (collected.length) {
-      memoryStore = collected;
+    const result = await runTrendIngestion();
+    if (result.trends.length) {
+      memoryStore = result.trends;
       lastCollectedAt = now;
     }
   }
@@ -105,4 +120,16 @@ export async function getTrends(options?: { refresh?: boolean }): Promise<{
   }
 
   return { trends: MOCK_TRENDS, source: 'mock', collectedAt: null };
+}
+
+export async function getRelatedTrends(
+  trendId: string,
+  niche?: string,
+  limit = 6
+): Promise<TrendItem[]> {
+  const result = await getTrends({ refresh: false });
+  return result.trends
+    .filter((t) => t.id !== trendId)
+    .filter((t) => !niche || t.category === niche)
+    .slice(0, limit);
 }

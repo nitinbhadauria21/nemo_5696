@@ -299,7 +299,7 @@ export default function TopNavbar() {
 
               <div className="border-t border-border py-1.5">
                 <Link
-                  href="/sign-up-login-screen"
+                  href="/login"
                   onClick={() => setUserMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-base font-semibold text-red-600 hover:bg-red-500/10 font-sans transition-colors"
                 >

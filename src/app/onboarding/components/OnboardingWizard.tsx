@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 
 import NemoWordmark from '@/components/ui/NemoWordmark';
@@ -53,12 +53,41 @@ const STEPS = ['Niches', 'Platforms', 'Social Connect', 'Schedule'];
 
 export default function OnboardingWizard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(0);
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [connectedSocials, setConnectedSocials] = useState<string[]>([]);
   const [connectingId, setConnectingId] = useState<string | null>(null);
   const [selectedSchedule, setSelectedSchedule] = useState<string>('');
+
+  useEffect(() => {
+    const stepParam = searchParams.get('step');
+    if (stepParam) {
+      const idx = parseInt(stepParam, 10) - 1;
+      if (idx >= 0 && idx < STEPS.length) setStep(idx);
+    }
+    if (searchParams.get('connected') === '1') {
+      const oauth = searchParams.get('oauth');
+      if (oauth) setConnectedSocials((prev) => (prev.includes(oauth) ? prev : [...prev, oauth]));
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    async function loadSocials() {
+      try {
+        const res = await fetch('/api/user/connections');
+        if (res.ok) {
+          const data = await res.json();
+          const platforms = (data.connections ?? []).map((c: { platform: string }) => c.platform);
+          if (platforms.length) setConnectedSocials(platforms);
+        }
+      } catch {
+        // demo mode
+      }
+    }
+    loadSocials();
+  }, []);
 
   const toggleNiche = (id: string) => {
     setSelectedNiches((prev) =>
@@ -74,10 +103,7 @@ export default function OnboardingWizard() {
 
   const handleConnect = (id: string) => {
     setConnectingId(id);
-    setTimeout(() => {
-      setConnectedSocials((prev) => [...prev, id]);
-      setConnectingId(null);
-    }, 1500);
+    window.location.href = `/api/auth/oauth/${id}?returnTo=${encodeURIComponent('/onboarding?step=3&oauth=' + id + '&connected=1')}`;
   };
 
   const canProceed = () => {

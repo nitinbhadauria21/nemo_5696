@@ -24,12 +24,15 @@ export async function GET(
     );
   }
 
+  const returnTo = request.nextUrl.searchParams.get('returnTo');
+  const state = returnTo ? `return:${returnTo}` : provider;
+
   const url = new URL(OAUTH_BASE[provider]);
   url.searchParams.set('client_id', clientId);
   url.searchParams.set('redirect_uri', redirectUri);
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('scope', 'openid email profile');
-  url.searchParams.set('state', provider);
+  url.searchParams.set('state', state);
 
   return NextResponse.redirect(url.toString());
 }

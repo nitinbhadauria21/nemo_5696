@@ -50,19 +50,28 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
   const [copiedHashtags, setCopiedHashtags] = useState(false);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [remoteTrend, setRemoteTrend] = useState<TrendItem | null>(null);
+  const [relatedTrends, setRelatedTrends] = useState<TrendItem[]>([]);
   const [windowHoursLeft, setWindowHoursLeft] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch('/api/trends');
+        const url = trendId ? `/api/trends/${trendId}` : '/api/trends';
+        const res = await fetch(url);
         if (!res.ok) return;
         const data = await res.json();
-        const list = (data.trends ?? data) as TrendItem[];
-        if (!cancelled && Array.isArray(list) && list.length) {
-          const match = trendId ? list.find((t) => t.id === trendId) : list[0];
-          if (match) setRemoteTrend(match);
+        if (!cancelled) {
+          if (data.trend) {
+            setRemoteTrend(data.trend);
+            setRelatedTrends(data.related ?? []);
+          } else {
+            const list = (data.trends ?? data) as TrendItem[];
+            if (Array.isArray(list) && list.length) {
+              const match = trendId ? list.find((t) => t.id === trendId) : list[0];
+              if (match) setRemoteTrend(match);
+            }
+          }
         }
       } catch {
         // fall back to mock
@@ -226,6 +235,48 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
             <div className="grid lg:grid-cols-2 gap-4">
               <TrendVolumeChart sparkline={TREND.sparklineData} />
               <TrendGeoChart regions={remoteTrend?.geoRegions} />
+            </div>
+
+            {relatedTrends.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Related Trends
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {relatedTrends.map((t) => (
+                    <Link
+                      key={t.id}
+                      href={`/trend/${t.id}`}
+                      className="text-xs font-sans font-semibold px-3 py-1.5 rounded-full bg-muted hover:bg-primary/10 hover:text-primary border border-border transition-colors"
+                    >
+                      {t.title}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <h3 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Top Performing Content
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {(remoteTrend?.topContent ?? [
+                  { id: '1', title: 'Viral hook breakdown', views: '1.2M', platform: TREND.platforms[0] },
+                  { id: '2', title: 'Creator reaction clip', views: '840K', platform: TREND.platforms[1] ?? TREND.platforms[0] },
+                  { id: '3', title: 'Trend explainer short', views: '520K', platform: TREND.platforms[0] },
+                ]).slice(0, 3).map((item: { id: string; title: string; views: string; platform?: string }) => (
+                  <div key={item.id} className="rounded-xl border border-border bg-card overflow-hidden">
+                    <div className="aspect-video bg-muted flex items-center justify-center text-2xl">
+                      {item.platform === 'youtube' ? '▶️' : item.platform === 'instagram' ? '📸' : '🔥'}
+                    </div>
+                    <div className="p-3">
+                      <p className="text-xs font-sans font-semibold text-foreground line-clamp-2">{item.title}</p>
+                      <p className="text-xs font-mono-custom text-muted-foreground mt-1">{item.views} views</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="space-y-3">

@@ -37,15 +37,20 @@ const TEASER_STATS = [
   { label: 'Creators active 24h', value: '38.2K', sparkline: [30, 42, 38, 45, 50, 48, 52] },
 ];
 
-export default function AuthScreen() {
+interface AuthScreenProps {
+  initialMode?: AuthMode;
+}
+
+export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
   const searchParams = useSearchParams();
   const { signIn, signUp } = useAuth();
-  const [mode, setMode] = useState<AuthMode>('login');
+  const [mode, setMode] = useState<AuthMode>(initialMode);
 
   useEffect(() => {
     const m = searchParams.get('mode');
     if (m === 'signup' || m === 'login') setMode(m);
-  }, [searchParams]);
+    else if (initialMode) setMode(initialMode);
+  }, [searchParams, initialMode]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +75,8 @@ export default function AuthScreen() {
       return;
     }
     toast.success('Welcome back to NEMO');
-    window.location.href = '/dashboard';
+    const next = searchParams.get('next') || '/dashboard';
+    window.location.href = next;
   };
 
   const handleSignupSubmit = async (data: SignupFormData) => {

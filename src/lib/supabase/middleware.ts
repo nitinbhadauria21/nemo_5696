@@ -15,11 +15,12 @@ const PUBLIC_PATHS = [
   '/admin/login',
 ];
 
+const AUTH_FLOW_PATHS = ['/verify-email', '/onboarding', '/login', '/signup', '/sign-up-login-screen'];
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   if (!isSupabaseConfigured()) {
-    // Graceful fallback: no auth enforcement when Supabase env is unset/placeholder
     return supabaseResponse;
   }
 
@@ -55,9 +56,48 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
-    url.pathname = '/sign-up-login-screen';
+    url.pathname = '/login';
     url.searchParams.set('next', path);
     return NextResponse.redirect(url);
+  }
+
+  if (user) {
+    const onAuthFlow = AUTH_FLOW_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
+
+    if (!user.email_confirmed_at && !path.startsWith('/verify-email') && !path.startsWith('/api/')) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/verify-email';
+      if (user.email) url.searchParams.set('email', user.email);
+      return NextResponse.redirect(url);
+    }
+
+    if (user.email_confirmed_at && !onAuthFlow && !path.startsWith('/api/') && !path.startsWith('/admin')) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_complete')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile && profile.onboarding_complete === false && !path.startsWith('/onboarding')) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/onboarding';
+        return NextResponse.redirect(url);
+      }
+    }
+
+    if (onAuthFlow && path !== '/onboarding' && path !== '/verify-email') {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_complete')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile?.onboarding_complete && (path === '/login' || path === '/signup' || path === '/sign-up-login-screen')) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/dashboard';
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse;

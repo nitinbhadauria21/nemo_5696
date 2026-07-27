@@ -109,7 +109,7 @@ function VerifyEmailInner() {
 
           <p className="text-xs text-muted-foreground font-sans">
             Wrong email?{' '}
-            <Link href="/sign-up-login-screen" className="text-primary hover:underline font-semibold">
+            <Link href="/login" className="text-primary hover:underline font-semibold">
               Go back and change it
             </Link>
           </p>

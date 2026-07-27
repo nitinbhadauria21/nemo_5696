@@ -117,8 +117,43 @@ export default function CheckoutContent() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create order');
 
-      // When Razorpay keys are present, checkout.js would open here.
-      // Fallback / success path persists plan locally and continues.
+      if (data.razorpayEnabled && data.keyId) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = () => {
+            const RazorpayCtor = (window as unknown as { Razorpay: new (opts: Record<string, unknown>) => { open: () => void } }).Razorpay;
+            const rzp = new RazorpayCtor({
+              key: data.keyId,
+              amount: data.amount,
+              currency: data.currency,
+              name: 'NEMO',
+              description: `${selectedPlan.toUpperCase()} subscription`,
+              order_id: data.orderId,
+              handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+                await fetch('/api/billing/verify-payment', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    orderId: response.razorpay_order_id,
+                    paymentId: response.razorpay_payment_id,
+                    signature: response.razorpay_signature,
+                    plan: selectedPlan,
+                  }),
+                });
+                window.location.href = `/payment-success?plan=${selectedPlan}&order=${encodeURIComponent(response.razorpay_order_id)}`;
+                resolve();
+              },
+              modal: { ondismiss: () => reject(new Error('Payment cancelled')) },
+            });
+            rzp.open();
+          };
+          script.onerror = () => reject(new Error('Failed to load Razorpay'));
+          document.body.appendChild(script);
+        });
+        return;
+      }
+
       await fetch('/api/billing/verify-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
