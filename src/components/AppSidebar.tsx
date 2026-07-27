@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import AppLogo from '@/components/ui/AppLogo';
-import AppImage from '@/components/ui/AppImage';
+import NemoWordmark, { NemoMark } from '@/components/ui/NemoWordmark';
 import Icon from '@/components/ui/AppIcon';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
@@ -19,9 +18,9 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/', icon: 'HomeIcon', group: 'main' },
+  { label: 'Dashboard', href: '/dashboard', icon: 'HomeIcon', group: 'main' },
   { label: 'Explore', href: '/explore', icon: 'MagnifyingGlassIcon', group: 'main' },
-  { label: 'Trend Detail', href: '/trend-detail', icon: 'FireIcon', group: 'main' },
+  { label: 'Trend Detail', href: '/trend/trend-001', icon: 'FireIcon', group: 'main' },
   { label: 'Content Queue', href: '/queue', icon: 'QueueListIcon', group: 'create' },
   { label: 'Carousel Studio', href: '/carousel', icon: 'RectangleGroupIcon', group: 'create' },
   { label: 'Viral Script Writer', href: '/viral-script-writer', icon: 'PencilSquareIcon', group: 'create' },
@@ -29,7 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Analytics', href: '/analytics', icon: 'PresentationChartLineIcon', group: 'insights' },
   { label: 'Reports', href: '/reports', icon: 'ChartBarIcon', group: 'insights' },
   { label: 'Pricing', href: '/pricing', icon: 'CreditCardIcon', group: 'account' },
-  { label: 'Settings', href: '/settings-developer-tools', icon: 'Cog6ToothIcon', group: 'account' },
+  { label: 'Settings', href: '/settings', icon: 'Cog6ToothIcon', group: 'account' },
 ];
 
 const NAV_GROUPS = [
@@ -84,21 +83,9 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
       {/* Logo */}
       <div className={`flex items-center gap-3 px-4 py-5 border-b border-white/15 min-h-[72px] ${collapsed ? 'justify-center px-0' : ''}`}>
         {collapsed ? (
-          <AppLogo size={38} src="/assets/images/3-1784112678359.png" />
+          <NemoMark size={38} />
         ) : (
-          <div className="flex items-center gap-2.5 min-w-0">
-            <AppImage
-              src="/assets/images/Nemo_Logo_in_LD___1_-1784112484010.png"
-              alt="Nemo Wordmark"
-              width={148}
-              height={44}
-              className="flex-shrink-0 object-contain"
-              priority={true}
-            />
-            <span className="text-[10px] font-mono-custom font-bold bg-white/20 text-white px-1.5 py-0.5 rounded-full uppercase tracking-wider flex-shrink-0">
-              Beta
-            </span>
-          </div>
+          <NemoWordmark size="md" variant="onFlame" showBeta />
         )}
       </div>
 
@@ -268,7 +255,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
 
         {/* User profile */}
         <Link
-          href="/settings-developer-tools"
+          href="/settings"
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/85 hover:text-white hover:bg-white/15 transition-all duration-200 ${
             collapsed ? 'justify-center px-0' : ''
           }`}
@@ -299,7 +286,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
             type="button"
             onClick={() => {
               signOut().then(() => {
-                window.location.href = '/sign-up-login-screen';
+                window.location.href = '/login';
               });
             }}
             className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/15 text-xs font-semibold transition-all"

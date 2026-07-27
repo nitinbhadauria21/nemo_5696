@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import AppImage from '@/components/ui/AppImage';
+import NemoWordmark from '@/components/ui/NemoWordmark';
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -33,13 +33,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <AppImage
-            src="/assets/images/Nemo_Logo_in_LD___1_-1784112484010.png"
-            alt="Nemo Logo"
-            width={120}
-            height={36}
-            className="object-contain"
-          />
+          <NemoWordmark size="md" variant="onLight" />
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
@@ -146,7 +140,7 @@ export default function ResetPasswordPage() {
                 Your password has been reset successfully.
               </p>
               <Link
-                href="/sign-up-login-screen"
+                href="/login"
                 className="block w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-all"
               >
                 Sign in with new password
@@ -156,7 +150,7 @@ export default function ResetPasswordPage() {
 
           {!done && (
             <div className="mt-6 pt-5 border-t border-border text-center">
-              <Link href="/sign-up-login-screen" className="text-sm text-muted-foreground hover:text-foreground font-sans transition-colors">
+              <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground font-sans transition-colors">
                 ← Back to sign in
               </Link>
             </div>

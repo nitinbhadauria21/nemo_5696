@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthUserId } from '@/lib/api/auth';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { plan = 'pro', billing = 'monthly', amountInr } = body;
+    const userId = await getAuthUserId();
 
     if (!amountInr || amountInr < 1) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
@@ -22,7 +24,7 @@ export async function POST(request: NextRequest) {
         amount: Math.round(Number(amountInr) * 100),
         currency: 'INR',
         receipt: orderId,
-        notes: { plan, billing },
+        notes: { plan, billing, user_id: userId ?? '' },
       });
 
       return NextResponse.json({

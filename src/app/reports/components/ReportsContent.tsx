@@ -51,6 +51,9 @@ const PLATFORM_COLORS: Record<string, string> = {
 
 export default function ReportsContent() {
   const [isPro, setIsPro] = useState(false);
+  const [topTrends, setTopTrends] = useState(TOP_TRENDS);
+  const [nicheData, setNicheData] = useState(NICHE_DATA);
+  const [timingData, setTimingData] = useState(TREND_TIMING_DATA);
 
   useEffect(() => {
     try {
@@ -59,6 +62,48 @@ export default function ReportsContent() {
     } catch {
       setIsPro(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/trends')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!Array.isArray(data.trends) || !data.trends.length) return;
+        const sorted = [...data.trends].sort((a: { nemoScore: number }, b: { nemoScore: number }) => b.nemoScore - a.nemoScore);
+        setTopTrends(
+          sorted.slice(0, 10).map((t: { title: string; nemoScore: number; platforms: string[]; spike: number }, i: number) => ({
+            rank: i + 1,
+            title: t.title,
+            nemoScore: t.nemoScore,
+            platform: t.platforms[0] ? t.platforms[0].charAt(0).toUpperCase() + t.platforms[0].slice(1) : 'Multi',
+            change: `${t.spike >= 0 ? '+' : ''}${t.spike}%`,
+          }))
+        );
+        const byNiche = new Map<string, { trends: number; total: number }>();
+        for (const t of data.trends as { category: string; nemoScore: number }[]) {
+          const cur = byNiche.get(t.category) || { trends: 0, total: 0 };
+          cur.trends += 1;
+          cur.total += t.nemoScore;
+          byNiche.set(t.category, cur);
+        }
+        setNicheData(
+          [...byNiche.entries()]
+            .map(([niche, v]) => ({ niche, trends: v.trends, avgScore: Math.round(v.total / v.trends) }))
+            .sort((a, b) => b.trends - a.trends)
+            .slice(0, 6)
+        );
+        const sample = sorted[0] as { sparklineData?: number[] } | undefined;
+        if (sample?.sparklineData?.length) {
+          setTimingData(
+            sample.sparklineData.map((score, i) => ({
+              hour: `${i * 3}h`,
+              score,
+              volume: score * 80,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
   }, []);
 
   return (
@@ -107,7 +152,7 @@ export default function ReportsContent() {
             </span>
           </div>
           <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={TREND_TIMING_DATA} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+            <LineChart data={timingData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="hour" tick={{ fontSize: 12, fill: 'var(--muted-foreground)', fontWeight: 600 }} />
               <YAxis tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }} />
@@ -130,7 +175,7 @@ export default function ReportsContent() {
           <div className="bg-card border-2 border-border rounded-2xl p-5">
             <h2 className="font-display font-bold text-foreground text-xl mb-5">Top 10 Trends This Week</h2>
             <div className="space-y-3">
-              {TOP_TRENDS.map((trend) => (
+              {topTrends.map((trend) => (
                 <div key={`top-${trend.rank}`} className="flex items-center gap-3">
                   <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
                     trend.rank <= 3 ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
@@ -156,7 +201,7 @@ export default function ReportsContent() {
           <div className="bg-card border-2 border-border rounded-2xl p-5">
             <h2 className="font-display font-bold text-foreground text-xl mb-5">Niche Performance Summary</h2>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={NICHE_DATA} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+              <BarChart data={nicheData} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 12, fill: 'var(--muted-foreground)', fontWeight: 600 }} />
                 <YAxis dataKey="niche" type="category" tick={{ fontSize: 12, fill: 'var(--muted-foreground)', fontWeight: 600 }} width={75} />

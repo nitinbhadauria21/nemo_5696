@@ -3,7 +3,10 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import AppImage from '@/components/ui/AppImage';
+import NemoWordmark from '@/components/ui/NemoWordmark';
+
+import { createClient } from '@/lib/supabase/client';
+import { isSupabaseConfigured } from '@/lib/supabase/config';
 
 function VerifyEmailInner() {
   const searchParams = useSearchParams();
@@ -31,9 +34,15 @@ function VerifyEmailInner() {
     }
   }, [cooldown]);
 
-  const handleResend = () => {
+  const handleResend = async () => {
     setCooldown(60);
     setExpiry(15 * 60);
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      if (supabase) {
+        await supabase.auth.resend({ type: 'signup', email });
+      }
+    }
     setResent(true);
   };
 
@@ -47,13 +56,7 @@ function VerifyEmailInner() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <AppImage
-            src="/assets/images/Nemo_Logo_in_LD___1_-1784112484010.png"
-            alt="Nemo Logo"
-            width={120}
-            height={36}
-            className="object-contain"
-          />
+          <NemoWordmark size="md" variant="onLight" />
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-8 text-center shadow-sm">
@@ -106,7 +109,7 @@ function VerifyEmailInner() {
 
           <p className="text-xs text-muted-foreground font-sans">
             Wrong email?{' '}
-            <Link href="/sign-up-login-screen" className="text-primary hover:underline font-semibold">
+            <Link href="/login" className="text-primary hover:underline font-semibold">
               Go back and change it
             </Link>
           </p>

@@ -20,18 +20,25 @@ export default function AdminPanelContent() {
 
   const { register, handleSubmit, formState: { errors }, setError } = useForm<AdminLoginForm>();
 
-  const handleAdminLogin = (data: AdminLoginForm) => {
-    // BACKEND INTEGRATION: POST /api/admin/login
-    if (data.code !== 'NEMO_MASTER_2026_NITIN' || data.email !== 'admin@nemo.app') {
-      setError('code', { message: 'Invalid credentials — use the demo admin account' });
-      return;
-    }
+  const handleAdminLogin = async (data: AdminLoginForm) => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: data.code }),
+      });
+      if (!res.ok) {
+        setError('code', { message: 'Invalid credentials' });
+        return;
+      }
       setAuthenticated(true);
-      toast.success('Admin access granted · 24h session');
-    }, 1200);
+      toast.success('Admin access granted · 8h session');
+    } catch {
+      setError('code', { message: 'Login failed' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!authenticated) {

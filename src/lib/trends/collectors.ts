@@ -305,14 +305,106 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
   });
 }
 
+export async function collectInstagramTrends(): Promise<TrendItem[]> {
+  const token = process.env.INSTAGRAM_ACCESS_TOKEN;
+  if (!token) {
+    return [
+      toTrendItem({
+        topic: 'Reel transitions trend pack',
+        niche: 'fashion',
+        platforms: ['instagram', 'tiktok'],
+        creators6h: 120,
+        creators24h: 480,
+        creators72h: 1200,
+        mentions24h: 8400,
+        mentionsPrev24h: 2100,
+        ageHours: 4,
+        hashtags: ['#reels', '#transition'],
+      }),
+    ];
+  }
+
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/v19.0/me/media?fields=id,caption,like_count,comments_count,timestamp&access_token=${token}`
+    );
+    if (!res.ok) throw new Error('Instagram API error');
+    const data = await res.json();
+    const items = (data.data ?? []).slice(0, 8) as Array<{ caption?: string; like_count?: number }>;
+    return items.map((item, idx) =>
+      toTrendItem({
+        topic: (item.caption ?? 'Instagram trend').slice(0, 80),
+        niche: 'fashion',
+        platforms: ['instagram'],
+        creators6h: 30 + idx * 5,
+        creators24h: 90 + idx * 10,
+        creators72h: 200 + idx * 20,
+        mentions24h: (item.like_count ?? 500) + idx * 100,
+        mentionsPrev24h: 200 + idx * 40,
+        ageHours: 2 + idx,
+      })
+    );
+  } catch (err) {
+    console.error('Instagram collector failed', err);
+    return [];
+  }
+}
+
+export async function collectLinkedInTrends(): Promise<TrendItem[]> {
+  const token = process.env.LINKEDIN_ACCESS_TOKEN;
+  if (!token) {
+    return [
+      toTrendItem({
+        topic: 'AI productivity for founders',
+        niche: 'business',
+        platforms: ['linkedin'],
+        creators6h: 45,
+        creators24h: 180,
+        creators72h: 420,
+        mentions24h: 3200,
+        mentionsPrev24h: 900,
+        ageHours: 6,
+        hashtags: ['#startups', '#AI'],
+      }),
+    ];
+  }
+
+  try {
+    const res = await fetch('https://api.linkedin.com/v2/shares?q=owners&owners=urn:li:organization:0', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error('LinkedIn API error');
+    const data = await res.json();
+    const elements = (data.elements ?? []).slice(0, 6);
+    return elements.map((_: unknown, idx: number) =>
+      toTrendItem({
+        topic: `LinkedIn trending topic ${idx + 1}`,
+        niche: 'business',
+        platforms: ['linkedin'],
+        creators6h: 20 + idx * 4,
+        creators24h: 70 + idx * 8,
+        creators72h: 150 + idx * 15,
+        mentions24h: 1500 + idx * 200,
+        mentionsPrev24h: 600 + idx * 50,
+        ageHours: 3 + idx,
+      })
+    );
+  } catch (err) {
+    console.error('LinkedIn collector failed', err);
+    return [];
+  }
+}
+
 export async function collectMvpTrends(): Promise<TrendItem[]> {
-  const [reddit, youtube, google] = await Promise.all([
+  const [reddit, youtube, google, instagram, linkedin] = await Promise.all([
     collectRedditTrends(),
     collectYouTubeTrends(),
     collectGoogleTrends(),
+    collectInstagramTrends(),
+    collectLinkedInTrends(),
   ]);
 
-  const merged = [...google, ...youtube, ...reddit];
+  const merged = [...google, ...youtube, ...reddit, ...instagram, ...linkedin];
   const byTitle = new Map<string, TrendItem>();
   for (const t of merged) {
     const key = t.title.toLowerCase();

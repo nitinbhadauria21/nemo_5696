@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { PlusIcon, ListBulletIcon, ViewColumnsIcon, ArrowDownTrayIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
@@ -16,14 +16,17 @@ interface QueueItem {
   notes?: string;
 }
 
-const INITIAL_ITEMS: QueueItem[] = [
-  { id: 'q-1', title: 'Claude AI Tool Integrations', platform: 'YouTube Shorts', niche: 'AI & Tech', status: 'todo', nemoScore: 91, addedAt: '2h ago' },
-  { id: 'q-2', title: 'Instagram Broadcast Channels', platform: 'Instagram Reels', niche: 'Marketing', status: 'todo', nemoScore: 84, addedAt: '3h ago' },
-  { id: 'q-3', title: 'Viral Finance Hacks 2026', platform: 'TikTok', niche: 'Finance', status: 'in_progress', nemoScore: 78, addedAt: '5h ago', notes: 'Script drafted, need B-roll' },
-  { id: 'q-4', title: 'Morning Routine Productivity', platform: 'Instagram Reels', niche: 'Fitness', status: 'in_progress', nemoScore: 72, addedAt: '1d ago' },
-  { id: 'q-5', title: 'AI Tools for Creators', platform: 'YouTube Shorts', niche: 'AI & Tech', status: 'published', nemoScore: 88, addedAt: '2d ago' },
-  { id: 'q-6', title: 'Budget Travel India 2026', platform: 'TikTok', niche: 'Travel', status: 'published', nemoScore: 65, addedAt: '3d ago' },
-];
+const STATUS_TO_API: Record<QueueItem['status'], string> = {
+  todo: 'ideas',
+  in_progress: 'in_progress',
+  published: 'published',
+};
+
+const STATUS_FROM_API: Record<string, QueueItem['status']> = {
+  ideas: 'todo',
+  in_progress: 'in_progress',
+  published: 'published',
+};
 
 const PLATFORM_COLORS: Record<string, string> = {
   'YouTube Shorts': 'bg-red-500/10 text-red-600 border border-red-500/20',
@@ -40,37 +43,82 @@ const COLUMNS = [
 ] as const;
 
 export default function ContentQueueContent() {
-  const [items, setItems] = useState<QueueItem[]>(INITIAL_ITEMS);
+  const [items, setItems] = useState<QueueItem[]>([]);
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [showAddModal, setShowAddModal] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
   const [newItem, setNewItem] = useState({ title: '', platform: 'YouTube Shorts', niche: 'AI & Tech', notes: '' });
   const router = useRouter();
 
+  useEffect(() => {
+    fetch('/api/queue')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!Array.isArray(data.items)) return;
+        setItems(
+          data.items.map((i: { id: string; title: string; platform?: string; status?: string; notes?: string; created_at?: string }) => ({
+            id: i.id,
+            title: i.title,
+            platform: i.platform || 'YouTube Shorts',
+            niche: 'General',
+            status: STATUS_FROM_API[i.status || 'ideas'] || 'todo',
+            nemoScore: 70,
+            addedAt: i.created_at ? new Date(i.created_at).toLocaleDateString() : 'recently',
+            notes: i.notes,
+          }))
+        );
+      })
+      .catch(() => {});
+  }, []);
+
   const handleDragStart = (id: string) => setDragId(id);
-  const handleDrop = (status: QueueItem['status']) => {
+  const handleDrop = async (status: QueueItem['status']) => {
     if (!dragId) return;
     setItems((prev) => prev.map((i) => (i.id === dragId ? { ...i, status } : i)));
     setDragId(null);
-    toast.success('Item moved');
+    try {
+      await fetch('/api/queue', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: dragId, status: STATUS_TO_API[status] }),
+      });
+      toast.success('Item moved');
+    } catch {
+      toast.error('Could not update item');
+    }
   };
 
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (!newItem.title.trim()) return;
-    const item: QueueItem = {
-      id: `q-${Date.now()}`,
-      title: newItem.title,
-      platform: newItem.platform,
-      niche: newItem.niche,
-      status: 'todo',
-      nemoScore: Math.floor(Math.random() * 30) + 60,
-      addedAt: 'just now',
-      notes: newItem.notes || undefined,
-    };
-    setItems((prev) => [item, ...prev]);
-    setNewItem({ title: '', platform: 'YouTube Shorts', niche: 'AI & Tech', notes: '' });
-    setShowAddModal(false);
-    toast.success('Added to queue');
+    try {
+      const res = await fetch('/api/queue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newItem.title,
+          platform: newItem.platform,
+          notes: newItem.notes,
+          status: STATUS_TO_API.todo,
+        }),
+      });
+      const data = await res.json();
+      const item: QueueItem = {
+        id: data.item?.id || `q-${Date.now()}`,
+        title: newItem.title,
+        platform: newItem.platform,
+        niche: newItem.niche,
+        status: 'todo',
+        nemoScore: Math.floor(Math.random() * 30) + 60,
+        addedAt: 'just now',
+        notes: newItem.notes || undefined,
+      };
+      setItems((prev) => [item, ...prev]);
+      setNewItem({ title: '', platform: 'YouTube Shorts', niche: 'AI & Tech', notes: '' });
+      setShowAddModal(false);
+      toast.success('Added to queue');
+    } catch {
+      toast.error('Could not add item');
+    }
   };
 
   const handleExport = () => {

@@ -4,15 +4,17 @@ import React, { useState } from 'react';
 import { User, Link2, CreditCard, Palette, Bell, Code2 } from 'lucide-react';
 import ProfileTab from './ProfileTab';
 import ConnectedAccountsTab from './ConnectedAccountsTab';
+import SocialConnectTabWrapper from './SocialConnectTabWrapper';
 import SubscriptionTab from './SubscriptionTab';
 import StyleDefaultsTab from './StyleDefaultsTab';
 import NotificationsTab from './NotificationsTab';
 import APIKeyTab from './APIKeyTab';
+import NichesTab from './NichesTab';
+import PlatformsTab from './PlatformsTab';
 import MCPConfigTab from './MCPConfigTab';
-import Icon from '@/components/ui/AppIcon';
 
 
-type TabId = 'profile' | 'accounts' | 'subscription' | 'style' | 'notifications' | 'api';
+type TabId = 'profile' | 'niches' | 'platforms' | 'social' | 'accounts' | 'subscription' | 'style' | 'notifications' | 'api';
 
 interface Tab {
   id: TabId;
@@ -23,7 +25,10 @@ interface Tab {
 
 const TABS: Tab[] = [
   { id: 'profile', label: 'Profile', icon: User },
-  { id: 'accounts', label: 'Connected Accounts', icon: Link2 },
+  { id: 'niches', label: 'Niches', icon: Palette },
+  { id: 'platforms', label: 'Platforms', icon: Link2 },
+  { id: 'social', label: 'Social Connect', icon: Link2 },
+  { id: 'accounts', label: 'Data Sources', icon: Link2 },
   { id: 'subscription', label: 'Subscription', icon: CreditCard },
   { id: 'style', label: 'Style Defaults', icon: Palette },
   { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -37,6 +42,9 @@ export default function SettingsContent() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'profile': return <ProfileTab />;
+      case 'niches': return <NichesTab />;
+      case 'platforms': return <PlatformsTab />;
+      case 'social': return <SocialConnectTabWrapper />;
       case 'accounts': return <ConnectedAccountsTab />;
       case 'subscription': return <SubscriptionTab />;
       case 'style': return <StyleDefaultsTab />;

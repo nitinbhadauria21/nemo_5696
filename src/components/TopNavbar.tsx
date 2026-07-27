@@ -24,8 +24,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 ];
 
 const USER_MENU_ITEMS = [
-  { label: 'Profile', icon: 'UserCircleIcon', href: '/settings-developer-tools' },
-  { label: 'Settings', icon: 'Cog6ToothIcon', href: '/settings-developer-tools' },
+  { label: 'Profile', icon: 'UserCircleIcon', href: '/settings' },
+  { label: 'Settings', icon: 'Cog6ToothIcon', href: '/settings' },
   { label: 'Upgrade', icon: 'SparklesIcon', href: '/pricing', highlight: true },
 ];
 
@@ -54,8 +54,19 @@ export default function TopNavbar() {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  const [searchTrends, setSearchTrends] = useState(MOCK_TRENDS);
+
+  useEffect(() => {
+    fetch('/api/trends')
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.trends) && d.trends.length) setSearchTrends(d.trends);
+      })
+      .catch(() => {});
+  }, []);
+
   const searchResults = searchQuery.trim().length >= 2
-    ? MOCK_TRENDS.filter((t) =>
+    ? searchTrends.filter((t) =>
         t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.hashtags.some((h) => h.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -122,7 +133,7 @@ export default function TopNavbar() {
                   {searchResults.map((trend) => (
                     <li key={trend.id}>
                       <button
-                        onClick={() => handleSearchSelect(`/trend-detail?id=${trend.id}`)}
+                        onClick={() => handleSearchSelect(`/trend/${trend.id}`)}
                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/60 transition-colors text-left"
                       >
                         <div className="w-9 h-9 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
@@ -224,7 +235,7 @@ export default function TopNavbar() {
               </ul>
 
               <div className="px-4 py-3 border-t border-border bg-muted/30">
-                <Link href="/settings-developer-tools" onClick={() => setNotifOpen(false)} className="text-base font-semibold text-primary hover:underline font-sans">
+                <Link href="/settings" onClick={() => setNotifOpen(false)} className="text-base font-semibold text-primary hover:underline font-sans">
                   Notification settings →
                 </Link>
               </div>
@@ -288,7 +299,7 @@ export default function TopNavbar() {
 
               <div className="border-t border-border py-1.5">
                 <Link
-                  href="/sign-up-login-screen"
+                  href="/login"
                   onClick={() => setUserMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-2.5 text-base font-semibold text-red-600 hover:bg-red-500/10 font-sans transition-colors"
                 >

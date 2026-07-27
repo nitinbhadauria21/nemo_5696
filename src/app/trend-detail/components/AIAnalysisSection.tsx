@@ -109,14 +109,33 @@ export default function AIAnalysisSection({ type, trendTitle }: AIAnalysisSectio
   const config = SECTION_CONFIG[type];
   const IconComponent = config.icon;
 
-  const handleAnalyze = () => {
+  const [liveContent, setLiveContent] = useState<string | null>(null);
+
+  const handleAnalyze = async () => {
     setIsLoading(true);
-    // BACKEND INTEGRATION: POST /api/trends/analyze | /api/trends/sentiment | /api/trends/generate-ideas
-    setTimeout(() => {
-      setIsLoading(false);
+    const endpoints: Record<AnalysisType, string> = {
+      analysis: '/api/trends/analyze',
+      sentiment: '/api/trends/sentiment',
+      ideas: '/api/trends/generate-ideas',
+    };
+    try {
+      const res = await fetch(endpoints[type], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trendTitle }),
+      });
+      const data = await res.json();
+      const text = data.analysis || data.sentiment || data.ideas || data.error || 'Analysis unavailable';
+      setLiveContent(typeof text === 'string' ? text : JSON.stringify(text, null, 2));
       setIsLoaded(true);
       setIsExpanded(true);
-    }, 1800);
+    } catch {
+      setLiveContent(MOCK_ANALYSIS[type] ? 'See mock analysis below.' : 'Failed to load analysis.');
+      setIsLoaded(true);
+      setIsExpanded(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -159,7 +178,11 @@ export default function AIAnalysisSection({ type, trendTitle }: AIAnalysisSectio
       {isLoaded && isExpanded && (
         <div className="px-4 pb-4 animate-fade-in">
           <div className="pt-3 border-t border-border">
-            {MOCK_ANALYSIS[type]}
+            {liveContent ? (
+              <pre className="text-sm font-sans whitespace-pre-wrap text-foreground leading-relaxed">{liveContent}</pre>
+            ) : (
+              MOCK_ANALYSIS[type]
+            )}
           </div>
         </div>
       )}
