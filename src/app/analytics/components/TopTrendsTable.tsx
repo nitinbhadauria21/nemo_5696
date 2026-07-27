@@ -33,7 +33,7 @@ export default function TopTrendsTable() {
                   {String(idx + 1)?.padStart(2, '0')}
                 </td>
                 <td className="px-4 py-3">
-                  <Link href="/trend-detail" className="text-sm font-sans font-medium text-foreground hover:text-primary transition-colors line-clamp-1">
+                  <Link href={`/trend-detail?id=${trend?.id}`} className="text-sm font-sans font-medium text-foreground hover:text-primary transition-colors line-clamp-1">
                     {trend?.title}
                   </Link>
                   <p className="text-xs text-muted-foreground font-sans">{trend?.category}</p>

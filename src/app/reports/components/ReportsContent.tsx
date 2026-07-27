@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LockClosedIcon, ArrowDownTrayIcon } from '@heroicons/react/24/solid';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -50,7 +50,16 @@ const PLATFORM_COLORS: Record<string, string> = {
 };
 
 export default function ReportsContent() {
-  const [isPro] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+
+  useEffect(() => {
+    try {
+      const plan = localStorage.getItem('nemo_plan');
+      setIsPro(plan === 'pro' || plan === 'agency');
+    } catch {
+      setIsPro(false);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">

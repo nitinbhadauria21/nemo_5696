@@ -2,46 +2,10 @@
   "name": "nemo",
   "version": "0.1.0",
   "private": true,
-  "rocketCritical": {
-    "dependencies": [
-      "next",
-      "react",
-      "react-dom",
-      "@dhiwise/component-tagger",
-      "@tailwindcss/typography",
-      "recharts"
-    ],
-    "devDependencies": [
-      "typescript",
-      "@types/node",
-      "@types/react",
-      "@types/react-dom",
-      "@typescript-eslint/eslint-plugin",
-      "@typescript-eslint/parser",
-      "eslint-config-next",
-      "tailwindcss",
-      "autoprefixer",
-      "postcss",
-      "eslint",
-      "prettier",
-      "@netlify/plugin-nextjs"
-    ],
-    "scripts": [
-      "dev",
-      "build",
-      "start",
-      "lint",
-      "lint:fix",
-      "format",
-      "serve",
-      "type-check"
-    ],
-    "warning": "🚨 CRITICAL: DO NOT REMOVE OR MODIFY ABOVE DEPENDENCIES - Required for Next.js 15 TypeScript app functionality"
-  },
   "scripts": {
     "dev": "next dev -p 4028",
     "build": "next build",
-    "start": "next dev -p 4028",
+    "start": "next start -p 4028",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,md,json}\"",
@@ -49,15 +13,16 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@dhiwise/component-tagger": "^1.0.15",
     "@heroicons/react": "^2.2.0",
-    "@rocketnew/llm-sdk": "1.1.0",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.50.0",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
     "html2canvas": "1.4.1",
     "lucide-react": "^1.7.0",
     "next": "15.5.18",
     "next-pwa": "^5.6.0",
+    "razorpay": "^2.9.6",
     "react": "19.0.3",
     "react-dom": "19.0.3",
     "react-hook-form": "^7.81.0",

@@ -8,6 +8,7 @@ import { Eye, EyeOff, Copy, CheckCheck } from 'lucide-react';
 
 import AppImage from '@/components/ui/AppImage';
 import TrendSparkline from '@/components/ui/TrendSparkline';
+import { useAuth } from '@/context/AuthContext';
 
 type AuthMode = 'login' | 'signup';
 
@@ -36,6 +37,7 @@ const TEASER_STATS = [
 ];
 
 export default function AuthScreen() {
+  const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -52,37 +54,36 @@ export default function AuthScreen() {
     });
   };
 
-  const handleLoginSubmit = (data: LoginFormData) => {
-    // BACKEND INTEGRATION: POST /api/auth/login
-    const valid = DEMO_CREDENTIALS.some(
-      (c) => c.email === data.email && c.password === data.password
-    );
-    if (!valid) {
-      loginForm.setError('email', {
-        message: 'Invalid credentials — use the demo accounts below to sign in',
-      });
+  const handleLoginSubmit = async (data: LoginFormData) => {
+    setIsLoading(true);
+    const result = await signIn(data.email, data.password);
+    setIsLoading(false);
+    if (result.error) {
+      loginForm.setError('email', { message: result.error });
       return;
     }
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success('Welcome back to NEMO 🔥');
-      window.location.href = '/';
-    }, 1200);
+    toast.success('Welcome back to NEMO');
+    window.location.href = '/';
   };
 
-  const handleSignupSubmit = (data: SignupFormData) => {
-    // BACKEND INTEGRATION: POST /api/auth/signup
+  const handleSignupSubmit = async (data: SignupFormData) => {
     if (data.password !== data.confirmPassword) {
       signupForm.setError('confirmPassword', { message: 'Passwords do not match' });
       return;
     }
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success('Account created — welcome to NEMO!');
-      setMode('login');
-    }, 1400);
+    const result = await signUp(data.email, data.password, data.name);
+    setIsLoading(false);
+    if (result.error) {
+      signupForm.setError('email', { message: result.error });
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('nemo_pending_email', data.email);
+      sessionStorage.setItem('nemo_pending_name', data.name);
+    }
+    toast.success('Account created — verify your email to continue');
+    window.location.href = `/verify-email?email=${encodeURIComponent(data.email)}`;
   };
 
   const fillCredentials = (email: string, password: string) => {
@@ -271,7 +272,7 @@ export default function AuthScreen() {
                   />
                   <span className="text-sm font-sans text-muted-foreground">Remember me</span>
                 </label>
-                <Link href="#" className="text-sm font-sans text-primary hover:underline">
+                <Link href="/forgot-password" className="text-sm font-sans text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>

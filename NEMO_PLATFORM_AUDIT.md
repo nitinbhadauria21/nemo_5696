@@ -1,6 +1,6 @@
 # Nemo Platform — Feature Audit Report
 **Date:** 15 July 2026  
-**Auditor:** Rocket AI  
+**Auditor:** Nemo product audit  
 **Source Documents:** Nemo_MoSCoW_Navigation.pdf · Nemo_UX_Architecture_Complete.pdf · Nemo_DataSignals_Scoring.pdf  
 **Codebase:** https://github.com/nitinbhadauria21/nemo_5696
 

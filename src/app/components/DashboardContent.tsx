@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import LiveBadge from './LiveBadge';
 import DashboardKPICards from './DashboardKPICards';
@@ -8,11 +8,12 @@ import DashboardFilters from './DashboardFilters';
 import DashboardSidebar from './DashboardSidebar';
 import TrendCard from './TrendCard';
 import { MOCK_TRENDS } from '@/lib/mockData';
-import type { TrendPlatform } from '@/lib/mockData';
+import type { TrendItem, TrendPlatform } from '@/lib/mockData';
 import { COUNTRIES } from '@/lib/countries';
 
 export default function DashboardContent() {
-  const [trends, setTrends] = useState(MOCK_TRENDS);
+  const [trends, setTrends] = useState<TrendItem[]>(MOCK_TRENDS);
+  const [source, setSource] = useState<string>('mock');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilters, setActiveFilters] = useState<{
     categories: string[];
@@ -30,29 +31,52 @@ export default function DashboardContent() {
     countries: [],
   });
 
-  const handleRefresh = () => {
+  const loadTrends = async (refresh = false) => {
+    try {
+      const res = await fetch(`/api/trends${refresh ? '?refresh=1' : ''}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data.trends) && data.trends.length) {
+        setTrends(data.trends);
+        setSource(data.source || 'api');
+      }
+    } catch {
+      // keep current
+    }
+  };
+
+  useEffect(() => {
+    loadTrends(false);
+  }, []);
+
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-      toast.success('Trends refreshed — 2,847 trends tracked', { icon: '🔥' });
-    }, 1400);
+    await loadTrends(true);
+    setIsRefreshing(false);
+    toast.success('Trends refreshed', { icon: '🔥' });
   };
 
   const handleBookmarkToggle = (id: string) => {
     setTrends((prev) => prev.map((t) => (t.id === id ? { ...t, isBookmarked: !t.isBookmarked } : t)));
     const trend = trends.find((t) => t.id === id);
     if (trend) {
-      toast(trend.isBookmarked ? 'Bookmark removed' : 'Trend saved to bookmarks', {
-        icon: trend.isBookmarked ? '🗑️' : '🔖',
-      });
+      toast(trend.isBookmarked ? 'Bookmark removed' : 'Trend saved to bookmarks');
     }
   };
 
   const filteredTrends = trends.filter((t) => {
     if (activeFilters.bookmarksOnly && !t.isBookmarked) return false;
     if (!activeFilters.categories.includes('All') && !activeFilters.categories.includes(t.category)) return false;
-    if (activeFilters.platforms.length > 0 && !activeFilters.platforms.some((p) => t.platforms.includes(p))) return false;
-    if (activeFilters.keyword && !t.title.toLowerCase().includes(activeFilters.keyword.toLowerCase()) && !t.description.toLowerCase().includes(activeFilters.keyword.toLowerCase())) return false;
+    if (activeFilters.platforms.length > 0 && !activeFilters.platforms.some((p) => t.platforms.includes(p))) {
+      return false;
+    }
+    if (
+      activeFilters.keyword &&
+      !t.title.toLowerCase().includes(activeFilters.keyword.toLowerCase()) &&
+      !t.description.toLowerCase().includes(activeFilters.keyword.toLowerCase())
+    ) {
+      return false;
+    }
     if (activeFilters.countries.length > 0) {
       const trendRegions = t.geoRegions ?? [];
       const hasMatch = activeFilters.countries.some((code) => trendRegions.includes(code));
@@ -70,7 +94,6 @@ export default function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Page Header */}
       <div className="sticky top-0 z-20 bg-background/98 backdrop-blur-md border-b border-border px-5 sm:px-6 py-3.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 overflow-hidden">
           <div className="min-w-0 overflow-hidden">
@@ -78,44 +101,35 @@ export default function DashboardContent() {
               Nemo Live Trend Report
             </h1>
             <p className="text-base text-foreground/65 font-sans truncate mt-0.5">
-              Jul 14, 2026 · Real-time trend intelligence
+              Real-time trend intelligence · source: {source}
             </p>
           </div>
           <LiveBadge />
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button className="btn-flame px-5 py-2.5 whitespace-nowrap rounded-xl">
-            + Add to Queue
-          </button>
+          <button className="btn-flame px-5 py-2.5 whitespace-nowrap rounded-xl">+ Add to Queue</button>
         </div>
       </div>
 
-      {/* Main content */}
       <div className="px-4 sm:px-5 py-4 max-w-screen-2xl mx-auto">
         <div className="flex gap-5">
-          {/* Left: main feed */}
           <div className="flex-1 min-w-0 flex flex-col gap-4">
-            {/* KPI Stats Bar */}
             <DashboardKPICards />
-
-            {/* Filters */}
             <DashboardFilters
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
               onFiltersChange={setActiveFilters}
             />
 
-            {/* Active country filter banner */}
             {selectedCountryNames.length > 0 && (
               <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-primary/8 border border-primary/20 text-base font-sans">
-                <span className="text-primary font-bold">📍 Location filter active:</span>
+                <span className="text-primary font-bold">Location filter active:</span>
                 <span className="text-foreground font-medium">
                   {selectedCountryNames.map((c) => `${c!.flag} ${c!.name}`).join(' · ')}
                 </span>
               </div>
             )}
 
-            {/* Section Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 flex-wrap">
                 <h2 className="font-display font-bold text-foreground text-xl">
@@ -124,10 +138,10 @@ export default function DashboardContent() {
                 </h2>
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-sm font-mono-custom font-bold uppercase tracking-wider">
-                    🔥 {hotCount} Hot
+                    {hotCount} Hot
                   </span>
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-sm font-mono-custom font-bold uppercase tracking-wider">
-                    📈 {risingCount} Rising
+                    {risingCount} Rising
                   </span>
                 </div>
               </div>
@@ -136,10 +150,8 @@ export default function DashboardContent() {
               </span>
             </div>
 
-            {/* Trend Grid */}
             {filteredTrends.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <span className="text-5xl mb-4">🌍</span>
                 <p className="font-display font-bold text-foreground text-xl mb-2">No trends found</p>
                 <p className="text-base text-foreground/65 font-sans">
                   Try selecting different countries or clear the location filter
@@ -148,17 +160,12 @@ export default function DashboardContent() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filteredTrends.map((trend) => (
-                  <TrendCard
-                    key={trend.id}
-                    trend={trend}
-                    onBookmarkToggle={handleBookmarkToggle}
-                  />
+                  <TrendCard key={trend.id} trend={trend} onBookmarkToggle={handleBookmarkToggle} />
                 ))}
               </div>
             )}
           </div>
 
-          {/* Right sidebar */}
           <div className="w-64 xl:w-72 flex-shrink-0 hidden lg:block">
             <DashboardSidebar />
           </div>

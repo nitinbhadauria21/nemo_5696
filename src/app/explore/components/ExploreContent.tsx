@@ -132,7 +132,7 @@ function RisingCard({ trend }: { trend: TrendItem }) {
   return (
     <div className="flex-shrink-0 w-60 bg-card border-2 border-border rounded-2xl p-4 hover:border-primary/40 hover:shadow-flame-sm transition-all duration-200 cursor-pointer group trend-card-hover">
       <div className="flex items-center justify-between mb-2.5">
-        <StatusBadge status="RISING" />
+        <StatusBadge status="rising" />
         <NemoScoreBadge score={trend.nemoScore} size="sm" />
       </div>
       <p className="text-base font-bold text-foreground leading-snug line-clamp-2 font-sans mb-2.5 group-hover:text-primary transition-colors">
@@ -155,6 +155,7 @@ function RisingCard({ trend }: { trend: TrendItem }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ExploreContent() {
+  const [trends, setTrends] = useState<TrendItem[]>(MOCK_TRENDS);
   const [searchQuery, setSearchQuery] = useState('');
   const [showRecentSearches, setShowRecentSearches] = useState(false);
   const [activeTab, setActiveTab] = useState<PlatformTab>('all');
@@ -165,8 +166,26 @@ export default function ExploreContent() {
   const [recentSearches, setRecentSearches] = useState<string[]>(RECENT_SEARCHES);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    fetch('/api/trends')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.trends) && data.trends.length) setTrends(data.trends);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const platformTabs = [
+    { id: 'all' as PlatformTab, label: 'All', icon: 'Squares2X2Icon', count: trends.length },
+    { id: 'youtube' as PlatformTab, label: 'YouTube', icon: 'PlayCircleIcon', count: trends.filter((t) => t.platforms.includes('youtube')).length },
+    { id: 'instagram' as PlatformTab, label: 'Instagram', icon: 'CameraIcon', count: trends.filter((t) => t.platforms.includes('instagram')).length },
+    { id: 'tiktok' as PlatformTab, label: 'TikTok', icon: 'MusicalNoteIcon', count: trends.filter((t) => t.platforms.includes('tiktok')).length },
+    { id: 'linkedin' as PlatformTab, label: 'LinkedIn', icon: 'BriefcaseIcon', count: trends.filter((t) => t.platforms.includes('linkedin')).length },
+    { id: 'google' as PlatformTab, label: 'Google Trends', icon: 'MagnifyingGlassIcon', count: trends.filter((t) => t.platforms.includes('google')).length },
+  ];
+
   // Filter trends by platform tab
-  const filteredByPlatform = MOCK_TRENDS.filter(t => {
+  const filteredByPlatform = trends.filter((t) => {
     if (activeTab === 'all') return true;
     return t.platforms.includes(activeTab as any);
   });
@@ -194,7 +213,7 @@ export default function ExploreContent() {
   });
 
   // Rising fastest (sorted by velocity, top 10)
-  const risingFastest = [...MOCK_TRENDS]
+  const risingFastest = [...trends]
     .sort((a, b) => b.velocity - a.velocity)
     .slice(0, 10);
 
@@ -320,7 +339,7 @@ export default function ExploreContent() {
 
         {/* ── Platform Tabs ── */}
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-thin pb-1">
-          {PLATFORM_TABS.map((tab) => (
+          {platformTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}

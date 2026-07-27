@@ -1,26 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { completion } from '@rocketnew/llm-sdk';
-
-const API_KEYS: Record<string, string | undefined> = {
-  OPEN_AI: process.env.OPENAI_API_KEY,
-  ANTHROPIC: process.env.ANTHROPIC_API_KEY,
-  GEMINI: process.env.GEMINI_API_KEY,
-  PERPLEXITY: process.env.PERPLEXITY_API_KEY,
-};
+import { createCompletion, type ChatMessage, type ProviderId } from '@/lib/ai/providers';
+import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
 
 function formatErrorResponse(error: unknown, provider?: string) {
-  const statusCode = (error as any)?.statusCode || (error as any)?.status || 500;
-  const providerName = (error as any)?.llmProvider || provider || 'Unknown';
+  const statusCode = (error as { statusCode?: number; status?: number })?.statusCode
+    || (error as { status?: number })?.status
+    || 500;
+  const providerName = (error as { llmProvider?: string })?.llmProvider || provider || 'Unknown';
 
   return {
-    error: `${providerName.toUpperCase()} API error: ${statusCode}`,
+    error: `${String(providerName).toUpperCase()} API error: ${statusCode}`,
     details: error instanceof Error ? error.message : String(error),
     statusCode,
   };
 }
 
 export async function POST(request: NextRequest) {
-  let body: any = {};
+  let body: {
+    provider?: ProviderId;
+    model?: string;
+    messages?: ChatMessage[];
+    stream?: boolean;
+    parameters?: Record<string, unknown>;
+  } = {};
 
   try {
     body = await request.json();
@@ -33,30 +35,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = API_KEYS[provider];
-    if (!apiKey) {
+    const usage = await checkAndIncrementAiUsage(request);
+    if (!usage.allowed) {
       return NextResponse.json(
-        { error: `${provider.toUpperCase()} API key is not configured`, details: 'The API key for this provider is missing in environment variables' },
-        { status: 400 }
+        {
+          error: 'AI usage limit reached',
+          details: `Plan ${usage.plan} allows ${usage.limit} AI calls this period. Upgrade to continue.`,
+          usage,
+        },
+        { status: 402 }
       );
     }
 
-    if (stream) {
-      const response = await completion({
-        model,
-        messages,
-        stream: true,
-        api_key: apiKey,
-        ...parameters,
-      });
+    const result = await createCompletion({
+      provider,
+      model,
+      messages,
+      stream,
+      parameters,
+    });
 
+    if (stream) {
       const encoder = new TextEncoder();
       const readable = new ReadableStream({
         async start(controller) {
           try {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'start' })}\n\n`));
 
-            for await (const chunk of response as unknown as AsyncIterable<unknown>) {
+            for await (const chunk of result as AsyncIterable<unknown>) {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', chunk })}\n\n`));
             }
 
@@ -65,7 +71,11 @@ export async function POST(request: NextRequest) {
           } catch (error) {
             const formatted = formatErrorResponse(error, provider);
             console.error('API Route Error:', { error: formatted.error, details: formatted.details });
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'error', error: formatted.error, details: formatted.details })}\n\n`));
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: 'error', error: formatted.error, details: formatted.details })}\n\n`
+              )
+            );
             controller.close();
           }
         },
@@ -80,15 +90,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const response = await completion({
-      model,
-      messages,
-      stream: false,
-      api_key: apiKey,
-      ...parameters,
-    });
-
-    return NextResponse.json(response);
+    return NextResponse.json(result);
   } catch (error) {
     const formatted = formatErrorResponse(error, body?.provider);
     console.error('API Route Error:', { error: formatted.error, details: formatted.details });

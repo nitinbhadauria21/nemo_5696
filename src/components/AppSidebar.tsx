@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import AppLogo from '@/components/ui/AppLogo';
 import AppImage from '@/components/ui/AppImage';
 import Icon from '@/components/ui/AppIcon';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
+import { PLAN_AI_LIMITS } from '@/lib/billing/plans';
 
 interface NavItem {
   label: string;
@@ -54,6 +56,23 @@ const THEME_OPTIONS: { mode: ThemeMode; icon: string; label: string }[] = [
 export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSidebarProps) {
   const pathname = usePathname();
   const { mode, setMode } = useTheme();
+  const { profile, signOut } = useAuth();
+  const [cookiePlan, setCookiePlan] = useState<'free' | 'pro' | 'agency'>('free');
+
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem('nemo_plan');
+      if (p === 'pro' || p === 'agency' || p === 'free') setCookiePlan(p);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const plan = profile?.plan || cookiePlan;
+  const aiUsed = profile?.ai_usage_count ?? 0;
+  const aiLimit = PLAN_AI_LIMITS[plan];
+  const displayName = profile?.full_name || profile?.email || 'Guest';
+  const planLabel = plan === 'agency' ? 'Agency' : plan === 'pro' ? 'Pro' : 'Free';
 
   return (
     <aside
@@ -249,28 +268,48 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
 
         {/* User profile */}
         <Link
-          href="/sign-up-login-screen"
+          href="/settings-developer-tools"
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/85 hover:text-white hover:bg-white/15 transition-all duration-200 ${
             collapsed ? 'justify-center px-0' : ''
           }`}
           title={collapsed ? 'Account' : undefined}
         >
           <div className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0 border border-white/40">
-            <span className="text-white text-sm font-display font-bold">N</span>
+            <span className="text-white text-sm font-display font-bold">
+              {displayName.charAt(0).toUpperCase()}
+            </span>
           </div>
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <p className="text-sm font-bold text-white truncate">Nitin Sharma</p>
-                <span className="text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">Pro</span>
+                <p className="text-sm font-bold text-white truncate">{displayName}</p>
+                <span className="text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">
+                  {planLabel}
+                </span>
               </div>
-              <p className="text-xs text-white/70 truncate font-mono-custom">20/∞ trends used</p>
+              <p className="text-xs text-white/70 truncate font-mono-custom">
+                {aiUsed}/{aiLimit === 10000 ? '∞' : aiLimit} AI used
+              </p>
             </div>
           )}
         </Link>
 
-        {/* Upgrade CTA */}
         {!collapsed && (
+          <button
+            type="button"
+            onClick={() => {
+              signOut().then(() => {
+                window.location.href = '/sign-up-login-screen';
+              });
+            }}
+            className="flex items-center justify-center gap-2 w-full py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/15 text-xs font-semibold transition-all"
+          >
+            Log out
+          </button>
+        )}
+
+        {/* Upgrade CTA */}
+        {!collapsed && plan === 'free' && (
           <Link
             href="/pricing"
             className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-bold transition-all duration-200 border border-white/30"
@@ -284,7 +323,9 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
         {!collapsed && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/20 border border-accent/35">
             <div className="w-2 h-2 rounded-full bg-accent animate-pulse flex-shrink-0" />
-            <span className="text-xs text-white font-sans font-semibold">3 accounts connected</span>
+            <span className="text-xs text-white font-sans font-semibold">
+              {(profile?.platforms?.length ?? 0) || 0}/5 platforms selected
+            </span>
           </div>
         )}
       </div>

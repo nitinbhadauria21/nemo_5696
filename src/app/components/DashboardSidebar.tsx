@@ -25,7 +25,7 @@ export default function DashboardSidebar() {
         <ul className="space-y-3">
           {TOP_TRENDS?.map((trend) => (
             <li key={`sidebar-trend-${trend?.id}`}>
-              <Link href="/trend-detail" className="flex items-start gap-2 group">
+              <Link href={`/trend-detail?id=${trend?.id}`} className="flex items-start gap-2 group">
                 <div className="flex-1 min-w-0">
                   <p className="text-base font-sans font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                     {trend?.title}
