@@ -55,22 +55,31 @@ const THEME_OPTIONS: { mode: ThemeMode; icon: string; label: string }[] = [
 export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSidebarProps) {
   const pathname = usePathname();
   const { mode, setMode } = useTheme();
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, user } = useAuth();
   const [cookiePlan, setCookiePlan] = useState<'free' | 'pro' | 'agency'>('free');
 
   useEffect(() => {
+    // Only use local plan when there is no Supabase session (offline/demo mode)
+    if (user) {
+      setCookiePlan('free');
+      return;
+    }
     try {
       const p = localStorage.getItem('nemo_plan');
       if (p === 'pro' || p === 'agency' || p === 'free') setCookiePlan(p);
     } catch {
       // ignore
     }
-  }, []);
+  }, [user]);
 
-  const plan = profile?.plan || cookiePlan;
+  const plan = (profile?.plan as 'free' | 'pro' | 'agency' | undefined) || (user ? 'free' : cookiePlan);
   const aiUsed = profile?.ai_usage_count ?? 0;
   const aiLimit = PLAN_AI_LIMITS[plan];
-  const displayName = profile?.full_name || profile?.email || 'Guest';
+  const displayName =
+    profile?.full_name?.trim() ||
+    profile?.email ||
+    user?.email ||
+    'Guest';
   const planLabel = plan === 'agency' ? 'Agency' : plan === 'pro' ? 'Pro' : 'Free';
 
   return (

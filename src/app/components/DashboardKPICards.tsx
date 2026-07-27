@@ -1,40 +1,8 @@
+'use client';
+
 import React from 'react';
 import { TrendingUp, Zap, BarChart2, Radio } from 'lucide-react';
-
-const KPI_DATA = [
-  {
-    id: 'kpi-total',
-    label: 'Total Detected',
-    value: '80',
-    sub: 'Active trends',
-    icon: TrendingUp,
-    accent: 'flame',
-  },
-  {
-    id: 'kpi-rising',
-    label: 'Rising Fast',
-    value: '80',
-    sub: 'High momentum',
-    icon: Zap,
-    accent: 'amber',
-  },
-  {
-    id: 'kpi-spike',
-    label: 'Avg Spike Score',
-    value: '+271%',
-    sub: 'Across all niches',
-    icon: BarChart2,
-    accent: 'green',
-  },
-  {
-    id: 'kpi-source',
-    label: 'Top Source',
-    value: 'YouTube',
-    sub: 'Highest volume',
-    icon: Radio,
-    accent: 'muted',
-  },
-];
+import type { TrendItem } from '@/lib/mockData';
 
 const ACCENT_MAP: Record<string, { bg: string; icon: string; value: string; border: string }> = {
   flame: {
@@ -63,10 +31,61 @@ const ACCENT_MAP: Record<string, { bg: string; icon: string; value: string; bord
   },
 };
 
-export default function DashboardKPICards() {
+export default function DashboardKPICards({ trends }: { trends: TrendItem[] }) {
+  const total = trends.length;
+  const rising = trends.filter((t) => t.status === 'rising' || t.status === 'hot').length;
+  const avgSpike =
+    total > 0
+      ? Math.round(trends.reduce((sum, t) => sum + (t.velocity || 0), 0) / total)
+      : 0;
+
+  const platformCounts: Record<string, number> = {};
+  for (const t of trends) {
+    for (const p of t.platforms || []) {
+      platformCounts[p] = (platformCounts[p] || 0) + 1;
+    }
+  }
+  const topSource =
+    Object.entries(platformCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+
+  const kpiData = [
+    {
+      id: 'kpi-total',
+      label: 'Total Detected',
+      value: String(total),
+      sub: 'Active trends',
+      icon: TrendingUp,
+      accent: 'flame',
+    },
+    {
+      id: 'kpi-rising',
+      label: 'Rising Fast',
+      value: String(rising),
+      sub: 'High momentum',
+      icon: Zap,
+      accent: 'amber',
+    },
+    {
+      id: 'kpi-spike',
+      label: 'Avg Velocity',
+      value: avgSpike ? `+${avgSpike}%` : '—',
+      sub: 'Across feed',
+      icon: BarChart2,
+      accent: 'green',
+    },
+    {
+      id: 'kpi-source',
+      label: 'Top Source',
+      value: topSource === '—' ? '—' : topSource.charAt(0).toUpperCase() + topSource.slice(1),
+      sub: 'Highest volume',
+      icon: Radio,
+      accent: 'muted',
+    },
+  ];
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      {KPI_DATA.map((kpi) => {
+      {kpiData.map((kpi) => {
         const a = ACCENT_MAP[kpi.accent];
         const IconComponent = kpi.icon;
         return (
@@ -84,9 +103,7 @@ export default function DashboardKPICards() {
               <p className={`font-display font-extrabold tabular-nums text-2xl leading-none truncate ${a.value}`}>
                 {kpi.value}
               </p>
-              <p className="text-sm font-sans text-foreground/65 mt-1 truncate">
-                {kpi.sub}
-              </p>
+              <p className="text-sm font-sans text-foreground/65 mt-1 truncate">{kpi.sub}</p>
             </div>
           </div>
         );

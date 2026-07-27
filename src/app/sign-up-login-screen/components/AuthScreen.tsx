@@ -43,7 +43,7 @@ interface AuthScreenProps {
 
 export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
   const searchParams = useSearchParams();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, supabaseReady } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode);
 
   useEffect(() => {
@@ -395,8 +395,8 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
             </form>
           )}
 
-          {/* Demo Credentials */}
-          {mode === 'login' && (
+          {/* Demo Credentials — offline / no Supabase only */}
+          {mode === 'login' && !supabaseReady && (
             <div className="mt-6 p-4 bg-muted border border-border rounded-xl">
               <p className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-3">
                 Demo Accounts
