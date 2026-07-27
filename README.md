@@ -63,6 +63,28 @@ Open [http://localhost:4028](http://localhost:4028).
 - **AI:** `POST /api/ai/chat-completion` — provider-agnostic OpenAI-compatible proxy
 - **Billing:** Razorpay order/verify APIs + plan usage counters
 
+## PM skills (Cursor Agent)
+
+Nemo uses a curated subset of [phuryn/pm-skills](https://github.com/phuryn/pm-skills) for product management workflows in Cursor. The project index is at [.cursor/skills/nemo-pm-skills/SKILL.md](.cursor/skills/nemo-pm-skills/SKILL.md); the full library (111 skills) is installed globally in `~/.cursor/skills/`.
+
+Ask in natural language — Cursor loads the matching skill automatically:
+
+| When you need to… | Example prompt |
+|-------------------|----------------|
+| Prioritize MVP backlog | "Triage our MVP backlog using MoSCoW" |
+| Spec a feature | "Write a PRD for the onboarding wizard" or "Write a PRD for trend snapshot pipeline" |
+| Break work into stories | "Break onboarding into user stories" |
+| Validate assumptions | "What are our riskiest assumptions about mandatory social connect?" |
+| Define launch metrics | "Pick a North Star metric and input metrics for Nemo" |
+| Review before prod | "Run ship-check on auth and billing routes" |
+| Security audit | "Audit OAuth tokens, Razorpay webhook, and Supabase RLS" |
+| Pricing / tiers | "Validate Free/Pro/Agency pricing and AI angle limits" |
+| Positioning / landing | "Write positioning lines for the landing page hero" |
+| Plan launch | "Plan launch for pricing page, onboarding, and Pro upgrade path" |
+| Gap analysis | "Compare scoring spec to what's built in src/lib/signals/" |
+
+Gap-to-skill mapping (onboarding, OAuth, collectors, gating, snapshots) is in the [nemo-pm-skills index](.cursor/skills/nemo-pm-skills/SKILL.md#audit-gap-mapping).
+
 ## License
 
 Private — All rights reserved.
