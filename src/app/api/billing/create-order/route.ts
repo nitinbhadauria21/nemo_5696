@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUserId } from '@/lib/api/auth';
+import { trackEvent } from '@/lib/analytics/track';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,6 +28,14 @@ export async function POST(request: NextRequest) {
         notes: { plan, billing, user_id: userId ?? '' },
       });
 
+      await trackEvent({
+        userId,
+        eventName: 'billing.create_order',
+        eventCategory: 'billing',
+        properties: { plan, billing, amount_inr: amountInr, razorpay: true },
+        request,
+      });
+
       return NextResponse.json({
         orderId: order.id,
         amount: order.amount,
@@ -37,6 +46,14 @@ export async function POST(request: NextRequest) {
         billing,
       });
     }
+
+    await trackEvent({
+      userId,
+      eventName: 'billing.create_order',
+      eventCategory: 'billing',
+      properties: { plan, billing, amount_inr: amountInr, razorpay: false },
+      request,
+    });
 
     return NextResponse.json({
       orderId,

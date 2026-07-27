@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
+import { trackEvent } from '@/lib/analytics/track';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     const resolvedPlan = plan === 'agency' ? 'agency' : 'pro';
+    let userId: string | null = null;
 
     try {
       const supabase = await createClient();
@@ -27,12 +29,21 @@ export async function POST(request: NextRequest) {
           data: { user },
         } = await supabase.auth.getUser();
         if (user) {
+          userId = user.id;
           await supabase.from('profiles').update({ plan: resolvedPlan }).eq('id', user.id);
         }
       }
     } catch {
       // local cookie fallback
     }
+
+    await trackEvent({
+      userId,
+      eventName: 'billing.verify_payment',
+      eventCategory: 'billing',
+      properties: { plan: resolvedPlan, mock: Boolean(mockSuccess) },
+      request,
+    });
 
     const response = NextResponse.json({
       success: true,

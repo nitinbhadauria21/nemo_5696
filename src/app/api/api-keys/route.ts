@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getAuthUserId } from '@/lib/api/auth';
 import { createHash, randomBytes } from 'crypto';
+import { trackEvent } from '@/lib/analytics/track';
 
 const memoryKeys = new Map<string, Array<{ id: string; name: string; key_prefix: string; created_at: string }>>();
 
@@ -41,6 +42,13 @@ export async function POST(request: NextRequest) {
       .select('id, name, key_prefix, created_at')
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    await trackEvent({
+      userId,
+      eventName: 'api_key.create',
+      eventCategory: 'api_key',
+      properties: { name, key_prefix },
+      request,
+    });
     return NextResponse.json({ key: data, secret: rawKey });
   }
 

@@ -1,7 +1,14 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { imageHosts } from './image-hosts.config.mjs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Prevent Next from picking a parent-folder package-lock as workspace root
+  // (that breaks CSS chunk paths and causes page.css 404s).
+  outputFileTracingRoot: path.join(__dirname),
   devIndicators: false,
   productionBrowserSourceMaps: true,
   distDir: process.env.DIST_DIR || '.next',

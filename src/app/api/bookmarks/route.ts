@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getAuthUserId } from '@/lib/api/auth';
+import { trackEvent } from '@/lib/analytics/track';
 
 const memoryBookmarks = new Map<string, Set<string>>();
 
@@ -36,5 +37,16 @@ export async function POST(request: NextRequest) {
   } else {
     userKey(userId).add(trendId);
   }
+
+  if (userId !== 'demo') {
+    await trackEvent({
+      userId,
+      eventName: 'bookmark.create',
+      eventCategory: 'bookmark',
+      properties: { trend_id: trendId },
+      request,
+    });
+  }
+
   return NextResponse.json({ ok: true });
 }

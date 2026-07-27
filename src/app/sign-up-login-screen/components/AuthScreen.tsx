@@ -75,6 +75,7 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
       return;
     }
     toast.success('Welcome back to NEMO');
+    // Let middleware route: unverified → verify-email, incomplete → onboarding, else next/dashboard
     const next = searchParams.get('next') || '/dashboard';
     window.location.href = next;
   };
@@ -82,6 +83,10 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
   const handleSignupSubmit = async (data: SignupFormData) => {
     if (data.password !== data.confirmPassword) {
       signupForm.setError('confirmPassword', { message: 'Passwords do not match' });
+      return;
+    }
+    if (data.password.length < 6) {
+      signupForm.setError('password', { message: 'Password must be at least 6 characters' });
       return;
     }
     setIsLoading(true);
@@ -95,8 +100,13 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
       sessionStorage.setItem('nemo_pending_email', data.email);
       sessionStorage.setItem('nemo_pending_name', data.name);
     }
-    toast.success('Account created — verify your email to continue');
-    window.location.href = `/verify-email?email=${encodeURIComponent(data.email)}`;
+    if (result.needsVerification) {
+      toast.success('Account created — verify your email to continue');
+      window.location.href = `/verify-email?email=${encodeURIComponent(data.email)}`;
+      return;
+    }
+    toast.success('Account created — let\'s set up your profile');
+    window.location.href = '/onboarding';
   };
 
   const fillCredentials = (email: string, password: string) => {

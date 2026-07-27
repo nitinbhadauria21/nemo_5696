@@ -1,1 +1,5 @@
-export { default } from '../../admin-panel/page';
+import AdminOverviewContent from './components/AdminOverviewContent';
+
+export default function AdminDashboardPage() {
+  return <AdminOverviewContent />;
+}

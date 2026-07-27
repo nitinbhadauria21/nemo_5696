@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createCompletion, type ChatMessage, type ProviderId } from '@/lib/ai/providers';
 import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
+import { getAuthUserId } from '@/lib/api/auth';
+import { trackEvent } from '@/lib/analytics/track';
 
 function formatErrorResponse(error: unknown, provider?: string) {
   const statusCode = (error as { statusCode?: number; status?: number })?.statusCode
@@ -53,6 +55,15 @@ export async function POST(request: NextRequest) {
       messages,
       stream,
       parameters,
+    });
+
+    const userId = await getAuthUserId();
+    void trackEvent({
+      userId,
+      eventName: 'ai.chat_completion',
+      eventCategory: 'ai',
+      properties: { provider, model, stream: Boolean(stream), plan: usage.plan },
+      request,
     });
 
     if (stream) {

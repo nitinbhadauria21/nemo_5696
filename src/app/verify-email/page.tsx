@@ -3,8 +3,8 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import NemoWordmark from '@/components/ui/NemoWordmark';
-
 import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 
@@ -15,6 +15,7 @@ function VerifyEmailInner() {
   const [cooldown, setCooldown] = useState(0);
   const [expiry, setExpiry] = useState(15 * 60);
   const [resent, setResent] = useState(false);
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     const fromSession =
@@ -40,10 +41,44 @@ function VerifyEmailInner() {
     if (isSupabaseConfigured()) {
       const supabase = createClient();
       if (supabase) {
-        await supabase.auth.resend({ type: 'signup', email });
+        const { error } = await supabase.auth.resend({
+          type: 'signup',
+          email,
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding` },
+        });
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
       }
     }
     setResent(true);
+    toast.success('Verification email resent');
+  };
+
+  const handleContinue = async () => {
+    setChecking(true);
+    try {
+      const supabase = createClient();
+      if (supabase) {
+        await supabase.auth.refreshSession();
+        const { data } = await supabase.auth.getUser();
+        if (!data.user) {
+          toast.error('Please sign in first, then continue.');
+          window.location.href = `/login?next=/onboarding`;
+          return;
+        }
+        if (!data.user.email_confirmed_at) {
+          toast.error('Email not verified yet. Click the link in your inbox, or resend the email.');
+          return;
+        }
+        window.location.href = '/onboarding';
+        return;
+      }
+      window.location.href = '/onboarding';
+    } finally {
+      setChecking(false);
+    }
   };
 
   const formatTime = (s: number) => {
@@ -91,12 +126,11 @@ function VerifyEmailInner() {
           )}
 
           <button
-            onClick={() => {
-              window.location.href = '/onboarding';
-            }}
-            className="w-full py-3 rounded-xl border border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-all mb-3"
+            onClick={handleContinue}
+            disabled={checking}
+            className="w-full py-3 rounded-xl border border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-all mb-3 disabled:opacity-50"
           >
-            I&apos;ve verified — continue to onboarding
+            {checking ? 'Checking…' : "I've verified — continue to onboarding"}
           </button>
 
           <button

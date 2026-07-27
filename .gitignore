@@ -19,6 +19,11 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Environment (secrets)
+.env
+.env.local
+.env.*.local
+
 # Vercel deployment
 .vercel/
 

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getAuthUserId } from '@/lib/api/auth';
+import { trackEvent } from '@/lib/analytics/track';
 
 export async function GET() {
   const userId = await getAuthUserId();
@@ -51,8 +53,43 @@ export async function PATCH(request: NextRequest) {
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
     if (!supabase) return NextResponse.json({ profile: { id: userId, ...updates }, source: 'local' });
-    const { data, error } = await supabase.from('profiles').update(updates).eq('id', userId).select().single();
+
+    // Prefer update; if no row (missing trigger), upsert via service role
+    let { data, error } = await supabase.from('profiles').update(updates).eq('id', userId).select().single();
+
+    if (error || !data) {
+      const admin = createAdminClient();
+      const { data: authUser } = await supabase.auth.getUser();
+      const upsertPayload = {
+        id: userId,
+        email: authUser.user?.email ?? null,
+        full_name: authUser.user?.user_metadata?.full_name ?? null,
+        ...updates,
+      };
+      if (admin) {
+        const upserted = await admin.from('profiles').upsert(upsertPayload, { onConflict: 'id' }).select().single();
+        data = upserted.data;
+        error = upserted.error;
+      } else {
+        const upserted = await supabase.from('profiles').upsert(upsertPayload, { onConflict: 'id' }).select().single();
+        data = upserted.data;
+        error = upserted.error;
+      }
+    }
+
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    await trackEvent({
+      userId,
+      eventName: body.onboarding_complete ? 'profile.onboarding_complete' : 'profile.update',
+      eventCategory: 'profile',
+      properties: {
+        fields: Object.keys(updates).filter((k) => k !== 'updated_at'),
+        onboarding_complete: body.onboarding_complete ?? undefined,
+      },
+      request,
+    });
+
     return NextResponse.json({ profile: data });
   }
 

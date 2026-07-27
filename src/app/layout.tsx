@@ -2,6 +2,7 @@ import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Fredoka, DM_Sans, Space_Mono } from 'next/font/google';
 import '../styles/tailwind.css';
+import '../styles/landing.css';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';

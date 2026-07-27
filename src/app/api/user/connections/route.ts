@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getAuthUserId } from '@/lib/api/auth';
+import { trackEvent } from '@/lib/analytics/track';
 
 export async function GET() {
   const userId = await getAuthUserId();
@@ -27,6 +28,14 @@ export async function POST(request: NextRequest) {
 
   const { platform } = await request.json();
   if (!platform) return NextResponse.json({ error: 'platform required' }, { status: 400 });
+
+  await trackEvent({
+    userId,
+    eventName: 'connection.connect_start',
+    eventCategory: 'connection',
+    properties: { platform },
+    request,
+  });
 
   return NextResponse.json({ ok: true, platform, oauthUrl: `/api/auth/oauth/${platform}` });
 }
@@ -59,6 +68,14 @@ export async function DELETE(request: NextRequest) {
         .eq('id', userId);
     }
   }
+
+  await trackEvent({
+    userId,
+    eventName: 'connection.disconnect',
+    eventCategory: 'connection',
+    properties: { platform },
+    request,
+  });
 
   return NextResponse.json({ ok: true });
 }
