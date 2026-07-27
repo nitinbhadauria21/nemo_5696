@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import '@/styles/landing.css';
 import LandingContent from './components/LandingContent';
 
 export const metadata: Metadata = {

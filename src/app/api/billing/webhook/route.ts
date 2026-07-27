@@ -3,6 +3,7 @@ import { createHmac } from 'crypto';
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { trackEvent } from '@/lib/analytics/track';
 
 export async function POST(request: NextRequest) {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
@@ -28,6 +29,14 @@ export async function POST(request: NextRequest) {
       await supabase.from('profiles').update({ plan, updated_at: new Date().toISOString() }).eq('id', userId);
     }
   }
+
+  await trackEvent({
+    userId: typeof userId === 'string' ? userId : null,
+    eventName: 'billing.webhook',
+    eventCategory: 'billing',
+    properties: { plan, event: payload?.event ?? null },
+    request,
+  });
 
   return NextResponse.json({ received: true });
 }

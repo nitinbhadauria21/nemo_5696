@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getAuthUserId } from '@/lib/api/auth';
+import { trackEvent } from '@/lib/analytics/track';
 
 const memoryBookmarks = new Map<string, Set<string>>();
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
@@ -20,5 +21,16 @@ export async function DELETE(
     if (!memoryBookmarks.has(userId)) memoryBookmarks.set(userId, new Set());
     memoryBookmarks.get(userId)!.delete(id);
   }
+
+  if (userId !== 'demo') {
+    await trackEvent({
+      userId,
+      eventName: 'bookmark.delete',
+      eventCategory: 'bookmark',
+      properties: { trend_id: id },
+      request,
+    });
+  }
+
   return NextResponse.json({ ok: true });
 }

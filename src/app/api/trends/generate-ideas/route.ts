@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runAiPrompt } from '@/lib/ai/runPrompt';
 import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
+import { getAuthUserId } from '@/lib/api/auth';
+import { trackEvent } from '@/lib/analytics/track';
 
 export async function POST(request: NextRequest) {
   const usage = await checkAndIncrementAiUsage(request);
@@ -17,6 +19,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const ideas = await runAiPrompt(prompt);
+    const userId = await getAuthUserId();
+    await trackEvent({
+      userId,
+      eventName: 'ai.generate_ideas',
+      eventCategory: 'ai',
+      properties: { trend_title: trendTitle, platform: platform ?? null, plan: usage.plan },
+      request,
+    });
     return NextResponse.json({ ideas });
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : 'AI unavailable' }, { status: 503 });

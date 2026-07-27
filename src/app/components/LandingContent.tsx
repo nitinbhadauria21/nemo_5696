@@ -7,7 +7,6 @@ import { useCountUp } from './landing/useCountUp';
 import { useHeroParallax } from './landing/useHeroParallax';
 import { useTravelingGlow } from './landing/useTravelingGlow';
 import LandingFAQ from './landing/LandingFAQ';
-import NemoGuide from './landing/NemoGuide';
 
 const TICKER_ITEMS = [
   '● 2,047 trends tracked in the last hour',
@@ -391,8 +390,6 @@ export default function LandingContent() {
           </div>
         </div>
       </footer>
-
-      <NemoGuide rootRef={rootRef} />
     </div>
   );
 }

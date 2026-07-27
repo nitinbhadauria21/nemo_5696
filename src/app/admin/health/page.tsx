@@ -1,60 +1,78 @@
-import AppLayout from '@/components/AppLayout';
-import SystemHealthPanel from '@/app/admin-panel/components/SystemHealthPanel';
+'use client';
 
-const COLLECTORS = [
-  { id: 'google', name: 'Google Trends', status: 'operational', lastRun: '2m ago' },
-  { id: 'youtube', name: 'YouTube API', status: 'operational', lastRun: '5m ago' },
-  { id: 'reddit', name: 'Reddit API', status: 'degraded', lastRun: '12m ago' },
-  { id: 'oauth-google', name: 'Google OAuth', status: 'operational', lastRun: '—' },
-  { id: 'oauth-linkedin', name: 'LinkedIn OAuth', status: 'operational', lastRun: '—' },
-];
+import React, { useEffect, useState } from 'react';
+
+type Check = { id: string; name: string; status: string; detail: string };
 
 export default function AdminHealthPage() {
+  const [checks, setChecks] = useState<Check[]>([]);
+  const [checkedAt, setCheckedAt] = useState('');
+
+  useEffect(() => {
+    fetch('/api/admin/health')
+      .then((r) => r.json())
+      .then((d) => {
+        setChecks(d.checks ?? []);
+        setCheckedAt(d.checkedAt ?? '');
+      })
+      .catch(() => {});
+  }, []);
+
   return (
-    <AppLayout>
-      <div className="p-6 max-w-screen-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-bold mb-1">System Health</h1>
-          <p className="text-muted-foreground text-sm">Collector status, API latency, and OAuth token health</p>
+    <div className="space-y-6">
+      <div className="admin-card p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-display text-sm font-bold">System health</h2>
+          <span className="text-xs text-[var(--admin-mute)]">
+            {checkedAt ? `Checked ${new Date(checkedAt).toLocaleTimeString()}` : '…'}
+          </span>
         </div>
-
-        <SystemHealthPanel />
-
-        <div className="card-surface p-5">
-          <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-4">
-            Ingestion Collectors
-          </h3>
-          <div className="space-y-3">
-            {COLLECTORS.map((c) => (
-              <div key={c.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                <span className="text-sm font-sans font-medium">{c.name}</span>
-                <div className="flex items-center gap-3 text-xs font-mono-custom text-muted-foreground">
-                  <span>Last run: {c.lastRun}</span>
-                  <span
-                    className={`px-2 py-0.5 rounded-full uppercase font-bold ${
-                      c.status === 'operational'
-                        ? 'bg-accent/10 text-accent'
-                        : 'bg-secondary/10 text-secondary'
-                    }`}
-                  >
-                    {c.status}
-                  </span>
-                </div>
+        <div className="space-y-3">
+          {checks.map((c) => (
+            <div
+              key={c.id}
+              className="flex items-center justify-between border-b border-[var(--admin-line)] py-2 last:border-0"
+            >
+              <div className="flex items-center gap-2.5">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    c.status === 'operational'
+                      ? 'bg-[var(--admin-ok)]'
+                      : c.status === 'degraded'
+                        ? 'bg-[var(--admin-warn)]'
+                        : 'bg-[var(--admin-bad)]'
+                  }`}
+                />
+                <span className="text-sm font-medium">{c.name}</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="card-surface p-5">
-          <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-2">
-            Cron Ingestion
-          </h3>
-          <p className="text-sm text-muted-foreground font-sans">
-            Schedule <code className="font-mono-custom text-xs bg-muted px-1.5 py-0.5 rounded">POST /api/trends</code> with header{' '}
-            <code className="font-mono-custom text-xs bg-muted px-1.5 py-0.5 rounded">x-cron-secret</code> every 15–30 minutes.
-          </p>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="font-mono text-[var(--admin-mute)]">{c.detail}</span>
+                <span
+                  className={`font-mono uppercase ${
+                    c.status === 'operational'
+                      ? 'admin-health-ok'
+                      : c.status === 'degraded'
+                        ? 'admin-health-warn'
+                        : 'admin-health-bad'
+                  }`}
+                >
+                  {c.status}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-    </AppLayout>
+
+      <div className="admin-card p-5">
+        <h2 className="mb-2 font-display text-sm font-bold">Cron ingestion</h2>
+        <p className="text-sm text-[var(--admin-soft)]">
+          Schedule <code className="rounded bg-[var(--admin-surface-2)] px-1.5 py-0.5 font-mono text-xs">POST /api/trends</code>{' '}
+          with header{' '}
+          <code className="rounded bg-[var(--admin-surface-2)] px-1.5 py-0.5 font-mono text-xs">x-cron-secret</code> every
+          15–30 minutes.
+        </p>
+      </div>
+    </div>
   );
 }

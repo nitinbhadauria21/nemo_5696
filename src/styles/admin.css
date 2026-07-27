@@ -1,0 +1,163 @@
+.admin-shell {
+  --admin-bg: #0c0b0a;
+  --admin-surface: #151311;
+  --admin-surface-2: #1c1916;
+  --admin-line: rgba(255, 255, 255, 0.08);
+  --admin-text: #f4efe8;
+  --admin-soft: #c9bfb4;
+  --admin-mute: #8a8076;
+  --admin-flame: #ff5a1f;
+  --admin-flame-soft: rgba(255, 90, 31, 0.18);
+  --admin-ok: #3dd68c;
+  --admin-warn: #f5a524;
+  --admin-bad: #f04438;
+  color: var(--admin-text);
+  background: var(--admin-bg);
+  font-family: var(--font-body, 'DM Sans', system-ui, sans-serif);
+}
+
+.admin-shell .font-display {
+  font-family: var(--font-display, 'Syne', system-ui, sans-serif);
+}
+
+.admin-shell .font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.admin-card {
+  border: 1px solid var(--admin-line);
+  border-radius: 1rem;
+  background: var(--admin-surface);
+}
+
+.admin-kpi {
+  border: 1px solid var(--admin-line);
+  border-radius: 1rem;
+  background: linear-gradient(160deg, var(--admin-surface-2), var(--admin-surface));
+  padding: 1.1rem 1.25rem;
+}
+
+.admin-kpi-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-mute);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.admin-kpi-value {
+  margin-top: 0.35rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-family: var(--font-display, 'Syne', system-ui, sans-serif);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-mute);
+  border-bottom: 1px solid var(--admin-line);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.admin-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--admin-line);
+  color: var(--admin-soft);
+}
+
+.admin-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.admin-pill-free {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--admin-soft);
+}
+
+.admin-pill-pro {
+  background: var(--admin-flame-soft);
+  color: #ff8a4c;
+}
+
+.admin-pill-agency {
+  background: rgba(61, 214, 140, 0.12);
+  color: var(--admin-ok);
+}
+
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--admin-line);
+  background: var(--admin-surface-2);
+  color: var(--admin-text);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-btn:hover {
+  background: rgba(255, 90, 31, 0.12);
+  border-color: rgba(255, 90, 31, 0.35);
+}
+
+.admin-btn-primary {
+  background: linear-gradient(135deg, #ff3d0d, #ff8a22);
+  border-color: transparent;
+  color: white;
+}
+
+.admin-btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+.admin-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--admin-line);
+  background: var(--admin-surface-2);
+  color: var(--admin-text);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.admin-input:focus {
+  border-color: rgba(255, 90, 31, 0.45);
+  box-shadow: 0 0 0 3px rgba(255, 90, 31, 0.12);
+}
+
+.admin-health-ok {
+  color: var(--admin-ok);
+}
+
+.admin-health-warn {
+  color: var(--admin-warn);
+}
+
+.admin-health-bad {
+  color: var(--admin-bad);
+}

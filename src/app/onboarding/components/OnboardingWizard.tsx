@@ -109,7 +109,7 @@ export default function OnboardingWizard() {
   const canProceed = () => {
     if (step === 0) return selectedNiches.length > 0;
     if (step === 1) return selectedPlatforms.length > 0;
-    if (step === 2) return connectedSocials.length > 0;
+    if (step === 2) return true; // social can be skipped; connect later in Settings
     if (step === 3) return selectedSchedule !== '';
     return false;
   };
@@ -296,7 +296,7 @@ export default function OnboardingWizard() {
             </div>
           )}
 
-          {/* Step 2: Social Connect (mandatory) */}
+          {/* Step 2: Social Connect */}
           {step === 2 && (
             <div>
               <div className="text-center mb-6">
@@ -304,11 +304,8 @@ export default function OnboardingWizard() {
                   Connect your social accounts
                 </h2>
                 <p className="text-sm text-muted-foreground font-sans">
-                  Connect at least one account to unlock personalised trend data.
+                  Connect at least one account for personalised trends — or skip and do this later in Settings.
                 </p>
-                <div className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-sans font-semibold">
-                  ⚠️ Required — cannot be skipped
-                </div>
               </div>
               <div className="space-y-3">
                 {SOCIAL_PLATFORMS.map((platform) => {
@@ -354,8 +351,8 @@ export default function OnboardingWizard() {
                 })}
               </div>
               {connectedSocials.length === 0 && (
-                <p className="text-center text-xs text-red-500 mt-3 font-sans">
-                  You must connect at least one account to continue.
+                <p className="text-center text-xs text-muted-foreground mt-3 font-sans">
+                  No accounts connected yet — you can skip and connect later.
                 </p>
               )}
             </div>

@@ -25,7 +25,11 @@ type AuthContextValue = {
   loading: boolean;
   supabaseReady: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (email: string, password: string, name: string) => Promise<{ error?: string }>;
+  signUp: (
+    email: string,
+    password: string,
+    name: string
+  ) => Promise<{ error?: string; needsVerification?: boolean }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   setLocalPlan: (plan: PlanId) => void;
@@ -149,13 +153,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = useCallback(async (email: string, password: string, name: string) => {
     const supabase = createClient();
     if (supabase) {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: name } },
-      });
-      if (error) return { error: error.message };
-      return {};
+      // Prefer server signup (auto-confirms email when SUPABASE_AUTO_CONFIRM !== false)
+      // so users get a session and can reach onboarding without waiting on email.
+      try {
+        const res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, name }),
+        });
+        const payload = await res.json();
+        if (!res.ok) return { error: payload.error || 'Signup failed' };
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) {
+          if (payload.needsVerification) {
+            return { needsVerification: true as const };
+          }
+          return { error: signInError.message };
+        }
+        return { needsVerification: Boolean(payload.needsVerification) };
+      } catch {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: name },
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+          },
+        });
+        if (error) return { error: error.message };
+        return { needsVerification: true as const };
+      }
     }
 
     const localProfile: UserProfile = {

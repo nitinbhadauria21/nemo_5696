@@ -10,12 +10,20 @@ const PUBLIC_PATHS = [
   '/forgot-password',
   '/reset-password',
   '/verify-email',
+  '/auth/callback',
   '/pricing',
   '/payment-success',
   '/admin/login',
 ];
 
-const AUTH_FLOW_PATHS = ['/verify-email', '/onboarding', '/login', '/signup', '/sign-up-login-screen'];
+const AUTH_FLOW_PATHS = [
+  '/verify-email',
+  '/onboarding',
+  '/login',
+  '/signup',
+  '/sign-up-login-screen',
+  '/auth/callback',
+];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -48,23 +56,31 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
+  const hasAdminSession = Boolean(request.cookies.get('nemo_admin_session')?.value);
+  const isAdminRoute = path.startsWith('/admin');
   const isPublic =
     PUBLIC_PATHS.some((p) => path === p || path.startsWith(`${p}/`)) ||
     path.startsWith('/api/') ||
     path.startsWith('/_next') ||
-    path.includes('.');
+    path.includes('.') ||
+    (isAdminRoute && hasAdminSession);
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('next', path);
+    url.pathname = isAdminRoute ? '/admin/login' : '/login';
+    if (!isAdminRoute) url.searchParams.set('next', path);
     return NextResponse.redirect(url);
   }
 
   if (user) {
     const onAuthFlow = AUTH_FLOW_PATHS.some((p) => path === p || path.startsWith(`${p}/`));
 
-    if (!user.email_confirmed_at && !path.startsWith('/verify-email') && !path.startsWith('/api/')) {
+    if (
+      !user.email_confirmed_at &&
+      !path.startsWith('/verify-email') &&
+      !path.startsWith('/api/') &&
+      !path.startsWith('/admin')
+    ) {
       const url = request.nextUrl.clone();
       url.pathname = '/verify-email';
       if (user.email) url.searchParams.set('email', user.email);

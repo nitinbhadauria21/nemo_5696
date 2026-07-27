@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runAiPrompt } from '@/lib/ai/runPrompt';
 import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
+import { getAuthUserId } from '@/lib/api/auth';
+import { trackEvent } from '@/lib/analytics/track';
 
 export async function POST(request: NextRequest) {
   const usage = await checkAndIncrementAiUsage(request);
@@ -18,6 +20,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const analysis = await runAiPrompt(prompt);
+    const userId = await getAuthUserId();
+    await trackEvent({
+      userId,
+      eventName: 'ai.analyze',
+      eventCategory: 'ai',
+      properties: { trend_title: trendTitle, plan: usage.plan },
+      request,
+    });
     return NextResponse.json({ analysis });
   } catch (e) {
     return NextResponse.json(

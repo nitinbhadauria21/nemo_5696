@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getAuthUserId } from '@/lib/api/auth';
+import { trackEvent } from '@/lib/analytics/track';
 
 async function appendConnectedSocial(userId: string, provider: string) {
   const supabase = await createClient();
@@ -51,6 +52,13 @@ export async function GET(
       });
       await appendConnectedSocial(userId, provider);
     }
+    await trackEvent({
+      userId,
+      eventName: 'connection.connected',
+      eventCategory: 'connection',
+      properties: { platform: provider, via: 'oauth_callback' },
+      request,
+    });
   }
 
   return NextResponse.redirect(`${siteUrl}${returnTo}`);

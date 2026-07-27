@@ -1,11 +1,5 @@
-import React from 'react';
-import AppLayout from '@/components/AppLayout';
-import AdminPanelContent from './components/AdminPanelContent';
+import { redirect } from 'next/navigation';
 
-export default function AdminPanelPage() {
-  return (
-    <AppLayout>
-      <AdminPanelContent />
-    </AppLayout>
-  );
+export default function AdminPanelRedirect() {
+  redirect('/admin/dashboard');
 }

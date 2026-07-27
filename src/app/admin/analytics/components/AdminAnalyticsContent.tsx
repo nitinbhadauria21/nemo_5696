@@ -1,103 +1,226 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  AreaChart,
+  Area,
+} from 'recharts';
 
-const GROWTH_DATA = [
-  { week: 'W1', signups: 42, active: 28 },
-  { week: 'W2', signups: 58, active: 41 },
-  { week: 'W3', signups: 71, active: 52 },
-  { week: 'W4', signups: 89, active: 67 },
-];
+type Metrics = {
+  range: string;
+  kpis: {
+    estMrr: number;
+    arpu: number;
+    freeToPaidPct: number;
+    onboardingRate: number;
+    totalUsers: number;
+    payingUsers: number;
+  };
+  growth: { date: string; signups: number }[];
+  funnel: { step: string; count: number }[];
+  platformVolume: { name: string; count: number }[];
+  source: string;
+};
 
-const RETENTION = [
-  { cohort: 'Jun W1', d7: 68, d14: 52, d30: 41 },
-  { cohort: 'Jun W2', d7: 71, d14: 55, d30: 44 },
-  { cohort: 'Jun W3', d7: 65, d14: 49, d30: 38 },
-];
+type AdminUser = {
+  id: string;
+  email?: string | null;
+  full_name?: string | null;
+  plan?: string | null;
+};
+
+type UserEvent = {
+  id: string;
+  event_name: string;
+  event_category: string | null;
+  page_path: string | null;
+  created_at: string;
+};
 
 export default function AdminAnalyticsContent() {
-  const [stats, setStats] = useState({ totalUsers: 0, proUsers: 0, trendsToday: 0 });
+  const [range, setRange] = useState('30d');
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [events, setEvents] = useState<UserEvent[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
 
   useEffect(() => {
-    fetch('/api/admin/dashboard')
+    fetch(`/api/admin/metrics?range=${range}`)
       .then((r) => r.json())
-      .then((d) => {
-        if (d.stats) setStats(d.stats);
-      })
+      .then(setMetrics)
+      .catch(() => {});
+  }, [range]);
+
+  useEffect(() => {
+    fetch('/api/admin/users')
+      .then((r) => r.json())
+      .then((d) => setUsers(d.users ?? []))
       .catch(() => {});
   }, []);
 
+  const loadEvents = useCallback((userId: string) => {
+    setSelectedId(userId);
+    setLoadingEvents(true);
+    fetch(`/api/admin/users/${userId}/events`)
+      .then((r) => r.json())
+      .then((d) => setEvents(Array.isArray(d.events) ? d.events : []))
+      .catch(() => setEvents([]))
+      .finally(() => setLoadingEvents(false));
+  }, []);
+
+  const k = metrics?.kpis;
+
   return (
-    <div className="p-6 max-w-screen-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-bold mb-1">User Analytics</h1>
-        <p className="text-muted-foreground text-sm">Growth, retention, and funnel metrics</p>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-2">
+        {(['7d', '30d', '90d'] as const).map((r) => (
+          <button
+            key={r}
+            type="button"
+            onClick={() => setRange(r)}
+            className={`admin-btn ${range === r ? 'admin-btn-primary' : ''}`}
+          >
+            {r}
+          </button>
+        ))}
+        <span className="ml-auto text-xs text-[var(--admin-mute)]">Source: {metrics?.source ?? '…'}</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
-          { label: 'Total Users', value: stats.totalUsers },
-          { label: 'Pro Users', value: stats.proUsers },
-          { label: 'Trends Today', value: stats.trendsToday },
-        ].map((kpi) => (
-          <div key={kpi.label} className="card-surface p-4">
-            <p className="text-xs font-mono-custom uppercase text-muted-foreground">{kpi.label}</p>
-            <p className="font-display text-2xl font-bold mt-1">{kpi.value.toLocaleString()}</p>
+          { label: 'Est. MRR', value: k ? `₹${k.estMrr.toLocaleString('en-IN')}` : '—' },
+          { label: 'ARPU (est.)', value: k ? `₹${k.arpu}` : '—' },
+          { label: 'Free → Paid', value: k ? `${k.freeToPaidPct}%` : '—' },
+          { label: 'Onboarding', value: k ? `${k.onboardingRate}%` : '—' },
+        ].map((item) => (
+          <div key={item.label} className="admin-kpi">
+            <div className="admin-kpi-label">{item.label}</div>
+            <div className="admin-kpi-value text-[1.5rem]">{item.value}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div className="card-surface p-5">
-          <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-4">Weekly Signups</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={GROWTH_DATA}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="week" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Bar dataKey="signups" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="admin-card p-4">
+          <h2 className="mb-3 font-display text-sm font-bold">User growth · signups</h2>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={metrics?.growth ?? []}>
+                <defs>
+                  <linearGradient id="gFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#FF5A1F" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#FF5A1F" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+                <XAxis dataKey="date" tick={{ fill: '#8a8076', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#8a8076', fontSize: 10 }} axisLine={false} tickLine={false} width={28} />
+                <Tooltip
+                  contentStyle={{
+                    background: '#1c1916',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 12,
+                    fontSize: 12,
+                  }}
+                />
+                <Area type="monotone" dataKey="signups" stroke="#FF5A1F" fill="url(#gFill)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        <div className="card-surface p-5">
-          <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-4">Active Users</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={GROWTH_DATA}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="week" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Line type="monotone" dataKey="active" stroke="hsl(var(--accent))" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="admin-card p-4">
+          <h2 className="mb-3 font-display text-sm font-bold">Activation funnel</h2>
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={metrics?.funnel ?? []} layout="vertical" margin={{ left: 20 }}>
+                <CartesianGrid stroke="rgba(255,255,255,0.06)" horizontal={false} />
+                <XAxis type="number" tick={{ fill: '#8a8076', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis
+                  type="category"
+                  dataKey="step"
+                  width={110}
+                  tick={{ fill: '#c9bfb4', fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: '#1c1916',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 12,
+                    fontSize: 12,
+                  }}
+                />
+                <Bar dataKey="count" fill="#FF5A1F" radius={[0, 6, 6, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
-      <div className="card-surface p-5 overflow-x-auto">
-        <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-4">Retention Cohorts (%)</h3>
-        <table className="w-full text-sm font-sans">
-          <thead>
-            <tr className="text-left text-muted-foreground border-b border-border">
-              <th className="py-2 pr-4">Cohort</th>
-              <th className="py-2 pr-4">D7</th>
-              <th className="py-2 pr-4">D14</th>
-              <th className="py-2">D30</th>
-            </tr>
-          </thead>
-          <tbody>
-            {RETENTION.map((row) => (
-              <tr key={row.cohort} className="border-b border-border/50">
-                <td className="py-2.5 font-mono-custom text-xs">{row.cohort}</td>
-                <td className="py-2.5">{row.d7}%</td>
-                <td className="py-2.5">{row.d14}%</td>
-                <td className="py-2.5">{row.d30}%</td>
-              </tr>
+      <div className="admin-card p-4">
+        <h2 className="mb-3 font-display text-sm font-bold">Platform volume · linked socials</h2>
+        <div className="flex flex-wrap gap-3">
+          {(metrics?.platformVolume ?? []).map((p) => (
+            <div key={p.name} className="rounded-xl border border-[var(--admin-line)] bg-[var(--admin-surface-2)] px-4 py-3">
+              <div className="font-mono text-[10px] uppercase text-[var(--admin-mute)]">{p.name}</div>
+              <div className="font-display text-xl font-bold">{p.count}</div>
+            </div>
+          ))}
+          {(metrics?.platformVolume ?? []).length === 0 && (
+            <p className="text-sm text-[var(--admin-mute)]">No connections yet</p>
+          )}
+        </div>
+      </div>
+
+      <div className="admin-card overflow-hidden">
+        <div className="border-b border-[var(--admin-line)] px-4 py-3">
+          <h2 className="font-display text-sm font-bold">User picker · event timeline</h2>
+        </div>
+        <div className="grid lg:grid-cols-2">
+          <div className="max-h-80 overflow-auto border-r border-[var(--admin-line)]">
+            {users.slice(0, 40).map((u) => (
+              <button
+                key={u.id}
+                type="button"
+                onClick={() => loadEvents(u.id)}
+                className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-[var(--admin-surface-2)] ${
+                  selectedId === u.id ? 'bg-[rgba(255,90,31,0.1)]' : ''
+                }`}
+              >
+                <span>
+                  <span className="block font-medium text-[var(--admin-text)]">{u.full_name || '—'}</span>
+                  <span className="text-xs text-[var(--admin-mute)]">{u.email}</span>
+                </span>
+                <span className="admin-pill admin-pill-free">{u.plan || 'free'}</span>
+              </button>
             ))}
-          </tbody>
-        </table>
+          </div>
+          <div className="max-h-80 overflow-auto p-4">
+            {loadingEvents && <p className="text-sm text-[var(--admin-mute)]">Loading…</p>}
+            {!loadingEvents && !selectedId && (
+              <p className="text-sm text-[var(--admin-mute)]">Select a user</p>
+            )}
+            {!loadingEvents &&
+              events.map((e) => (
+                <div key={e.id} className="mb-3 border-b border-[var(--admin-line)] pb-2 text-sm last:border-0">
+                  <div className="font-medium">{e.event_name}</div>
+                  <div className="font-mono text-[10px] text-[var(--admin-mute)]">
+                    {e.event_category} · {new Date(e.created_at).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
       </div>
     </div>
   );
