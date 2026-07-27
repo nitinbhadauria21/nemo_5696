@@ -127,7 +127,7 @@ export default function PricingContent() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b-2 border-border px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="text-sm font-bold font-sans text-muted-foreground hover:text-foreground transition-colors">
+        <Link href="/dashboard" className="text-sm font-bold font-sans text-muted-foreground hover:text-foreground transition-colors">
           ← Back to Dashboard
         </Link>
         <Link href="/sign-up-login-screen" className="text-sm font-bold font-sans text-primary hover:underline">

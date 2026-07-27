@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Copy, CheckCheck } from 'lucide-react';
 
-import AppImage from '@/components/ui/AppImage';
+import NemoWordmark from '@/components/ui/NemoWordmark';
 import TrendSparkline from '@/components/ui/TrendSparkline';
 import { useAuth } from '@/context/AuthContext';
 
@@ -37,8 +38,14 @@ const TEASER_STATS = [
 ];
 
 export default function AuthScreen() {
+  const searchParams = useSearchParams();
   const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
+
+  useEffect(() => {
+    const m = searchParams.get('mode');
+    if (m === 'signup' || m === 'login') setMode(m);
+  }, [searchParams]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,7 +70,7 @@ export default function AuthScreen() {
       return;
     }
     toast.success('Welcome back to NEMO');
-    window.location.href = '/';
+    window.location.href = '/dashboard';
   };
 
   const handleSignupSubmit = async (data: SignupFormData) => {
@@ -102,14 +109,7 @@ export default function AuthScreen() {
 
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-3">
-          <AppImage
-            src="/assets/images/1_LD-1783875046029.png"
-            alt="Nemo Wordmark"
-            width={160}
-            height={48}
-            className="flex-shrink-0 object-contain"
-            priority={true}
-          />
+          <NemoWordmark size="lg" variant="onFlame" />
         </div>
 
         {/* Tagline */}
@@ -161,14 +161,7 @@ export default function AuthScreen() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 overflow-y-auto">
         {/* Mobile logo */}
         <div className="flex lg:hidden items-center gap-2 mb-8">
-          <AppImage
-            src="/assets/images/1_LD-1783875046029.png"
-            alt="Nemo Wordmark"
-            width={120}
-            height={36}
-            className="flex-shrink-0 object-contain"
-            priority={true}
-          />
+          <NemoWordmark size="md" variant="onLight" />
         </div>
 
         <div className="w-full max-w-md">

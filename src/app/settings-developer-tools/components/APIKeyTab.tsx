@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Copy, Trash2, Eye, EyeOff, CheckCheck, Plus } from 'lucide-react';
-import { MOCK_API_KEYS } from '@/lib/mockData';
 
 interface CreateKeyForm {
   name: string;
@@ -20,7 +19,7 @@ interface APIKey {
 }
 
 export default function APIKeyTab() {
-  const [keys, setKeys] = useState<APIKey[]>(MOCK_API_KEYS);
+  const [keys, setKeys] = useState<APIKey[]>([]);
   const [newKeyValue, setNewKeyValue] = useState<string | null>(null);
   const [showNewKey, setShowNewKey] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -29,26 +28,53 @@ export default function APIKeyTab() {
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateKeyForm>();
 
-  const handleCreate = (data: CreateKeyForm) => {
-    // BACKEND INTEGRATION: POST /api/api-keys
+  useEffect(() => {
+    fetch('/api/api-keys')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!Array.isArray(data.keys)) return;
+        setKeys(
+          data.keys.map((k: { id: string; name: string; key_prefix: string; created_at: string; last_used_at?: string }) => ({
+            id: k.id,
+            name: k.name,
+            prefix: k.key_prefix,
+            lastUsed: k.last_used_at ? new Date(k.last_used_at).toLocaleDateString() : 'Never',
+            created: new Date(k.created_at).toLocaleDateString(),
+            requests: 0,
+          }))
+        );
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleCreate = async (data: CreateKeyForm) => {
     setIsCreating(true);
-    setTimeout(() => {
-      const newKey = `NT_${data.name.toLowerCase().replace(/\s+/g, '_').slice(0, 8)}_${Math.random().toString(36).slice(2, 8)}XXXXXXXXXXXXXXXX`;
-      setNewKeyValue(newKey);
+    try {
+      const res = await fetch('/api/api-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: data.name }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed');
+      setNewKeyValue(json.secret);
       setKeys((prev) => [
         {
-          id: `key-${Date.now()}`,
-          name: data.name,
-          prefix: newKey.slice(0, 18),
+          id: json.key.id,
+          name: json.key.name,
+          prefix: json.key.key_prefix,
           lastUsed: 'Never',
-          created: '2026-07-12',
+          created: new Date(json.key.created_at).toLocaleDateString(),
           requests: 0,
         },
         ...prev,
       ]);
-      setIsCreating(false);
       reset();
-    }, 1000);
+    } catch {
+      toast.error('Could not create API key');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleCopy = (text: string) => {
@@ -59,11 +85,15 @@ export default function APIKeyTab() {
     });
   };
 
-  const handleDelete = (id: string) => {
-    // BACKEND INTEGRATION: DELETE /api/api-keys/:id
-    setKeys((prev) => prev.filter((k) => k.id !== id));
-    setDeleteConfirm(null);
-    toast.success('API key revoked');
+  const handleDelete = async (id: string) => {
+    try {
+      await fetch(`/api/api-keys/${id}`, { method: 'DELETE' });
+      setKeys((prev) => prev.filter((k) => k.id !== id));
+      setDeleteConfirm(null);
+      toast.success('API key revoked');
+    } catch {
+      toast.error('Could not revoke key');
+    }
   };
 
   return (

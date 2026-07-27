@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 
-import AppImage from '@/components/ui/AppImage';
+import NemoWordmark from '@/components/ui/NemoWordmark';
 
 const NICHES = [
   { id: 'ai-tech', label: 'AI & Tech', emoji: '🤖' },
@@ -88,7 +88,7 @@ export default function OnboardingWizard() {
     return false;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 3) {
       setStep((s) => s + 1);
       return;
@@ -104,6 +104,17 @@ export default function OnboardingWizard() {
           complete: true,
         })
       );
+      await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          niches: selectedNiches,
+          platforms: selectedPlatforms,
+          connected_socials: connectedSocials,
+          schedule: selectedSchedule,
+          onboarding_complete: true,
+        }),
+      });
       const raw = localStorage.getItem('nemo_local_session');
       if (raw) {
         const session = JSON.parse(raw);
@@ -115,20 +126,14 @@ export default function OnboardingWizard() {
     } catch {
       // ignore
     }
-    router.push('/');
+    router.push('/dashboard');
   };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-        <AppImage
-          src="/assets/images/Nemo_Logo_in_LD___1_-1784112484010.png"
-          alt="Nemo Logo"
-          width={120}
-          height={36}
-          className="object-contain"
-        />
+        <NemoWordmark size="md" variant="onLight" />
         <span className="text-xs font-sans text-muted-foreground">
           Step {step + 1} of {STEPS.length}
         </span>

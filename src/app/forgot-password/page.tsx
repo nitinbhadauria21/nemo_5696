@@ -2,34 +2,46 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import AppImage from '@/components/ui/AppImage';
+import NemoWordmark from '@/components/ui/NemoWordmark';
+import { createClient } from '@/lib/supabase/client';
+import { isSupabaseConfigured } from '@/lib/supabase/config';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setError('');
+    try {
+      if (isSupabaseConfigured()) {
+        const supabase = createClient();
+        if (supabase) {
+          const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password`,
+          });
+          if (resetError) throw resetError;
+        }
+      } else {
+        await new Promise((r) => setTimeout(r, 800));
+      }
       setSubmitted(true);
-    }, 1200);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send reset email');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <AppImage
-            src="/assets/images/Nemo_Logo_in_LD___1_-1784112484010.png"
-            alt="Nemo Logo"
-            width={120}
-            height={36}
-            className="object-contain"
-          />
+          <NemoWordmark size="md" variant="onLight" />
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
@@ -61,6 +73,7 @@ export default function ForgotPasswordPage() {
                     className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm font-sans placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                   />
                 </div>
+                {error && <p className="text-sm text-red-500 text-center">{error}</p>}
                 <button
                   type="submit"
                   disabled={loading || !email}

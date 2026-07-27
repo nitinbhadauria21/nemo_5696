@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import AppImage from '@/components/ui/AppImage';
+import NemoWordmark from '@/components/ui/NemoWordmark';
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -33,13 +33,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <AppImage
-            src="/assets/images/Nemo_Logo_in_LD___1_-1784112484010.png"
-            alt="Nemo Logo"
-            width={120}
-            height={36}
-            className="object-contain"
-          />
+          <NemoWordmark size="md" variant="onLight" />
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">

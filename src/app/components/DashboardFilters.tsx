@@ -14,12 +14,18 @@ interface DashboardFiltersProps {
     timeframe: string;
     bookmarksOnly: boolean;
     countries: string[];
+    sortBy: 'score' | 'recent' | 'rising';
   }) => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
 }
 
-const TIMEFRAMES = ['24h', '48h', '72h'];
+const TIMEFRAMES = ['1h', '6h', '24h', '48h', '72h'];
+const SORT_OPTIONS = [
+  { id: 'score', label: 'Nemo Score' },
+  { id: 'recent', label: 'Most Recent' },
+  { id: 'rising', label: 'Rising Fastest' },
+] as const;
 
 const PLATFORM_LABELS: Record<TrendPlatform, string> = {
   google: 'Google Trends',
@@ -40,6 +46,7 @@ export default function DashboardFilters({
   const [selectedPlatforms, setSelectedPlatforms] = useState<TrendPlatform[]>([]);
   const [keyword, setKeyword] = useState('');
   const [timeframe, setTimeframe] = useState('24h');
+  const [sortBy, setSortBy] = useState<'score' | 'recent' | 'rising'>('score');
   const [bookmarksOnly, setBookmarksOnly] = useState(false);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
 
@@ -50,6 +57,7 @@ export default function DashboardFilters({
     timeframe: string;
     bookmarksOnly: boolean;
     countries: string[];
+    sortBy: 'score' | 'recent' | 'rising';
   }> = {}) => {
     onFiltersChange?.({
       categories: selectedCategories,
@@ -58,6 +66,7 @@ export default function DashboardFilters({
       timeframe,
       bookmarksOnly,
       countries: selectedCountries,
+      sortBy,
       ...overrides,
     });
   };
@@ -205,6 +214,31 @@ export default function DashboardFilters({
         </div>
 
         {/* Divider */}
+        <div className="hidden sm:block w-px h-5 bg-border" />
+
+        {/* Sort */}
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold mr-1">
+            Sort:
+          </p>
+          <div className="flex gap-1 bg-muted rounded-lg p-0.5">
+            {SORT_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => {
+                  setSortBy(opt.id);
+                  emitChange({ sortBy: opt.id });
+                }}
+                className={`px-3 py-1.5 rounded-md text-sm font-sans font-semibold transition-all duration-150 ${
+                  sortBy === opt.id ? 'bg-primary text-white' : 'text-foreground/65 hover:text-foreground'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="hidden sm:block w-px h-5 bg-border" />
 
         {/* Time window */}

@@ -22,6 +22,7 @@ export default function DashboardContent() {
     timeframe: string;
     bookmarksOnly: boolean;
     countries: string[];
+    sortBy: 'score' | 'recent' | 'rising';
   }>({
     categories: ['All'],
     platforms: [],
@@ -29,7 +30,9 @@ export default function DashboardContent() {
     timeframe: '24h',
     bookmarksOnly: false,
     countries: [],
+    sortBy: 'score',
   });
+  const [graveyardOpen, setGraveyardOpen] = useState(false);
 
   const loadTrends = async (refresh = false) => {
     try {
@@ -47,6 +50,19 @@ export default function DashboardContent() {
 
   useEffect(() => {
     loadTrends(false);
+    const interval = setInterval(() => loadTrends(true), 10 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/bookmarks')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!Array.isArray(data.bookmarks)) return;
+        const ids = new Set(data.bookmarks as string[]);
+        setTrends((prev) => prev.map((t) => ({ ...t, isBookmarked: ids.has(t.id) })));
+      })
+      .catch(() => {});
   }, []);
 
   const handleRefresh = async () => {
@@ -56,11 +72,25 @@ export default function DashboardContent() {
     toast.success('Trends refreshed', { icon: '🔥' });
   };
 
-  const handleBookmarkToggle = (id: string) => {
-    setTrends((prev) => prev.map((t) => (t.id === id ? { ...t, isBookmarked: !t.isBookmarked } : t)));
+  const handleBookmarkToggle = async (id: string) => {
     const trend = trends.find((t) => t.id === id);
-    if (trend) {
-      toast(trend.isBookmarked ? 'Bookmark removed' : 'Trend saved to bookmarks');
+    if (!trend) return;
+    const next = !trend.isBookmarked;
+    setTrends((prev) => prev.map((t) => (t.id === id ? { ...t, isBookmarked: next } : t)));
+    try {
+      if (next) {
+        await fetch('/api/bookmarks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trendId: id }),
+        });
+      } else {
+        await fetch(`/api/bookmarks/${id}`, { method: 'DELETE' });
+      }
+      toast(next ? 'Trend saved to bookmarks' : 'Bookmark removed');
+    } catch {
+      setTrends((prev) => prev.map((t) => (t.id === id ? { ...t, isBookmarked: !next } : t)));
+      toast.error('Could not update bookmark');
     }
   };
 
@@ -85,8 +115,26 @@ export default function DashboardContent() {
     return true;
   });
 
-  const hotCount = filteredTrends.filter((t) => t.status === 'hot').length;
-  const risingCount = filteredTrends.filter((t) => t.status === 'rising').length;
+  const sortedTrends = [...filteredTrends].sort((a, b) => {
+    if (activeFilters.sortBy === 'rising') return b.velocity - a.velocity;
+    if (activeFilters.sortBy === 'recent') {
+      return new Date(b.firstDetectedAt).getTime() - new Date(a.firstDetectedAt).getTime();
+    }
+    return b.nemoScore - a.nemoScore;
+  });
+
+  const featuredTrends = sortedTrends.filter((t) => t.nemoScore >= 80).slice(0, 3);
+  const activeTrends = sortedTrends.filter((t) => t.status !== 'fading');
+  const graveyardTrends = sortedTrends.filter((t) => t.status === 'fading');
+  const hotCount = activeTrends.filter((t) => t.status === 'hot').length;
+  const risingCount = activeTrends.filter((t) => t.status === 'rising').length;
+
+  const sortLabel =
+    activeFilters.sortBy === 'rising'
+      ? 'Rising Fastest'
+      : activeFilters.sortBy === 'recent'
+        ? 'Most Recent'
+        : 'Nemo Score';
 
   const selectedCountryNames = activeFilters.countries
     .map((code) => COUNTRIES.find((c) => c.code === code))
@@ -130,6 +178,29 @@ export default function DashboardContent() {
               </div>
             )}
 
+            <div className="rounded-2xl border-2 border-primary/25 bg-primary/5 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <p className="text-xs font-mono-custom uppercase tracking-widest text-primary font-bold">Daily digest</p>
+                <p className="text-sm text-foreground font-sans mt-1">
+                  {hotCount + risingCount} trends need your attention today — {featuredTrends[0]?.title ?? 'refresh for latest picks'} leads the pack.
+                </p>
+              </div>
+              <button type="button" onClick={handleRefresh} className="text-sm font-semibold text-primary hover:underline self-start sm:self-center">
+                Refresh digest →
+              </button>
+            </div>
+
+            {featuredTrends.length > 0 && (
+              <div>
+                <h2 className="font-display font-bold text-lg mb-3">Top 3 Featured Trends</h2>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  {featuredTrends.map((trend) => (
+                    <TrendCard key={`featured-${trend.id}`} trend={trend} onBookmarkToggle={handleBookmarkToggle} />
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 flex-wrap">
                 <h2 className="font-display font-bold text-foreground text-xl">
@@ -146,11 +217,11 @@ export default function DashboardContent() {
                 </div>
               </div>
               <span className="text-base text-foreground/60 font-sans font-medium hidden sm:block">
-                Sorted by NEMO Score
+                Sorted by {sortLabel}
               </span>
             </div>
 
-            {filteredTrends.length === 0 ? (
+            {activeTrends.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <p className="font-display font-bold text-foreground text-xl mb-2">No trends found</p>
                 <p className="text-base text-foreground/65 font-sans">
@@ -159,9 +230,29 @@ export default function DashboardContent() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {filteredTrends.map((trend) => (
+                {activeTrends.map((trend) => (
                   <TrendCard key={trend.id} trend={trend} onBookmarkToggle={handleBookmarkToggle} />
                 ))}
+              </div>
+            )}
+
+            {graveyardTrends.length > 0 && (
+              <div className="border border-border rounded-2xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setGraveyardOpen((v) => !v)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-muted/50 text-left"
+                >
+                  <span className="font-display font-semibold">Trend Graveyard ({graveyardTrends.length})</span>
+                  <span className="text-sm text-muted-foreground">{graveyardOpen ? 'Hide' : 'Show'}</span>
+                </button>
+                {graveyardOpen && (
+                  <div className="p-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {graveyardTrends.map((trend) => (
+                      <TrendCard key={`grave-${trend.id}`} trend={trend} onBookmarkToggle={handleBookmarkToggle} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

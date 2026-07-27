@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import AppImage from '@/components/ui/AppImage';
+import NemoWordmark from '@/components/ui/NemoWordmark';
 
 const CONFETTI_COLORS = ['#FF3D00', '#FFB000', '#22c55e', '#3b82f6', '#a855f7', '#ec4899'];
 
@@ -70,13 +70,7 @@ function PaymentSuccessInner() {
 
       <div className="relative z-10 w-full max-w-lg text-center">
         <div className="flex justify-center mb-6">
-          <AppImage
-            src="/assets/images/Nemo_Logo_in_LD___1_-1784112484010.png"
-            alt="Nemo"
-            width={140}
-            height={40}
-            className="object-contain"
-          />
+          <NemoWordmark size="md" variant="onLight" />
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
@@ -100,11 +94,11 @@ function PaymentSuccessInner() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link href="/" className="btn-flame flex-1 py-3 rounded-xl text-sm font-bold text-center">
+            <Link href="/dashboard" className="btn-flame flex-1 py-3 rounded-xl text-sm font-bold text-center">
               Go to Dashboard
             </Link>
             <Link
-              href="/settings-developer-tools"
+              href="/settings"
               className="flex-1 py-3 rounded-xl text-sm font-bold text-center border border-border bg-card hover:bg-muted"
             >
               Manage Subscription

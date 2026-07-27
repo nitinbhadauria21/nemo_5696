@@ -125,14 +125,22 @@
   }
 
   .nemo-mark {
-    background: var(--flame-gradient);
+    background: #ffffff;
     border-radius: 28%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: white;
     font-family: var(--font-display);
     font-weight: 700;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .nemo-mark-letter {
+    background: var(--flame-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
   }
 
   .status-hot {

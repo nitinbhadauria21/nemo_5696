@@ -3,12 +3,16 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 
 const PUBLIC_PATHS = [
+  '/',
+  '/login',
+  '/signup',
   '/sign-up-login-screen',
   '/forgot-password',
   '/reset-password',
   '/verify-email',
   '/pricing',
   '/payment-success',
+  '/admin/login',
 ];
 
 export async function updateSession(request: NextRequest) {

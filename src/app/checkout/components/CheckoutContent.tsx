@@ -158,7 +158,7 @@ export default function CheckoutContent() {
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link
-              href="/settings-developer-tools"
+              href="/settings"
               className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm font-bold font-sans"
             >
               <ArrowLeft size={17} />
