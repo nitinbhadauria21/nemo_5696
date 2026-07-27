@@ -141,7 +141,7 @@ export default function TrendCard({ trend, onBookmarkToggle }: TrendCardProps) {
           )}
         </button>
         <Link
-          href="/trend-detail"
+          href={`/trend-detail?id=${trend.id}`}
           className="flex items-center gap-1.5 text-base font-bold text-primary hover:underline font-sans"
         >
           View Details

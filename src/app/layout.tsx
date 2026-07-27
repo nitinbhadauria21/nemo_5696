@@ -4,6 +4,7 @@ import { Fredoka, DM_Sans, Space_Mono } from 'next/font/google';
 import '../styles/tailwind.css';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { AuthProvider } from '@/context/AuthContext';
 
 const fredoka = Fredoka({
   subsets: ['latin'],
@@ -50,22 +51,22 @@ export default function RootLayout({
     <html lang="en" className={`${fredoka.variable} ${dmSans.variable} ${spaceMono.variable}`}>
       <body className={dmSans.className}>
         <ThemeProvider>
-          {children}
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                background: 'var(--card)',
-                color: 'var(--card-foreground)',
-                border: '1px solid var(--border)',
-                fontFamily: 'var(--font-sans)',
-              },
-            }}
-          />
+          <AuthProvider>
+            {children}
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  background: 'var(--card)',
+                  color: 'var(--card-foreground)',
+                  border: '1px solid var(--border)',
+                  fontFamily: 'var(--font-sans)',
+                },
+              }}
+            />
+          </AuthProvider>
         </ThemeProvider>
-
-        <script type="module" async src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fnemo8730back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.19" />
-        <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.2" /></body>
+      </body>
     </html>
   );
 }

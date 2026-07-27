@@ -89,8 +89,33 @@ export default function OnboardingWizard() {
   };
 
   const handleNext = () => {
-    if (step < 3) setStep((s) => s + 1);
-    else router.push('/');
+    if (step < 3) {
+      setStep((s) => s + 1);
+      return;
+    }
+    try {
+      localStorage.setItem(
+        'nemo_onboarding',
+        JSON.stringify({
+          niches: selectedNiches,
+          platforms: selectedPlatforms,
+          socials: connectedSocials,
+          schedule: selectedSchedule,
+          complete: true,
+        })
+      );
+      const raw = localStorage.getItem('nemo_local_session');
+      if (raw) {
+        const session = JSON.parse(raw);
+        session.niches = selectedNiches;
+        session.platforms = selectedPlatforms;
+        session.onboarding_complete = true;
+        localStorage.setItem('nemo_local_session', JSON.stringify(session));
+      }
+    } catch {
+      // ignore
+    }
+    router.push('/');
   };
 
   return (
