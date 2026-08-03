@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHmac } from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { trackEvent } from '@/lib/analytics/track';
-
-const SUCCESS_EVENTS = new Set(['payment.captured', 'order.paid']);
-
-const DOWNGRADE_EVENTS = new Set(['payment.failed', 'refund.created', 'refund.processed']);
+import {
+  RAZORPAY_DOWNGRADE_EVENTS,
+  RAZORPAY_SUCCESS_EVENTS,
+  verifyRazorpaySignature,
+} from '@/lib/billing/webhookSignature';
 
 export async function POST(request: NextRequest) {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
@@ -17,8 +17,7 @@ export async function POST(request: NextRequest) {
   }
 
   const signature = request.headers.get('x-razorpay-signature');
-  const expected = createHmac('sha256', secret).update(body).digest('hex');
-  if (signature !== expected) {
+  if (!verifyRazorpaySignature(body, signature, secret)) {
     return NextResponse.json({ error: 'invalid_signature' }, { status: 400 });
   }
 
@@ -96,7 +95,7 @@ export async function POST(request: NextRequest) {
 
   const now = new Date().toISOString();
 
-  if (SUCCESS_EVENTS.has(eventType)) {
+  if (RAZORPAY_SUCCESS_EVENTS.has(eventType)) {
     if (order.status !== 'paid') {
       await admin
         .from('billing_orders')
@@ -114,7 +113,7 @@ export async function POST(request: NextRequest) {
         .update({ plan: order.plan, updated_at: now })
         .eq('id', order.user_id);
     }
-  } else if (DOWNGRADE_EVENTS.has(eventType)) {
+  } else if (RAZORPAY_DOWNGRADE_EVENTS.has(eventType)) {
     if (eventType.startsWith('refund')) {
       await admin
         .from('billing_orders')

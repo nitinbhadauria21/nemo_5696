@@ -11,7 +11,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css,md,json}\"",
     "serve": "next start",
     "type-check": "tsc --noEmit",
-    "test": "tsx --test src/lib/billing/catalogue.test.ts src/lib/ai/requestPolicy.test.ts src/lib/ai/rateLimit.test.ts src/lib/admin/auth.test.ts"
+    "test": "tsx --test src/lib/billing/catalogue.test.ts src/lib/billing/webhookSignature.test.ts src/lib/ai/requestPolicy.test.ts src/lib/ai/rateLimit.test.ts src/lib/admin/auth.test.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
