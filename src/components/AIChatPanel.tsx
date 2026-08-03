@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '@/lib/hooks/useChat';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import Icon from '@/components/ui/AppIcon';
 
 interface Message {

@@ -38,7 +38,6 @@ export const metadata: Metadata = {
   title: 'NEMO — Catch Every Trend Before It Peaks',
   description:
     'Real-time trend detection across Google Trends, YouTube Shorts, Instagram Reels, and LinkedIn. AI-powered analysis and content ideas for creators.',
-  manifest: '/manifest.json',
   icons: {
     icon: [{ url: '/assets/images/1-1783875917780.png', type: 'image/png' }],
     apple: '/assets/images/1-1783875917780.png',
