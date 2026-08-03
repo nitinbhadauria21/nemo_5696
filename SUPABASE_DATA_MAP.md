@@ -15,7 +15,7 @@
 | trend_bookmarks | true | 1 | own-row ALL |
 | queue_items | true | 1 | own-row ALL |
 | api_keys | true | 1 | own-row ALL (hash storage expected) |
-| user_connections | true | 1 | own-row; **tokens in metadata JSONB — encrypt P2** |
+| user_connections | true | 1 | own-row; **no raw OAuth tokens stored today** (status flags only); GET sanitized via `sanitizeConnectionMetadata`; encrypt-at-rest when credentials are persisted |
 | user_events | true | 2 | analytics; IP/UA PII; 90d retention fn |
 | user_sessions | true | 3 | analytics; 90d retention fn |
 | saved_scripts | true | 1 | own-row |
@@ -81,6 +81,8 @@ See `PRIVACY.md`.
 ## Gaps / follow-ups
 
 1. Automated anon / user_A / user_B policy tests in CI  
-2. Encrypt OAuth tokens in `user_connections.metadata`  
+2. Encrypt OAuth tokens in `user_connections.metadata` **when/if** credential material is stored (today: status flags only + API sanitize)  
 3. Schedule `purge_analytics_older_than_90_days` on a cron (Supabase pg_cron or Vercel cron calling a secured admin ops route)  
-4. Data export endpoint (portability)
+4. Data export endpoint (portability)  
+5. Multi-instance AI rate limit store (Redis / Vercel KV) — current limiter is process-local  
+6. Staging Razorpay test-mode checkout + webhook proof with real test keys  

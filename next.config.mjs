@@ -10,6 +10,9 @@ const nextConfig = {
   // (that breaks CSS chunk paths and causes page.css 404s).
   outputFileTracingRoot: path.join(__dirname),
   devIndicators: false,
+  // Keep false for production IP / reverse-engineering protection.
+  // Flip to true only when ops prefer easier prod debugging over obfuscation
+  // (see DEBUG_REPORT source-maps decision).
   productionBrowserSourceMaps: false,
   distDir: process.env.DIST_DIR || '.next',
   typescript: {
