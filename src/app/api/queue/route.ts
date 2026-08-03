@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
-import { getAuthUserId } from '@/lib/api/auth';
 import { trackEvent } from '@/lib/analytics/track';
+import { resolveUserId } from '@/lib/api/requireUser';
 
 const memoryQueue = new Map<string, Array<Record<string, unknown>>>();
 
 export async function GET() {
-  const userId = (await getAuthUserId()) || 'demo';
-  if (isSupabaseConfigured() && userId !== 'demo') {
+  const resolved = await resolveUserId();
+  if ('error' in resolved) return resolved.error;
+  const { userId, demo } = resolved;
+
+  if (isSupabaseConfigured() && !demo) {
     const supabase = await createClient();
-    if (!supabase) return NextResponse.json({ items: memoryQueue.get(userId) ?? [] });
+    if (!supabase) return NextResponse.json({ items: [] });
     const { data } = await supabase.from('queue_items').select('*').eq('user_id', userId).order('sort_order');
     return NextResponse.json({ items: data ?? [] });
   }
@@ -18,7 +21,10 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const userId = (await getAuthUserId()) || 'demo';
+  const resolved = await resolveUserId();
+  if ('error' in resolved) return resolved.error;
+  const { userId, demo } = resolved;
+
   const body = await request.json();
   const item = {
     id: crypto.randomUUID(),
@@ -30,14 +36,9 @@ export async function POST(request: NextRequest) {
     created_at: new Date().toISOString(),
   };
 
-  if (isSupabaseConfigured() && userId !== 'demo') {
+  if (isSupabaseConfigured() && !demo) {
     const supabase = await createClient();
-    if (!supabase) {
-      const list = memoryQueue.get(userId) ?? [];
-      list.push(item);
-      memoryQueue.set(userId, list);
-      return NextResponse.json({ item });
-    }
+    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     const { data, error } = await supabase
       .from('queue_items')
       .insert({ ...item, user_id: userId })
@@ -61,18 +62,16 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const userId = (await getAuthUserId()) || 'demo';
+  const resolved = await resolveUserId();
+  if ('error' in resolved) return resolved.error;
+  const { userId, demo } = resolved;
+
   const body = await request.json();
   if (!body.id) return NextResponse.json({ error: 'id required' }, { status: 400 });
 
-  if (isSupabaseConfigured() && userId !== 'demo') {
+  if (isSupabaseConfigured() && !demo) {
     const supabase = await createClient();
-    if (!supabase) {
-      const list = memoryQueue.get(userId) ?? [];
-      const idx = list.findIndex((i) => i.id === body.id);
-      if (idx >= 0) list[idx] = { ...list[idx], ...body };
-      return NextResponse.json({ item: list[idx] });
-    }
+    if (!supabase) return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     const { data, error } = await supabase
       .from('queue_items')
       .update({ ...body, updated_at: new Date().toISOString() })
@@ -98,12 +97,15 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const userId = (await getAuthUserId()) || 'demo';
+  const resolved = await resolveUserId();
+  if ('error' in resolved) return resolved.error;
+  const { userId, demo } = resolved;
+
   const body = await request.json().catch(() => ({}));
   const id = body.id as string | undefined;
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
 
-  if (isSupabaseConfigured() && userId !== 'demo') {
+  if (isSupabaseConfigured() && !demo) {
     const supabase = await createClient();
     if (supabase) {
       await supabase.from('queue_items').delete().eq('id', id).eq('user_id', userId);

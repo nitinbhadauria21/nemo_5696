@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Icon from '@/components/ui/AppIcon';
+import { isSupabaseConfigured } from '@/lib/supabase/config';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -452,7 +453,8 @@ function ScriptRowCard({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function SavedScriptsContent() {
-  const [scripts, setScripts] = useState<SavedScript[]>(MOCK_SCRIPTS);
+  const [scripts, setScripts] = useState<SavedScript[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [platformFilter, setPlatformFilter] = useState('All Platforms');
   const [nicheFilter, setNicheFilter] = useState('All Niches');
@@ -461,6 +463,35 @@ export default function SavedScriptsContent() {
   const [sortBy, setSortBy] = useState<'date' | 'score'>('date');
   const [viewingScript, setViewingScript] = useState<SavedScript | null>(null);
   const [exportSuccess, setExportSuccess] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetch('/api/scripts')
+      .then(async (r) => {
+        if (r.status === 401) return { scripts: [], source: 'auth' };
+        if (!r.ok) throw new Error('Failed to load');
+        return r.json();
+      })
+      .then((d) => {
+        if (cancelled) return;
+        const list = Array.isArray(d.scripts) ? d.scripts : [];
+        if (list.length === 0 && !isSupabaseConfigured()) {
+          setScripts(MOCK_SCRIPTS);
+        } else {
+          setScripts(list);
+        }
+      })
+      .catch(() => {
+        if (!cancelled && !isSupabaseConfigured()) setScripts(MOCK_SCRIPTS);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filteredScripts = useMemo(() => {
     let result = [...scripts];
@@ -576,7 +607,15 @@ export default function SavedScriptsContent() {
     setTimeout(() => setExportSuccess(false), 2500);
   };
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = async () => {
+    const ids = [...selectedIds];
+    if (isSupabaseConfigured()) {
+      await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/scripts/${id}`, { method: 'DELETE' }).catch(() => null)
+        )
+      );
+    }
     setScripts((prev) => prev.filter((s) => !selectedIds.has(s.id)));
     setSelectedIds(new Set());
   };
@@ -736,7 +775,11 @@ export default function SavedScriptsContent() {
           </div>
 
           {/* Script rows */}
-          {filteredScripts.length === 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center px-6">
+              <p className="text-sm font-sans text-muted-foreground">Loading scripts…</p>
+            </div>
+          ) : filteredScripts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center px-6">
               <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
                 <Icon name="DocumentTextIcon" size={28} className="text-muted-foreground" />

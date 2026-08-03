@@ -676,6 +676,7 @@ export default function ViralScriptWriterContent() {
   const [history, setHistory] = useState<GeneratedScript[]>([]);
   const [loadingStep, setLoadingStep] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [expanded, setExpanded] = useState(true);
 
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -734,6 +735,60 @@ export default function ViralScriptWriterContent() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  };
+
+  const handleSaveScript = async () => {
+    if (!generatedScript || saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/scripts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: generatedScript.topic || 'Untitled script',
+          platform: 'Reels / Shorts',
+          content: {
+            hook: generatedScript.hook,
+            body: generatedScript.rawMarkdown,
+            rawMarkdown: generatedScript.rawMarkdown,
+            viralScore: generatedScript.viralScore,
+            timestamps: generatedScript.timestamps,
+            deliveryNotes: generatedScript.deliveryNotes,
+            frameworkLabel: generatedScript.frameworkLabel,
+            audienceType: generatedScript.audienceType,
+            duration: generatedScript.duration,
+            language: generatedScript.language,
+            niche: generatedScript.audienceType || 'General',
+            versions: [
+              {
+                id: 'v1',
+                style: 'default',
+                styleLabel: generatedScript.frameworkLabel || 'Saved',
+                hook: generatedScript.hook || '',
+                body: generatedScript.rawMarkdown || '',
+                cta: '',
+                viralScore: generatedScript.viralScore || 0,
+                timestamps: generatedScript.timestamps || [],
+                deliveryNotes: generatedScript.deliveryNotes || '',
+              },
+            ],
+          },
+        }),
+      });
+      if (res.status === 401) {
+        toast.error('Sign in to save scripts');
+        return;
+      }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to save');
+      }
+      toast.success('Script saved to your library');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to save script');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleGenerate = () => {
@@ -1189,6 +1244,15 @@ Calculate an honest viralScore (0–100).`;
                       >
                         <Icon name={copied ? 'CheckIcon' : 'ClipboardDocumentIcon'} size={13} />
                         {copied ? 'Copied!' : 'Copy Script'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveScript}
+                        disabled={saving}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted border border-border text-xs font-sans font-semibold text-foreground hover:bg-muted/80 transition-colors disabled:opacity-50"
+                      >
+                        <Icon name="ArchiveBoxIcon" size={13} />
+                        {saving ? 'Saving…' : 'Save'}
                       </button>
                       <button
                         onClick={() => setExpanded((v) => !v)}

@@ -9,14 +9,32 @@ export async function POST(request: NextRequest) {
     const { orderId, paymentId, signature, plan = 'pro', mockSuccess } = body;
 
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
-    if (keySecret && paymentId && signature && orderId && !mockSuccess) {
+    const razorpayConfigured = Boolean(keySecret);
+    const isProd = process.env.NODE_ENV === 'production';
+
+    if (mockSuccess && (razorpayConfigured || isProd)) {
+      return NextResponse.json(
+        { error: 'Mock payments are disabled. Configure Razorpay to upgrade.' },
+        { status: 400 }
+      );
+    }
+
+    if (razorpayConfigured) {
+      if (!orderId || !paymentId || !signature) {
+        return NextResponse.json({ error: 'Missing payment verification fields' }, { status: 400 });
+      }
       const expected = crypto
-        .createHmac('sha256', keySecret)
+        .createHmac('sha256', keySecret!)
         .update(`${orderId}|${paymentId}`)
         .digest('hex');
       if (expected !== signature) {
         return NextResponse.json({ error: 'Invalid payment signature' }, { status: 400 });
       }
+    } else if (!mockSuccess) {
+      return NextResponse.json(
+        { error: 'Payments are not configured.' },
+        { status: 503 }
+      );
     }
 
     const resolvedPlan = plan === 'agency' ? 'agency' : 'pro';
@@ -30,7 +48,10 @@ export async function POST(request: NextRequest) {
         } = await supabase.auth.getUser();
         if (user) {
           userId = user.id;
-          await supabase.from('profiles').update({ plan: resolvedPlan }).eq('id', user.id);
+          await supabase
+            .from('profiles')
+            .update({ plan: resolvedPlan, updated_at: new Date().toISOString() })
+            .eq('id', user.id);
         }
       }
     } catch {
@@ -41,7 +62,7 @@ export async function POST(request: NextRequest) {
       userId,
       eventName: 'billing.verify_payment',
       eventCategory: 'billing',
-      properties: { plan: resolvedPlan, mock: Boolean(mockSuccess) },
+      properties: { plan: resolvedPlan, mock: Boolean(mockSuccess) && !isProd },
       request,
     });
 

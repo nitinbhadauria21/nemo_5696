@@ -130,7 +130,7 @@ export default function AIAnalysisSection({ type, trendTitle }: AIAnalysisSectio
       setIsLoaded(true);
       setIsExpanded(true);
     } catch {
-      setLiveContent(MOCK_ANALYSIS[type] ? 'See mock analysis below.' : 'Failed to load analysis.');
+      setLiveContent('Failed to load analysis. Check your AI provider keys.');
       setIsLoaded(true);
       setIsExpanded(true);
     } finally {
@@ -181,7 +181,7 @@ export default function AIAnalysisSection({ type, trendTitle }: AIAnalysisSectio
             {liveContent ? (
               <pre className="text-sm font-sans whitespace-pre-wrap text-foreground leading-relaxed">{liveContent}</pre>
             ) : (
-              MOCK_ANALYSIS[type]
+              <p className="text-sm text-muted-foreground">No analysis returned.</p>
             )}
           </div>
         </div>

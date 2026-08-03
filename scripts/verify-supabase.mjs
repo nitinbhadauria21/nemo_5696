@@ -38,6 +38,13 @@ const TABLES = [
   'trend_bookmarks',
   'queue_items',
   'user_connections',
+  'user_events',
+  'saved_scripts',
+  'ai_generations',
+  'collector_runs',
+  'trend_feedback',
+  'search_queries',
+  'notification_prefs',
 ];
 
 loadEnv();

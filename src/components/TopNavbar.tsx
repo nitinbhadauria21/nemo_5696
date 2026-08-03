@@ -52,7 +52,7 @@ export default function TopNavbar() {
   const notifRef = useRef<HTMLDivElement>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const [searchTrends, setSearchTrends] = useState(MOCK_TRENDS);
+  const [searchTrends, setSearchTrends] = useState<typeof MOCK_TRENDS>([]);
 
   const plan = profile?.plan || 'free';
   const planLabel = plan === 'agency' ? 'Agency' : plan === 'pro' ? 'Pro' : 'Free';
@@ -123,9 +123,41 @@ export default function TopNavbar() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length < 2) return;
+    const t = setTimeout(() => {
+      void fetch('/api/analytics/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: q,
+          pagePath: typeof window !== 'undefined' ? window.location.pathname : null,
+          resultCount: searchResults.length,
+        }),
+      }).catch(() => {});
+    }, 600);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- log on query settle; resultCount at fire time
+  }, [searchQuery]);
+
   const markAllRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
 
+  const logSearch = (query: string, resultCount: number) => {
+    if (query.trim().length < 2) return;
+    void fetch('/api/analytics/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: query.trim(),
+        pagePath: typeof window !== 'undefined' ? window.location.pathname : null,
+        resultCount,
+      }),
+    }).catch(() => {});
+  };
+
   const handleSearchSelect = (href: string) => {
+    logSearch(searchQuery, searchResults.length);
     setSearchQuery('');
     setSearchOpen(false);
     router.push(href);

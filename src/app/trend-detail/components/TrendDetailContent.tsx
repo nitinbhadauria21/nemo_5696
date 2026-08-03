@@ -10,12 +10,14 @@ import PlatformBadge from '@/components/ui/PlatformBadge';
 import TrendSparkline from '@/components/ui/TrendSparkline';
 import ScoreBreakdownPanel from './ScoreBreakdownPanel';
 import AIAnalysisSection from './AIAnalysisSection';
+import TrendFeedbackControl from './TrendFeedbackControl';
 import RealTimeTrendingPosts from './RealTimeTrendingPosts';
 import TrendVolumeChart from './TrendVolumeChart';
 import TrendGeoChart from './TrendGeoChart';
 import CountrySelector from '@/components/ui/CountrySelector';
 import { COUNTRIES } from '@/lib/countries';
 import { MOCK_TRENDS, type TrendItem } from '@/lib/mockData';
+import { isSupabaseConfigured } from '@/lib/supabase/config';
 
 function toUiTrend(t: TrendItem) {
   return {
@@ -95,12 +97,29 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
   }, [remoteTrend?.firstDetectedAt]);
 
   const TREND = useMemo(() => {
-    const fromRemote = remoteTrend;
-    const fromMock = trendId
-      ? MOCK_TRENDS.find((t) => t.id === trendId)
-      : MOCK_TRENDS[0];
-    return toUiTrend(fromRemote ?? fromMock ?? MOCK_TRENDS[0]);
+    if (remoteTrend) return toUiTrend(remoteTrend);
+    const fromMock = !isSupabaseConfigured()
+      ? trendId
+        ? MOCK_TRENDS.find((t) => t.id === trendId)
+        : MOCK_TRENDS[0]
+      : undefined;
+    if (fromMock) return toUiTrend(fromMock);
+    return null;
   }, [remoteTrend, trendId]);
+
+  if (!TREND) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-8">
+        <div className="text-center space-y-3">
+          <p className="font-display text-xl font-bold">Trend not found</p>
+          <p className="text-muted-foreground text-sm">This trend is not in the live feed.</p>
+          <Link href="/dashboard" className="text-primary font-semibold text-sm hover:underline">
+            ← Back to dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const PLATFORM_SIGNALS = TREND.platforms.slice(0, 4).map((platform, i) => ({
     id: `sig-${platform}`,
@@ -278,6 +297,8 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
                 ))}
               </div>
             </div>
+
+            {TREND.id && <TrendFeedbackControl trendId={TREND.id} />}
 
             <div className="space-y-3">
               <h3 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground">

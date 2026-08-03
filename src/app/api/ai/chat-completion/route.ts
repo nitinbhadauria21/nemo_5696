@@ -3,6 +3,7 @@ import { createCompletion, type ChatMessage, type ProviderId } from '@/lib/ai/pr
 import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
 import { getAuthUserId } from '@/lib/api/auth';
 import { trackEvent } from '@/lib/analytics/track';
+import { logAiGeneration } from '@/lib/ai/logGeneration';
 
 function formatErrorResponse(error: unknown, provider?: string) {
   const statusCode = (error as { statusCode?: number; status?: number })?.statusCode
@@ -65,6 +66,13 @@ export async function POST(request: NextRequest) {
       properties: { provider, model, stream: Boolean(stream), plan: usage.plan },
       request,
     });
+    void logAiGeneration({
+      userId,
+      generationType: 'chat_completion',
+      model: `${provider}/${model}`,
+      success: true,
+      properties: { stream: Boolean(stream), plan: usage.plan },
+    });
 
     if (stream) {
       const encoder = new TextEncoder();
@@ -105,6 +113,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const formatted = formatErrorResponse(error, body?.provider);
     console.error('API Route Error:', { error: formatted.error, details: formatted.details });
+    const userId = await getAuthUserId();
+    void logAiGeneration({
+      userId,
+      generationType: 'chat_completion',
+      model: body?.provider && body?.model ? `${body.provider}/${body.model}` : null,
+      success: false,
+      error: formatted.details,
+    });
     return NextResponse.json(
       { error: formatted.error, details: formatted.details },
       { status: formatted.statusCode }

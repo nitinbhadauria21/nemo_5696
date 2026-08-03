@@ -4,18 +4,51 @@ import { collectMvpTrends } from './collectors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { persistTrendsToSupabase } from './persist';
+import { isSupabaseConfigured } from '@/lib/supabase/config';
 
 let memoryStore: TrendItem[] = [];
 let lastCollectedAt = 0;
+
+function rowToTrend(row: Record<string, unknown>): TrendItem {
+  const raw = row.raw_platform_data as TrendItem | null;
+  if (raw?.id) return raw;
+  const statusRaw = String(row.status || 'RISING');
+  return {
+    id: String(row.trend_id),
+    title: String(row.topic_text || 'Untitled'),
+    description: '',
+    category: 'other',
+    platforms: ['google'],
+    contentType: 'search',
+    nemoScore: Number(row.nemo_score) || 0,
+    cvs: Number(row.creator_velocity_score) || 0,
+    ss: Number(row.spike_score) || 0,
+    cps: Number(row.cross_platform_score) || 0,
+    freshness: Number(row.freshness_score) || 0,
+    freshnessMultiplier: Number(row.freshness_multiplier) || 1,
+    velocity: Number(row.spike_score) || 0,
+    status: statusRaw === 'PEAKING' ? 'hot' : statusRaw === 'RISING' ? 'rising' : 'fading',
+    mentions24h: Number(row.mentions_last_24h) || 0,
+    creatorsCount: Number(row.creators_last_72h) || 0,
+    hashtags: [],
+    firstDetectedAt: String(row.first_detected_at || new Date().toISOString()),
+    sparkline: [],
+    isBookmarked: false,
+    geoRegions: (row.geo_regions as string[]) || [],
+  } as TrendItem;
+}
 
 export async function runTrendIngestion(options?: { useServiceRole?: boolean }): Promise<{
   trends: TrendItem[];
   source: 'supabase' | 'memory';
   collectedAt: string;
+  error?: string | null;
 }> {
+  const started = Date.now();
   const collected = await collectMvpTrends();
   const collectedAt = new Date().toISOString();
   const now = Date.now();
+  let persistError: string | null = null;
 
   if (collected.length) {
     memoryStore = collected;
@@ -26,9 +59,16 @@ export async function runTrendIngestion(options?: { useServiceRole?: boolean }):
       if (admin) {
         try {
           await persistTrendsToSupabase(admin, collected);
+          await logCollectorRun(admin, {
+            source: 'supabase',
+            count: collected.length,
+            startedAt: new Date(started).toISOString(),
+            finishedAt: collectedAt,
+            error: null,
+          });
           return { trends: collected, source: 'supabase', collectedAt };
-        } catch {
-          // fall through to anon client attempt
+        } catch (e) {
+          persistError = e instanceof Error ? e.message : 'persist failed';
         }
       }
     }
@@ -38,17 +78,52 @@ export async function runTrendIngestion(options?: { useServiceRole?: boolean }):
       try {
         await persistTrendsToSupabase(supabase, collected);
         return { trends: collected, source: 'supabase', collectedAt };
-      } catch {
-        // schema may not be applied yet
+      } catch (e) {
+        persistError = e instanceof Error ? e.message : 'persist failed';
       }
     }
+  }
+
+  const admin = createAdminClient();
+  if (admin && options?.useServiceRole) {
+    await logCollectorRun(admin, {
+      source: 'memory',
+      count: collected.length,
+      startedAt: new Date(started).toISOString(),
+      finishedAt: collectedAt,
+      error: persistError,
+    });
   }
 
   return {
     trends: collected.length ? collected : memoryStore,
     source: 'memory',
     collectedAt,
+    error: persistError,
   };
+}
+
+async function logCollectorRun(
+  admin: NonNullable<ReturnType<typeof createAdminClient>>,
+  opts: {
+    source: string;
+    count: number;
+    startedAt: string;
+    finishedAt: string;
+    error: string | null;
+  }
+) {
+  try {
+    await admin.from('collector_runs').insert({
+      source: opts.source,
+      trend_count: opts.count,
+      started_at: opts.startedAt,
+      finished_at: opts.finishedAt,
+      error: opts.error,
+    });
+  } catch {
+    // table may not exist yet before migration 007
+  }
 }
 
 export async function getTrends(options?: { refresh?: boolean }): Promise<{
@@ -58,6 +133,7 @@ export async function getTrends(options?: { refresh?: boolean }): Promise<{
 }> {
   const refresh = options?.refresh ?? false;
   const now = Date.now();
+  const supabaseConfigured = isSupabaseConfigured();
 
   try {
     const supabase = await createClient();
@@ -73,34 +149,27 @@ export async function getTrends(options?: { refresh?: boolean }): Promise<{
         .limit(40);
 
       if (!error && data?.length) {
-        const trends = data.map((row: Record<string, unknown>) => {
-          const raw = row.raw_platform_data as TrendItem | null;
-          if (raw?.id) return raw;
-          return {
-            ...MOCK_TRENDS[0],
-            id: row.trend_id as string,
-            title: row.topic_text as string,
-            nemoScore: row.nemo_score as number,
-            cvs: row.creator_velocity_score as number,
-            ss: row.spike_score as number,
-            cps: row.cross_platform_score as number,
-            freshness: row.freshness_score as number,
-            freshnessMultiplier: row.freshness_multiplier as number,
-            status:
-              row.status === 'PEAKING' ? 'hot' : row.status === 'RISING' ? 'rising' : 'fading',
-            mentions24h: (row.mentions_last_24h as number) ?? 0,
-            creatorsCount: (row.creators_last_72h as number) ?? 0,
-          } as TrendItem;
-        });
         return {
-          trends,
+          trends: data.map((row) => rowToTrend(row as Record<string, unknown>)),
           source: 'supabase',
           collectedAt: new Date(lastCollectedAt || now).toISOString(),
         };
       }
+
+      if (supabaseConfigured && !error) {
+        // Honest empty: do not serve MOCK_TRENDS when DB is live but empty
+        if (memoryStore.length) {
+          return {
+            trends: memoryStore,
+            source: 'memory',
+            collectedAt: new Date(lastCollectedAt || now).toISOString(),
+          };
+        }
+        return { trends: [], source: 'supabase', collectedAt: new Date().toISOString() };
+      }
     }
   } catch {
-    // fall through to memory/mock
+    // fall through
   }
 
   if (refresh || !memoryStore.length || now - lastCollectedAt > 5 * 60 * 1000) {
@@ -117,6 +186,10 @@ export async function getTrends(options?: { refresh?: boolean }): Promise<{
       source: 'memory',
       collectedAt: new Date(lastCollectedAt).toISOString(),
     };
+  }
+
+  if (supabaseConfigured) {
+    return { trends: [], source: 'supabase', collectedAt: null };
   }
 
   return { trends: MOCK_TRENDS, source: 'mock', collectedAt: null };
