@@ -4,16 +4,9 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { trackEvent } from '@/lib/analytics/track';
 
-const SUCCESS_EVENTS = new Set([
-  'payment.captured',
-  'order.paid',
-]);
+const SUCCESS_EVENTS = new Set(['payment.captured', 'order.paid']);
 
-const DOWNGRADE_EVENTS = new Set([
-  'payment.failed',
-  'refund.created',
-  'refund.processed',
-]);
+const DOWNGRADE_EVENTS = new Set(['payment.failed', 'refund.created', 'refund.processed']);
 
 export async function POST(request: NextRequest) {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;

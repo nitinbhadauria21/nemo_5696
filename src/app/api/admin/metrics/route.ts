@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { requireAdminSession } from '@/lib/admin/auth';
 
 const PLAN_MRR: Record<string, number> = { pro: 999, agency: 4999 };
 
@@ -10,10 +10,8 @@ function dayKey(d: Date) {
 }
 
 export async function GET(request: NextRequest) {
-  const cookieStore = await cookies();
-  if (!cookieStore.get('nemo_admin_session')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const adminAuth = await requireAdminSession();
+  if (adminAuth !== true) return adminAuth;
 
   const rangeParam = request.nextUrl.searchParams.get('range') || '30d';
   const days = rangeParam === '7d' ? 7 : rangeParam === '90d' ? 90 : 30;

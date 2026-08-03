@@ -31,7 +31,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
   }
 
-  const expected = crypto.createHmac('sha256', keySecret).update(`${orderId}|${paymentId}`).digest('hex');
+  const expected = crypto
+    .createHmac('sha256', keySecret)
+    .update(`${orderId}|${paymentId}`)
+    .digest('hex');
   if (expected !== signature) {
     return NextResponse.json({ error: 'invalid_signature' }, { status: 400 });
   }
@@ -54,7 +57,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'order_forbidden' }, { status: 403 });
   }
   if (order.status === 'paid') {
-    return NextResponse.json({ success: true, plan: order.plan, orderId, paymentId, idempotent: true });
+    return NextResponse.json({
+      success: true,
+      plan: order.plan,
+      orderId,
+      paymentId,
+      idempotent: true,
+    });
   }
   if (order.status !== 'pending' && order.status !== 'created') {
     return NextResponse.json({ error: 'order_not_payable' }, { status: 409 });
@@ -105,15 +114,18 @@ export async function POST(request: NextRequest) {
       .eq('id', order.id)
       .maybeSingle();
     if (again?.status === 'paid') {
-      return NextResponse.json({ success: true, plan: again.plan, orderId, paymentId, idempotent: true });
+      return NextResponse.json({
+        success: true,
+        plan: again.plan,
+        orderId,
+        paymentId,
+        idempotent: true,
+      });
     }
     return NextResponse.json({ error: 'order_update_failed' }, { status: 500 });
   }
 
-  await admin
-    .from('profiles')
-    .update({ plan: order.plan, updated_at: now })
-    .eq('id', userId);
+  await admin.from('profiles').update({ plan: order.plan, updated_at: now }).eq('id', userId);
 
   await trackEvent({
     userId,

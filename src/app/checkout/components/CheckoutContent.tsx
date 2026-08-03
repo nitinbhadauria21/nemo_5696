@@ -462,7 +462,7 @@ export default function CheckoutContent() {
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
                       <CheckCircle size={14} className="text-primary flex-shrink-0" />
                       <p className="text-xs font-sans text-foreground">
-                        You'll be redirected to{' '}
+                        You&apos;ll be redirected to{' '}
                         <span className="font-semibold">
                           {BANKS.find((b) => b.id === selectedBank)?.name}
                         </span>{' '}

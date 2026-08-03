@@ -91,7 +91,7 @@ export default function DashboardFilters({
   };
 
   const togglePlatform = (p: TrendPlatform) => {
-    let next = selectedPlatforms.includes(p)
+    const next = selectedPlatforms.includes(p)
       ? selectedPlatforms.filter((x) => x !== p)
       : [...selectedPlatforms, p];
     setSelectedPlatforms(next);
@@ -279,7 +279,7 @@ export default function DashboardFilters({
         <div className="flex items-center gap-2 ml-auto">
           <button
             onClick={() => {
-              let next = !bookmarksOnly;
+              const next = !bookmarksOnly;
               setBookmarksOnly(next);
               emitChange({ bookmarksOnly: next });
             }}

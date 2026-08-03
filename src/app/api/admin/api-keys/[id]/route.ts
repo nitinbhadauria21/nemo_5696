@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { requireAdminSession } from '@/lib/admin/auth';
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function DELETE(_request: NextRequest, context: Ctx) {
-  const cookieStore = await cookies();
-  if (!cookieStore.get('nemo_admin_session')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const adminAuth = await requireAdminSession();
+  if (adminAuth !== true) return adminAuth;
 
   const { id } = await context.params;
 

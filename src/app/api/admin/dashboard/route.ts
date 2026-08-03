@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { MOCK_ADMIN_USERS } from '@/lib/mockData';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { requireAdminSession } from '@/lib/admin/auth';
 
 const PLAN_MRR: Record<string, number> = { pro: 999, agency: 4999 };
 
@@ -11,10 +10,8 @@ function dayKey(d: Date) {
 }
 
 export async function GET() {
-  const cookieStore = await cookies();
-  if (!cookieStore.get('nemo_admin_session')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const adminAuth = await requireAdminSession();
+  if (adminAuth !== true) return adminAuth;
 
   if (isSupabaseConfigured()) {
     const admin = createAdminClient();
@@ -157,32 +154,8 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({
-    stats: {
-      totalUsers: MOCK_ADMIN_USERS.length,
-      proUsers: MOCK_ADMIN_USERS.filter((u) => u.plan === 'Pro').length,
-      agencyUsers: MOCK_ADMIN_USERS.filter((u) => u.plan === 'Agency').length,
-      estMrr: 999 * 2 + 4999,
-      activeToday: 3,
-      events24h: 42,
-      aiCalls24h: 18,
-    },
-    health: { supabase: 'operational', collectors: 'operational', api: 'operational' },
-    recentSignups: MOCK_ADMIN_USERS.slice(0, 8).map((u) => ({
-      id: u.id,
-      email: u.email,
-      full_name: u.name,
-      plan: String(u.plan).toLowerCase(),
-      created_at: u.joined,
-      onboarding_complete: true,
-      status: 'active',
-    })),
-    usageChart: Array.from({ length: 14 }, (_, i) => ({
-      date: `D${i + 1}`,
-      events: 10 + Math.round(Math.random() * 40),
-      ai: 2 + Math.round(Math.random() * 12),
-    })),
-    attention: [{ type: 'stub', label: 'Connect Supabase for live attention signals' }],
-    source: 'mock',
-  });
+  return NextResponse.json(
+    { error: 'supabase_unavailable', source: null },
+    { status: 503 }
+  );
 }

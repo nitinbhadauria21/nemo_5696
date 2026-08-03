@@ -107,7 +107,10 @@ export async function POST(request: NextRequest) {
       internalOrderId: orderRow.id,
     });
   } catch (error) {
-    console.error('create-order razorpay error', error instanceof Error ? error.message : 'unknown');
+    console.error(
+      'create-order razorpay error',
+      error instanceof Error ? error.message : 'unknown'
+    );
     await admin
       .from('billing_orders')
       .update({ status: 'failed', updated_at: new Date().toISOString() })

@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { MOCK_ADMIN_USERS } from '@/lib/mockData';
+import { requireAdminSession } from '@/lib/admin/auth';
 
 export async function GET(request: NextRequest) {
-  const cookieStore = await cookies();
-  if (!cookieStore.get('nemo_admin_session')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const adminAuth = await requireAdminSession();
+  if (adminAuth !== true) return adminAuth;
 
   const q = (request.nextUrl.searchParams.get('q') || '').trim().toLowerCase();
   const plan = (request.nextUrl.searchParams.get('plan') || '').trim().toLowerCase();

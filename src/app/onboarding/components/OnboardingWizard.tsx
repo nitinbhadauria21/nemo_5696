@@ -228,7 +228,7 @@ export default function OnboardingWizard() {
                   What niches do you create for?
                 </h2>
                 <p className="text-sm text-muted-foreground font-sans">
-                  Select all that apply. We'll personalise your trend feed.
+                  Select all that apply. We&apos;ll personalise your trend feed.
                 </p>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -392,7 +392,7 @@ export default function OnboardingWizard() {
                   When do you usually create content?
                 </h2>
                 <p className="text-sm text-muted-foreground font-sans">
-                  We'll surface trending topics at the right time for you.
+                  We&apos;ll surface trending topics at the right time for you.
                 </p>
               </div>
               <div className="space-y-3">

@@ -26,10 +26,13 @@ interface SignupFormData {
   confirmPassword: string;
 }
 
-const DEMO_CREDENTIALS = [
-  { role: 'Creator', email: 'priya.mehta@studio.in', password: 'Nemo@2026' },
-  { role: 'Admin', email: 'admin@nemo.app', password: 'NEMO_MASTER_2026' },
-];
+const DEMO_CREDENTIALS =
+  process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_ALLOW_DEMO_AUTH === 'true'
+    ? [
+        { role: 'Creator', email: 'priya.mehta@studio.in', password: 'Nemo@2026' },
+        { role: 'Admin', email: 'admin@nemo.app', password: 'NEMO_MASTER_2026' },
+      ]
+    : [];
 
 const TEASER_STATS = [
   { label: 'Trends tracked today', value: '2,847', sparkline: [20, 35, 28, 52, 71, 88, 91] },
@@ -457,19 +460,19 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
               </button>
               <p className="text-xs text-center text-muted-foreground font-sans">
                 By signing up you agree to our{' '}
-                <Link href="#" className="text-primary hover:underline">
+                <Link href="/terms" className="text-primary hover:underline">
                   Terms
                 </Link>{' '}
                 and{' '}
-                <Link href="#" className="text-primary hover:underline">
+                <Link href="/privacy" className="text-primary hover:underline">
                   Privacy Policy
                 </Link>
               </p>
             </form>
           )}
 
-          {/* Demo Credentials — offline / no Supabase only */}
-          {mode === 'login' && !supabaseReady && (
+          {/* Demo Credentials — development offline only (never shipped in prod bundle UI) */}
+          {mode === 'login' && !supabaseReady && DEMO_CREDENTIALS.length > 0 && (
             <div className="mt-6 p-4 bg-muted border border-border rounded-xl">
               <p className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-3">
                 Demo Accounts

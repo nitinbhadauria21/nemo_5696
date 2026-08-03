@@ -259,7 +259,7 @@ export default function LandingContent() {
       </div>
 
       <section className="blk wrap" id="vibe">
-        <div className="kick-line reveal">// Vibe check</div>
+        <div className="kick-line reveal">{'// Vibe check'}</div>
         <h2 className="display reveal">The Creator&apos;s Biggest Problem</h2>
         <p className="reveal vibe-sub">
           By the time you find a trend manually, it&apos;s already dead.
@@ -312,7 +312,7 @@ export default function LandingContent() {
       </section>
 
       <section className="blk wrap" id="features">
-        <div className="kick-line reveal">// Features that actually hit</div>
+        <div className="kick-line reveal">{'// Features that actually hit'}</div>
         <h2 className="display reveal">
           Built for creators who post on <span className="it">the clock</span>, not the calendar.
         </h2>
@@ -328,7 +328,7 @@ export default function LandingContent() {
       </section>
 
       <section className="blk wrap" id="how-nemo-works">
-        <div className="kick-line reveal">// How Nemo Works</div>
+        <div className="kick-line reveal">{'// How Nemo Works'}</div>
         <h2 className="display reveal">
           From signup to <span className="it">viral content</span> in under 5 minutes.
         </h2>
@@ -361,7 +361,7 @@ export default function LandingContent() {
       </section>
 
       <section className="blk wrap" id="creators">
-        <div className="kick-line reveal">// Creators who ride the wave</div>
+        <div className="kick-line reveal">{'// Creators who ride the wave'}</div>
         <div className="quote-hero reveal">
           &quot;I went from <span className="it">1.2K</span> to <span className="hl">18K</span>{' '}
           followers in 90 days.&quot;
@@ -403,7 +403,7 @@ export default function LandingContent() {
       </section>
 
       <section className="blk wrap" id="faq">
-        <div className="kick-line reveal">// Questions we get a lot</div>
+        <div className="kick-line reveal">{'// Questions we get a lot'}</div>
         <h2 className="display reveal">FAQ.</h2>
         <LandingFAQ />
       </section>
@@ -466,9 +466,9 @@ export default function LandingContent() {
               </div>
               <div className="col">
                 <h4>Legal</h4>
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
-                <a href="#">Refunds</a>
+                <Link href="/privacy">Privacy</Link>
+                <Link href="/terms">Terms</Link>
+                <Link href="/refunds">Refunds</Link>
               </div>
             </div>
           </div>

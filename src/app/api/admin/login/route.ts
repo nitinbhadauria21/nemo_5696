@@ -25,8 +25,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   const email = (profile?.email || '').toLowerCase();
-  const allowed =
-    profile?.is_admin === true || (adminEmail && email && email === adminEmail);
+  const allowed = profile?.is_admin === true || (adminEmail && email && email === adminEmail);
 
   if (!allowed) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

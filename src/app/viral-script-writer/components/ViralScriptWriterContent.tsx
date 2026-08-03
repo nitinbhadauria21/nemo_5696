@@ -1081,8 +1081,8 @@ Calculate an honest viralScore (0–100).`;
                 />
                 <div className="p-2.5 bg-[#FF3D00]/5 border border-[#FF3D00]/10 rounded-lg">
                   <p className="text-[10px] font-mono text-[#FF3D00]/70 leading-relaxed">
-                    ✅ Good: "My $10k routine that saves 3 hours" &nbsp;·&nbsp; ❌ Vague: "My
-                    morning routine"
+                    ✅ Good: &quot;My $10k routine that saves 3 hours&quot; &nbsp;·&nbsp; ❌ Vague:
+                    &quot;My morning routine&quot;
                   </p>
                 </div>
 

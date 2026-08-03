@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
                   Forgot password?
                 </h1>
                 <p className="text-sm text-muted-foreground font-sans">
-                  Enter your email and we'll send you a reset link.
+                  Enter your email and we&apos;ll send you a reset link.
                 </p>
               </div>
 
@@ -122,7 +122,7 @@ export default function ForgotPasswordPage() {
                 onClick={() => setSubmitted(false)}
                 className="text-xs text-primary hover:underline font-sans"
               >
-                Didn't receive it? Try again
+                Didn&apos;t receive it? Try again
               </button>
             </div>
           )}

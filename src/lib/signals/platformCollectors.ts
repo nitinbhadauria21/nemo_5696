@@ -89,7 +89,7 @@ export function scoreInstagramSignals(
 ): number {
   const normalize = (val: number, max: number) => (max > 0 ? Math.min(1, val / max) : 0);
 
-  let score =
+  const score =
     normalize(signals.reels_play_count_1h, maxValues.max_reels_play_count_1h) * 22 +
     normalize(
       Math.max(signals.comment_velocity_5min, signals.comment_velocity_15min),
@@ -522,7 +522,7 @@ export function scoreTwitterSignals(
   // Flash trend de-weight
   const persistence_factor = signals.flash_trend_flag ? 0.5 : 1.0;
 
-  let score =
+  const score =
     normalize(best_mention_velocity, maxValues.max_mention_velocity) * 28 * freshness_factor +
     normalize(signals.engagement_velocity, maxValues.max_engagement_velocity) * 22 +
     normalize(signals.tweet_volume ?? 0, maxValues.max_tweet_volume) * 15 +
@@ -595,7 +595,7 @@ export function scoreLinkedInSignals(
     maxValues.max_share_velocity * 2
   );
 
-  let score =
+  const score =
     normalize(signals.impression_velocity_1h, maxValues.max_impression_velocity) * 30 +
     weighted_share_score * 25 +
     normalize(signals.comment_velocity, maxValues.max_comment_velocity) * 18 +

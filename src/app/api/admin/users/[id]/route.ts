@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { MOCK_ADMIN_USERS } from '@/lib/mockData';
+import { requireAdminSession } from '@/lib/admin/auth';
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_request: NextRequest, context: Ctx) {
-  const cookieStore = await cookies();
-  if (!cookieStore.get('nemo_admin_session')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const adminAuth = await requireAdminSession();
+  if (adminAuth !== true) return adminAuth;
 
   const { id } = await context.params;
 
@@ -83,10 +81,8 @@ export async function GET(_request: NextRequest, context: Ctx) {
 }
 
 export async function PATCH(request: NextRequest, context: Ctx) {
-  const cookieStore = await cookies();
-  if (!cookieStore.get('nemo_admin_session')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const adminAuth = await requireAdminSession();
+  if (adminAuth !== true) return adminAuth;
 
   const { id } = await context.params;
   const body = await request.json().catch(() => ({}));

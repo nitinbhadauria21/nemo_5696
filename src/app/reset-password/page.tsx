@@ -139,7 +139,9 @@ export default function ResetPasswordPage() {
                     </button>
                   </div>
                   {confirm && password !== confirm && (
-                    <p className="text-xs text-red-500 mt-1 font-sans">Passwords don't match</p>
+                    <p className="text-xs text-red-500 mt-1 font-sans">
+                      Passwords don&apos;t match
+                    </p>
                   )}
                 </div>
 

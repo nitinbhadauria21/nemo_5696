@@ -15,7 +15,11 @@ export async function requireAdminSession(): Promise<true | NextResponse> {
 
   const supabase = await createClient();
   if (supabase) {
-    const { data } = await supabase.from('profiles').select('is_admin').eq('id', userId).maybeSingle();
+    const { data } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', userId)
+      .maybeSingle();
     if (data?.is_admin === true) return true;
   }
 

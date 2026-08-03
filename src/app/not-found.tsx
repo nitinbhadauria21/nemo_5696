@@ -28,7 +28,7 @@ export default function NotFound() {
 
         <h2 className="text-2xl font-medium text-onBackground mb-2">Page Not Found</h2>
         <p className="text-onBackground/70 mb-8">
-          The page you're looking for doesn't exist. Let's get you back!
+          The page you&apos;re looking for doesn&apos;t exist. Let&apos;s get you back!
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

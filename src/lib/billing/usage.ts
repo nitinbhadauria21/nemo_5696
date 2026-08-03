@@ -62,16 +62,34 @@ export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
   if (!supabase) {
     // Production / Vercel must have Supabase — refuse cookie bypass
     if (isProductionRuntime()) {
-      return { allowed: false, unauthorized: true, plan: 'free', used: 0, limit: PLAN_AI_LIMITS.free };
+      return {
+        allowed: false,
+        unauthorized: true,
+        plan: 'free',
+        used: 0,
+        limit: PLAN_AI_LIMITS.free,
+      };
     }
-    return { allowed: false, unauthorized: true, plan: 'free', used: 0, limit: PLAN_AI_LIMITS.free };
+    return {
+      allowed: false,
+      unauthorized: true,
+      plan: 'free',
+      used: 0,
+      limit: PLAN_AI_LIMITS.free,
+    };
   }
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return { allowed: false, unauthorized: true, plan: 'free', used: 0, limit: PLAN_AI_LIMITS.free };
+    return {
+      allowed: false,
+      unauthorized: true,
+      plan: 'free',
+      used: 0,
+      limit: PLAN_AI_LIMITS.free,
+    };
   }
 
   // Resolve plan first for limit
