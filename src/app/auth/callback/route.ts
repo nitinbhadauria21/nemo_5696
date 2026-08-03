@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+function safeNextPath(next: string | null): string {
+  if (!next || !next.startsWith('/') || next.startsWith('//') || next.includes('://')) {
+    return '/onboarding';
+  }
+  // Block protocol-relative and nested escapes
+  if (next.includes('\\') || next.includes('@')) return '/onboarding';
+  return next;
+}
+
 /**
  * Handles Supabase email confirmation / OAuth redirects.
  * Configure this URL in Supabase Auth → Redirect URLs.
@@ -8,7 +17,7 @@ import { createClient } from '@/lib/supabase/server';
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/onboarding';
+  const next = safeNextPath(searchParams.get('next'));
 
   if (code) {
     const supabase = await createClient();

@@ -10,7 +10,7 @@ const nextConfig = {
   // (that breaks CSS chunk paths and causes page.css 404s).
   outputFileTracingRoot: path.join(__dirname),
   devIndicators: false,
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
   distDir: process.env.DIST_DIR || '.next',
   typescript: {
     ignoreBuildErrors: false,

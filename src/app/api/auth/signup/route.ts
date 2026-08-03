@@ -38,7 +38,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const autoConfirm = process.env.SUPABASE_AUTO_CONFIRM !== 'false';
+    // Production: email confirmation required unless SUPABASE_AUTO_CONFIRM=true explicitly
+    const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    const autoConfirm = isProd
+      ? process.env.SUPABASE_AUTO_CONFIRM === 'true'
+      : process.env.SUPABASE_AUTO_CONFIRM !== 'false';
 
     const { data, error } = await admin.auth.admin.createUser({
       email,

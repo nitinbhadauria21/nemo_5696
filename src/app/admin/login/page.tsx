@@ -4,25 +4,31 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import '@/styles/admin.css';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AdminLoginPage() {
-  const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    if (!user) {
+      setLoading(false);
+      setError('Sign in with your Nemo account first, then open admin login.');
+      return;
+    }
     const res = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({}),
     });
     setLoading(false);
     if (!res.ok) {
-      setError('Invalid admin code');
+      setError('This account is not an admin. Set profiles.is_admin or ADMIN_EMAIL.');
       return;
     }
     router.push('/admin/dashboard');
@@ -37,25 +43,34 @@ export default function AdminLoginPage() {
             N
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold">Admin login</h1>
-            <p className="text-xs text-[var(--admin-mute)]">Restricted · master code</p>
+            <h1 className="font-display text-xl font-bold">Admin access</h1>
+            <p className="text-xs text-[var(--admin-mute)]">
+              Requires signed-in user with admin role
+            </p>
           </div>
         </div>
-        <input
-          type="password"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Master code"
-          className="admin-input"
-          autoFocus
-        />
+        {authLoading ? (
+          <p className="text-sm text-[var(--admin-mute)]">Checking session…</p>
+        ) : user ? (
+          <p className="text-sm text-[var(--admin-mute)]">
+            Signed in as <span className="text-[var(--admin-text)]">{user.email}</span>
+          </p>
+        ) : (
+          <p className="text-sm text-[var(--admin-bad)]">
+            No session.{' '}
+            <Link href="/login?next=/admin/login" className="underline">
+              Sign in
+            </Link>{' '}
+            first.
+          </p>
+        )}
         {error && <p className="text-sm text-[var(--admin-bad)]">{error}</p>}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || authLoading || !user}
           className="admin-btn admin-btn-primary w-full justify-center py-3"
         >
-          {loading ? 'Signing in…' : 'Enter admin'}
+          {loading ? 'Checking…' : 'Enter admin'}
         </button>
         <Link
           href="/"

@@ -269,6 +269,11 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
     }
   }
 
+  // Production: never fabricate Google Trends seeds
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
+    return [];
+  }
+
   const seeds = [
     { title: 'AI agents for creators', niche: 'AI', growth: 420 },
     { title: 'UPI credit cards India', niche: 'finance', growth: 280 },
@@ -311,6 +316,7 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
 export async function collectInstagramTrends(): Promise<TrendItem[]> {
   const token = process.env.INSTAGRAM_ACCESS_TOKEN;
   if (!token) {
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') return [];
     return [
       toTrendItem({
         topic: 'Reel transitions trend pack',
@@ -356,6 +362,7 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
 export async function collectLinkedInTrends(): Promise<TrendItem[]> {
   const token = process.env.LINKEDIN_ACCESS_TOKEN;
   if (!token) {
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') return [];
     return [
       toTrendItem({
         topic: 'AI productivity for founders',

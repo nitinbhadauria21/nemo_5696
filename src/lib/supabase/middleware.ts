@@ -56,19 +56,24 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
-  const hasAdminSession = Boolean(request.cookies.get('nemo_admin_session')?.value);
   const isAdminRoute = path.startsWith('/admin');
   const isPublic =
     PUBLIC_PATHS.some((p) => path === p || path.startsWith(`${p}/`)) ||
     path.startsWith('/api/') ||
     path.startsWith('/_next') ||
-    path.includes('.') ||
-    (isAdminRoute && hasAdminSession);
+    path.includes('.');
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = isAdminRoute ? '/admin/login' : '/login';
     if (!isAdminRoute) url.searchParams.set('next', path);
+    return NextResponse.redirect(url);
+  }
+
+  // Admin UI requires an authenticated user; is_admin is enforced in API routes
+  if (isAdminRoute && path !== '/admin/login' && !user) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/admin/login';
     return NextResponse.redirect(url);
   }
 

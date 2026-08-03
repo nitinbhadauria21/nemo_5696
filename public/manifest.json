@@ -1,0 +1,24 @@
+{
+  "name": "NEMO — Catch Every Trend Before It Peaks",
+  "short_name": "NEMO",
+  "description": "Trend detection and AI content tools for creators.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0B0F",
+  "theme_color": "#FF5A1F",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/images/1-1783875917780.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/images/1-1783875917780.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

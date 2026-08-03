@@ -1,56 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runAiPrompt } from '@/lib/ai/runPrompt';
 import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
-import { getAuthUserId } from '@/lib/api/auth';
+import { requireAuthUserId } from '@/lib/api/auth';
 import { trackEvent } from '@/lib/analytics/track';
 import { logAiGeneration } from '@/lib/ai/logGeneration';
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAuthUserId();
+  if (auth instanceof NextResponse) return auth;
+
   const usage = await checkAndIncrementAiUsage(request);
+  if (usage.unauthorized) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
   if (!usage.allowed) {
-    return NextResponse.json({ error: 'AI limit reached' }, { status: 429 });
+    return NextResponse.json({ error: 'ai_limit_reached' }, { status: 402 });
   }
 
-  const body = await request.json();
-  const { trendTitle, trendDescription, trendId } = body as {
-    trendTitle?: string;
-    trendDescription?: string;
-    trendId?: string;
-  };
-  if (!trendTitle) {
-    return NextResponse.json({ error: 'trendTitle required' }, { status: 400 });
+  let body: { trendTitle?: string; trendDescription?: string; trendId?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+  }
+  const { trendTitle, trendDescription, trendId } = body;
+  if (!trendTitle || typeof trendTitle !== 'string' || trendTitle.length > 500) {
+    return NextResponse.json({ error: 'invalid_trend_title' }, { status: 400 });
   }
 
-  const prompt = `Analyze why "${trendTitle}" is trending${trendDescription ? `: ${trendDescription}` : ''}. Provide: 1) Why it's trending (3 bullets), 2) Predicted trajectory (next 48-72h), 3) Best platforms to act on. Be concise.`;
-  const userId = await getAuthUserId();
+  const prompt = `Analyze why "${trendTitle}" is trending${trendDescription ? `: ${String(trendDescription).slice(0, 1000)}` : ''}. Provide: 1) Why it's trending (3 bullets), 2) Predicted trajectory (next 48-72h), 3) Best platforms to act on. Be concise.`;
 
   try {
     const analysis = await runAiPrompt(prompt);
     await trackEvent({
-      userId,
+      userId: auth,
       eventName: 'ai.analyze',
       eventCategory: 'ai',
-      properties: { trend_title: trendTitle, plan: usage.plan },
+      properties: { plan: usage.plan },
       request,
     });
     await logAiGeneration({
-      userId,
+      userId: auth,
       generationType: 'analyze',
       trendId: trendId ?? null,
       success: true,
-      properties: { trend_title: trendTitle },
     });
     return NextResponse.json({ analysis });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : 'AI unavailable';
+  } catch {
     await logAiGeneration({
-      userId,
+      userId: auth,
       generationType: 'analyze',
       trendId: trendId ?? null,
       success: false,
-      error: msg,
-      properties: { trend_title: trendTitle },
+      error: 'ai_unavailable',
     });
-    return NextResponse.json({ error: msg }, { status: 503 });
+    return NextResponse.json({ error: 'ai_unavailable' }, { status: 503 });
   }
 }

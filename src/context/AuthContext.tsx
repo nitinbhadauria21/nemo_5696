@@ -158,9 +158,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return {};
     }
 
+    // Demo accounts only when explicitly enabled for local offline work
+    if (process.env.NEXT_PUBLIC_ALLOW_DEMO_AUTH !== 'true') {
+      return { error: 'Authentication is not configured. Set Supabase environment variables.' };
+    }
+
     const demo = DEMO_USERS[email];
     if (!demo || demo.password !== password) {
-      return { error: 'Invalid credentials — use demo accounts or configure Supabase' };
+      return { error: 'Invalid credentials' };
     }
     const localPlan =
       (typeof window !== 'undefined'
