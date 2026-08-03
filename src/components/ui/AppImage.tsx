@@ -118,13 +118,21 @@ const AppImage = memo(function AppImage({
           sizes={sizes || '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'}
           style={{ objectFit: 'cover' }}
           {...props}
+          alt={alt}
         />
       </div>
     );
   }
 
   return (
-    <Image {...imageProps} width={width || 400} height={height || 300} sizes={sizes} {...props} />
+    <Image
+      {...imageProps}
+      width={width || 400}
+      height={height || 300}
+      sizes={sizes}
+      {...props}
+      alt={alt}
+    />
   );
 });
 

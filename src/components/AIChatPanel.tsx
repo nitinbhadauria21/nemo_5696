@@ -119,18 +119,29 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
       <div
         className="absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Panel */}
-      <div className="relative pointer-events-auto w-full sm:w-[420px] h-[85vh] sm:h-[600px] sm:mr-6 sm:mb-6 flex flex-col rounded-t-2xl sm:rounded-2xl bg-card border border-border shadow-2xl overflow-hidden">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="nemo-ai-chat-title"
+        className="relative pointer-events-auto w-full sm:w-[420px] h-[85vh] sm:h-[600px] sm:mr-6 sm:mb-6 flex flex-col rounded-t-2xl sm:rounded-2xl bg-card border border-border shadow-2xl overflow-hidden"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-sm font-bold font-display">N</span>
+              <span className="text-white text-sm font-bold font-display" aria-hidden>
+                N
+              </span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground font-sans leading-tight">
+              <p
+                id="nemo-ai-chat-title"
+                className="text-sm font-semibold text-foreground font-sans leading-tight"
+              >
                 Nemo AI
               </p>
               <p className="text-[10px] text-muted-foreground font-mono-custom uppercase tracking-widest leading-tight">
@@ -145,17 +156,21 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
           <div className="flex items-center gap-1">
             {messages.length > 0 && (
               <button
+                type="button"
                 onClick={handleClear}
                 className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
                 title="Clear chat"
+                aria-label="Clear chat"
               >
                 <Icon name="TrashIcon" size={15} />
               </button>
             )}
             <button
+              type="button"
               onClick={onClose}
               className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
               title="Close"
+              aria-label="Close AI chat"
             >
               <Icon name="XMarkIcon" size={18} />
             </button>
@@ -221,19 +236,29 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
 
           {/* Streaming bubble */}
           {isLoading && (
-            <div className="flex gap-2.5 justify-start">
+            <div className="flex gap-2.5 justify-start" aria-live="polite" aria-busy="true">
               <div className="w-7 h-7 rounded-lg flame-gradient flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-white text-xs font-bold font-display">N</span>
               </div>
               <div className="max-w-[80%] px-3 py-2.5 rounded-2xl rounded-bl-sm bg-muted text-foreground text-sm font-sans leading-relaxed whitespace-pre-wrap">
                 {streamingContent || (
                   <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <span className="sr-only">Nemo AI is thinking</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:150ms]" />
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:300ms]" />
                   </span>
                 )}
               </div>
+            </div>
+          )}
+
+          {error && !isLoading && (
+            <div
+              role="alert"
+              className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive font-sans"
+            >
+              {error.message || 'Something went wrong. Try again.'}
             </div>
           )}
 
@@ -251,6 +276,7 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
               placeholder="Ask about trends, content strategy..."
               disabled={isLoading}
               rows={1}
+              aria-label="Message to Nemo AI"
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground font-sans resize-none outline-none min-h-[24px] max-h-[96px] leading-6 disabled:opacity-50"
               style={{ height: 'auto' }}
               onInput={(e) => {
@@ -260,10 +286,12 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
               }}
             />
             <button
+              type="button"
               onClick={() => handleSend()}
               disabled={!input.trim() || isLoading}
               className="flex-shrink-0 w-8 h-8 rounded-lg flame-gradient flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
               title="Send message"
+              aria-label="Send message"
             >
               <Icon name="PaperAirplaneIcon" size={15} className="text-white" />
             </button>
