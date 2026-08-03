@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import { MOCK_TRENDS } from '@/lib/mockData';
+import { useAuth } from '@/context/AuthContext';
+import { PLAN_AI_LIMITS } from '@/lib/billing/plans';
 
 interface Notification {
   id: string;
@@ -14,14 +16,6 @@ interface Notification {
   read: boolean;
   type: 'trend' | 'system' | 'upgrade';
 }
-
-const MOCK_NOTIFICATIONS: Notification[] = [
-  { id: '1', title: 'New Viral Trend Detected', message: '"AI Automation Tools" just hit 95 Nemo Score', time: '2m ago', read: false, type: 'trend' },
-  { id: '2', title: 'Trend Alert', message: '"Morning Routine" is rising fast on Instagram', time: '15m ago', read: false, type: 'trend' },
-  { id: '3', title: 'Script Saved', message: 'Your viral script for "ChatGPT Prompts" was saved', time: '1h ago', read: false, type: 'system' },
-  { id: '4', title: 'Upgrade Available', message: 'Unlock unlimited trends with Pro plan', time: '3h ago', read: true, type: 'upgrade' },
-  { id: '5', title: 'Weekly Report Ready', message: 'Your analytics report for this week is ready', time: '1d ago', read: true, type: 'system' },
-];
 
 const USER_MENU_ITEMS = [
   { label: 'Profile', icon: 'UserCircleIcon', href: '/settings' },
@@ -41,20 +35,62 @@ function notifColor(type: Notification['type']): string {
   return 'text-blue-500';
 }
 
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase() || '?';
+}
+
 export default function TopNavbar() {
   const router = useRouter();
+  const { profile, user, signOut, loading } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [searchTrends, setSearchTrends] = useState(MOCK_TRENDS);
 
+  const plan = profile?.plan || 'free';
+  const planLabel = plan === 'agency' ? 'Agency' : plan === 'pro' ? 'Pro' : 'Free';
+  const displayName =
+    profile?.full_name?.trim() ||
+    (user?.user_metadata?.full_name as string | undefined)?.trim() ||
+    profile?.email ||
+    user?.email ||
+    (loading ? '…' : 'Guest');
+  const avatarLetter = initials(displayName === '…' ? '?' : displayName);
+  const aiUsed = profile?.ai_usage_count ?? 0;
+  const aiLimit = PLAN_AI_LIMITS[plan];
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const [searchTrends, setSearchTrends] = useState(MOCK_TRENDS);
+  useEffect(() => {
+    setNotifications([
+      {
+        id: 'welcome',
+        title: 'Welcome to Nemo',
+        message: `You're on the ${planLabel} plan. Explore trends matched to your niches.`,
+        time: 'Just now',
+        read: false,
+        type: 'system',
+      },
+      ...(plan === 'free'
+        ? [
+            {
+              id: 'upgrade',
+              title: 'Upgrade available',
+              message: 'Unlock higher AI limits with Pro.',
+              time: 'Just now',
+              read: false,
+              type: 'upgrade' as const,
+            },
+          ]
+        : []),
+    ]);
+  }, [plan, planLabel]);
 
   useEffect(() => {
     fetch('/api/trends')
@@ -65,13 +101,17 @@ export default function TopNavbar() {
       .catch(() => {});
   }, []);
 
-  const searchResults = searchQuery.trim().length >= 2
-    ? searchTrends.filter((t) =>
-        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.hashtags.some((h) => h.toLowerCase().includes(searchQuery.toLowerCase()))
-      ).slice(0, 6)
-    : [];
+  const searchResults =
+    searchQuery.trim().length >= 2
+      ? searchTrends
+          .filter(
+            (t) =>
+              t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              t.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              t.hashtags.some((h) => h.toLowerCase().includes(searchQuery.toLowerCase()))
+          )
+          .slice(0, 6)
+      : [];
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -91,9 +131,17 @@ export default function TopNavbar() {
     router.push(href);
   };
 
+  const handleLogout = async () => {
+    setUserMenuOpen(false);
+    await signOut();
+    router.replace('/login');
+  };
+
   return (
-    <div className="sticky top-0 z-30 bg-background/98 backdrop-blur-md border-b border-border px-5 py-3 flex items-center gap-4" style={{ boxShadow: '0 1px 0 var(--border), 0 4px 16px rgba(0,0,0,0.06)' }}>
-      {/* ── Global Search ── */}
+    <div
+      className="sticky top-0 z-30 bg-background/98 backdrop-blur-md border-b border-border px-5 py-3 flex items-center gap-4"
+      style={{ boxShadow: '0 1px 0 var(--border), 0 4px 16px rgba(0,0,0,0.06)' }}
+    >
       <div ref={searchRef} className="relative flex-1 max-w-2xl">
         <div className="relative">
           <Icon
@@ -104,14 +152,20 @@ export default function TopNavbar() {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setSearchOpen(true);
+            }}
             onFocus={() => setSearchOpen(true)}
             placeholder="Search trends, scripts, niches…"
             className="w-full pl-11 pr-10 py-2.5 rounded-2xl bg-card border-2 border-border text-foreground placeholder:text-foreground/45 text-base font-sans font-medium focus:outline-none focus:border-primary/60 focus:ring-0 transition-all"
           />
           {searchQuery && (
             <button
-              onClick={() => { setSearchQuery(''); setSearchOpen(false); }}
+              onClick={() => {
+                setSearchQuery('');
+                setSearchOpen(false);
+              }}
               className="absolute right-3.5 top-1/2 -translate-y-1/2 text-foreground/50 hover:text-foreground transition-colors"
             >
               <Icon name="XMarkIcon" size={16} />
@@ -119,7 +173,6 @@ export default function TopNavbar() {
           )}
         </div>
 
-        {/* Live Dropdown */}
         {searchOpen && searchQuery.trim().length >= 2 && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-card border-2 border-border rounded-2xl shadow-nav overflow-hidden z-50 animate-scale-in">
             {searchResults.length > 0 ? (
@@ -141,12 +194,19 @@ export default function TopNavbar() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-base font-bold text-foreground truncate font-sans">{trend.title}</p>
-                          <p className="text-sm text-foreground/60 font-mono-custom">{trend.category} · Score {trend.nemoScore}</p>
+                          <p className="text-sm text-foreground/60 font-mono-custom">
+                            {trend.category} · Score {trend.nemoScore}
+                          </p>
                         </div>
-                        <span className={`text-sm font-bold px-2.5 py-1 rounded-full ${
-                          trend.status === 'hot' ? 'bg-red-500/15 text-red-600' :
-                          trend.status === 'rising' ? 'bg-orange-500/15 text-orange-600' : 'bg-muted text-foreground/60'
-                        }`}>
+                        <span
+                          className={`text-sm font-bold px-2.5 py-1 rounded-full ${
+                            trend.status === 'hot'
+                              ? 'bg-red-500/15 text-red-600'
+                              : trend.status === 'rising'
+                                ? 'bg-orange-500/15 text-orange-600'
+                                : 'bg-muted text-foreground/60'
+                          }`}
+                        >
                           {trend.status.toUpperCase()}
                         </span>
                       </button>
@@ -173,13 +233,13 @@ export default function TopNavbar() {
         )}
       </div>
 
-      {/* ── Right Actions ── */}
       <div className="flex items-center gap-2 ml-auto flex-shrink-0">
-
-        {/* Notification Bell */}
         <div ref={notifRef} className="relative">
           <button
-            onClick={() => { setNotifOpen((v) => !v); setUserMenuOpen(false); }}
+            onClick={() => {
+              setNotifOpen((v) => !v);
+              setUserMenuOpen(false);
+            }}
             className="relative w-10 h-10 rounded-xl flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-muted transition-all border border-transparent hover:border-border"
             aria-label="Notifications"
           >
@@ -212,16 +272,29 @@ export default function TopNavbar() {
               <ul className="max-h-80 overflow-y-auto">
                 {notifications.map((notif) => (
                   <li key={notif.id}>
-                    <div className={`flex items-start gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/50 last:border-0 ${!notif.read ? 'bg-primary/5' : ''}`}>
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        notif.type === 'trend' ? 'bg-orange-500/15' :
-                        notif.type === 'upgrade' ? 'bg-amber-500/15' : 'bg-blue-500/15'
-                      }`}>
+                    <div
+                      className={`flex items-start gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/50 last:border-0 ${
+                        !notif.read ? 'bg-primary/5' : ''
+                      }`}
+                    >
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                          notif.type === 'trend'
+                            ? 'bg-orange-500/15'
+                            : notif.type === 'upgrade'
+                              ? 'bg-amber-500/15'
+                              : 'bg-blue-500/15'
+                        }`}
+                      >
                         <Icon name={notifIcon(notif.type) as any} size={16} className={notifColor(notif.type)} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <p className={`text-base font-bold font-sans truncate ${!notif.read ? 'text-foreground' : 'text-foreground/70'}`}>
+                          <p
+                            className={`text-base font-bold font-sans truncate ${
+                              !notif.read ? 'text-foreground' : 'text-foreground/70'
+                            }`}
+                          >
                             {notif.title}
                           </p>
                           {!notif.read && <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />}
@@ -235,7 +308,11 @@ export default function TopNavbar() {
               </ul>
 
               <div className="px-4 py-3 border-t border-border bg-muted/30">
-                <Link href="/settings" onClick={() => setNotifOpen(false)} className="text-base font-semibold text-primary hover:underline font-sans">
+                <Link
+                  href="/settings"
+                  onClick={() => setNotifOpen(false)}
+                  className="text-base font-semibold text-primary hover:underline font-sans"
+                >
                   Notification settings →
                 </Link>
               </div>
@@ -243,21 +320,29 @@ export default function TopNavbar() {
           )}
         </div>
 
-        {/* User Avatar Dropdown */}
         <div ref={userMenuRef} className="relative">
           <button
-            onClick={() => { setUserMenuOpen((v) => !v); setNotifOpen(false); }}
+            onClick={() => {
+              setUserMenuOpen((v) => !v);
+              setNotifOpen(false);
+            }}
             className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl hover:bg-muted transition-all border border-transparent hover:border-border"
             aria-label="User menu"
           >
             <div className="w-8 h-8 rounded-full flame-gradient flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-sm font-display font-bold">N</span>
+              <span className="text-white text-sm font-display font-bold">{avatarLetter}</span>
             </div>
             <div className="hidden sm:block text-left">
-              <p className="text-base font-bold text-foreground font-sans leading-tight">Nitin Sharma</p>
-              <p className="text-sm text-foreground/60 font-mono-custom leading-tight">Pro Plan</p>
+              <p className="text-base font-bold text-foreground font-sans leading-tight max-w-[140px] truncate">
+                {displayName}
+              </p>
+              <p className="text-sm text-foreground/60 font-mono-custom leading-tight">{planLabel} Plan</p>
             </div>
-            <Icon name="ChevronDownIcon" size={14} className={`text-foreground/60 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} />
+            <Icon
+              name="ChevronDownIcon"
+              size={14}
+              className={`text-foreground/60 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`}
+            />
           </button>
 
           {userMenuOpen && (
@@ -265,20 +350,31 @@ export default function TopNavbar() {
               <div className="px-4 py-3.5 border-b border-border">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full flame-gradient flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-base font-display font-bold">N</span>
+                    <span className="text-white text-base font-display font-bold">{avatarLetter}</span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-base font-bold text-foreground font-sans truncate">Nitin Sharma</p>
+                    <p className="text-base font-bold text-foreground font-sans truncate">{displayName}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-sm bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold leading-none">Pro</span>
-                      <span className="text-sm text-foreground/60 font-mono-custom">20/∞ used</span>
+                      <span
+                        className={`text-sm px-1.5 py-0.5 rounded-full font-bold leading-none ${
+                          plan === 'free' ? 'bg-muted text-foreground/70' : 'bg-amber-400 text-amber-900'
+                        }`}
+                      >
+                        {planLabel}
+                      </span>
+                      <span className="text-sm text-foreground/60 font-mono-custom">
+                        {aiUsed}/{aiLimit >= 10000 ? '∞' : aiLimit} used
+                      </span>
                     </div>
+                    {profile?.email && (
+                      <p className="text-xs text-foreground/50 truncate mt-1">{profile.email}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
               <ul className="py-1.5">
-                {USER_MENU_ITEMS.map((item) => (
+                {USER_MENU_ITEMS.filter((item) => !(item.highlight && plan !== 'free')).map((item) => (
                   <li key={item.label}>
                     <Link
                       href={item.href}
@@ -287,25 +383,41 @@ export default function TopNavbar() {
                         item.highlight ? 'text-amber-600 hover:bg-amber-500/10' : 'text-foreground hover:bg-muted/60'
                       }`}
                     >
-                      <Icon name={item.icon as any} size={17} className={item.highlight ? 'text-amber-600' : 'text-foreground/60'} />
+                      <Icon
+                        name={item.icon as any}
+                        size={17}
+                        className={item.highlight ? 'text-amber-600' : 'text-foreground/60'}
+                      />
                       {item.label}
-                      {item.highlight && (
-                        <span className="ml-auto text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold">HOT</span>
-                      )}
                     </Link>
                   </li>
                 ))}
+                {plan === 'free' && (
+                  <li>
+                    <Link
+                      href="/pricing"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-base font-semibold font-sans text-amber-600 hover:bg-amber-500/10 transition-colors"
+                    >
+                      <Icon name="SparklesIcon" size={17} className="text-amber-600" />
+                      Upgrade
+                      <span className="ml-auto text-xs bg-amber-400 text-amber-900 px-1.5 py-0.5 rounded-full font-bold">
+                        HOT
+                      </span>
+                    </Link>
+                  </li>
+                )}
               </ul>
 
               <div className="border-t border-border py-1.5">
-                <Link
-                  href="/login"
-                  onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-base font-semibold text-red-600 hover:bg-red-500/10 font-sans transition-colors"
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-base font-semibold text-red-600 hover:bg-red-500/10 font-sans transition-colors"
                 >
                   <Icon name="ArrowRightOnRectangleIcon" size={17} className="text-red-600" />
                   Log Out
-                </Link>
+                </button>
               </div>
             </div>
           )}

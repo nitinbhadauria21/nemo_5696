@@ -7,13 +7,14 @@ import DashboardKPICards from './DashboardKPICards';
 import DashboardFilters from './DashboardFilters';
 import DashboardSidebar from './DashboardSidebar';
 import TrendCard from './TrendCard';
-import { MOCK_TRENDS } from '@/lib/mockData';
 import type { TrendItem, TrendPlatform } from '@/lib/mockData';
 import { COUNTRIES } from '@/lib/countries';
+import { useAuth } from '@/context/AuthContext';
 
 export default function DashboardContent() {
-  const [trends, setTrends] = useState<TrendItem[]>(MOCK_TRENDS);
-  const [source, setSource] = useState<string>('mock');
+  const { profile, user } = useAuth();
+  const [trends, setTrends] = useState<TrendItem[]>([]);
+  const [source, setSource] = useState<string>('loading');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilters, setActiveFilters] = useState<{
     categories: string[];
@@ -34,17 +35,29 @@ export default function DashboardContent() {
   });
   const [graveyardOpen, setGraveyardOpen] = useState(false);
 
+  const displayName =
+    profile?.full_name?.trim() ||
+    (user?.user_metadata?.full_name as string | undefined)?.trim() ||
+    profile?.email ||
+    user?.email ||
+    'Creator';
+  const planLabel =
+    profile?.plan === 'agency' ? 'Agency' : profile?.plan === 'pro' ? 'Pro' : 'Free';
+
   const loadTrends = async (refresh = false) => {
     try {
       const res = await fetch(`/api/trends${refresh ? '?refresh=1' : ''}`);
-      if (!res.ok) return;
+      if (!res.ok) {
+        setSource('error');
+        return;
+      }
       const data = await res.json();
-      if (Array.isArray(data.trends) && data.trends.length) {
+      if (Array.isArray(data.trends)) {
         setTrends(data.trends);
         setSource(data.source || 'api');
       }
     } catch {
-      // keep current
+      setSource('error');
     }
   };
 
@@ -146,10 +159,10 @@ export default function DashboardContent() {
         <div className="flex items-center gap-3 min-w-0 overflow-hidden">
           <div className="min-w-0 overflow-hidden">
             <h1 className="font-display text-2xl font-bold text-foreground leading-tight truncate">
-              Nemo Live Trend Report
+              Hey {displayName.split(' ')[0]} — Live trends
             </h1>
             <p className="text-base text-foreground/65 font-sans truncate mt-0.5">
-              Real-time trend intelligence · source: {source}
+              {planLabel} plan · source: {source}
             </p>
           </div>
           <LiveBadge />
@@ -162,7 +175,7 @@ export default function DashboardContent() {
       <div className="px-4 sm:px-5 py-4 max-w-screen-2xl mx-auto">
         <div className="flex gap-5">
           <div className="flex-1 min-w-0 flex flex-col gap-4">
-            <DashboardKPICards />
+            <DashboardKPICards trends={trends} />
             <DashboardFilters
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
@@ -258,7 +271,7 @@ export default function DashboardContent() {
           </div>
 
           <div className="w-64 xl:w-72 flex-shrink-0 hidden lg:block">
-            <DashboardSidebar />
+            <DashboardSidebar trends={trends} />
           </div>
         </div>
       </div>

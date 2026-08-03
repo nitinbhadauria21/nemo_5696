@@ -71,11 +71,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = createClient();
     if (!supabase || !user) return;
     const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    const metaName =
+      (user.user_metadata?.full_name as string | undefined)?.trim() ||
+      (user.user_metadata?.name as string | undefined)?.trim() ||
+      null;
+
     if (data) {
+      const fullName = (data.full_name as string | null)?.trim() || metaName;
+      // Backfill missing name from auth metadata once
+      if (!data.full_name && metaName) {
+        await supabase.from('profiles').update({ full_name: metaName }).eq('id', user.id);
+      }
       setProfile({
         id: data.id,
-        email: data.email,
-        full_name: data.full_name,
+        email: data.email || user.email || '',
+        full_name: fullName,
         niches: data.niches ?? [],
         platforms: data.platforms ?? [],
         plan: (data.plan as PlanId) || 'free',
@@ -83,7 +93,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ai_usage_count: data.ai_usage_count,
         ai_usage_period: data.ai_usage_period,
       });
+      // DB plan wins — clear stale local demo plan
+      try {
+        localStorage.removeItem(LOCAL_PLAN_KEY);
+        localStorage.removeItem(LOCAL_SESSION_KEY);
+      } catch {
+        /* ignore */
+      }
+      return;
     }
+
+    // No profile row yet — show auth user until profile is created
+    setProfile({
+      id: user.id,
+      email: user.email || '',
+      full_name: metaName,
+      plan: 'free',
+      onboarding_complete: false,
+      niches: [],
+      platforms: [],
+      ai_usage_count: 0,
+    });
   }, [user]);
 
   useEffect(() => {
@@ -205,6 +235,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = createClient();
     if (supabase) await supabase.auth.signOut();
     writeLocalSession(null);
+    try {
+      localStorage.removeItem(LOCAL_PLAN_KEY);
+      localStorage.removeItem(LOCAL_SESSION_KEY);
+    } catch {
+      /* ignore */
+    }
     setUser(null);
     setProfile(null);
   }, []);

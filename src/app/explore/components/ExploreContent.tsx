@@ -6,7 +6,7 @@ import NemoScoreBadge from '@/components/ui/NemoScoreBadge';
 import StatusBadge from '@/components/ui/StatusBadge';
 import PlatformBadge from '@/components/ui/PlatformBadge';
 import TrendSparkline from '@/components/ui/TrendSparkline';
-import { MOCK_TRENDS, TrendItem } from '@/lib/mockData';
+import { TrendItem } from '@/lib/mockData';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,43 +20,6 @@ interface NicheHeatTile {
   count: number;
   heat: number; // 0–100
 }
-
-// ─── Mock Niche Heatmap Data ──────────────────────────────────────────────────
-
-const NICHE_TILES: NicheHeatTile[] = [
-  { niche: 'AI & Tech', count: 47, heat: 95 },
-  { niche: 'Finance', count: 38, heat: 82 },
-  { niche: 'Health', count: 31, heat: 74 },
-  { niche: 'Fitness', count: 29, heat: 70 },
-  { niche: 'Food', count: 26, heat: 65 },
-  { niche: 'Travel', count: 22, heat: 58 },
-  { niche: 'Fashion', count: 20, heat: 54 },
-  { niche: 'Gaming', count: 18, heat: 50 },
-  { niche: 'Education', count: 16, heat: 44 },
-  { niche: 'Business', count: 14, heat: 40 },
-  { niche: 'Music', count: 12, heat: 35 },
-  { niche: 'Sports', count: 10, heat: 28 },
-  { niche: 'Beauty', count: 9, heat: 24 },
-  { niche: 'Crypto', count: 8, heat: 20 },
-  { niche: 'Pets', count: 6, heat: 14 },
-];
-
-const RECENT_SEARCHES = [
-  'AI automation tools',
-  'viral reel hooks',
-  'passive income 2025',
-  'morning routine',
-  'ChatGPT prompts',
-];
-
-const PLATFORM_TABS: { id: PlatformTab; label: string; icon: string; count: number }[] = [
-  { id: 'all', label: 'All', icon: 'Squares2X2Icon', count: MOCK_TRENDS.length },
-  { id: 'youtube', label: 'YouTube', icon: 'PlayCircleIcon', count: MOCK_TRENDS.filter(t => t.platforms.includes('youtube')).length },
-  { id: 'instagram', label: 'Instagram', icon: 'CameraIcon', count: MOCK_TRENDS.filter(t => t.platforms.includes('instagram')).length },
-  { id: 'tiktok', label: 'TikTok', icon: 'MusicalNoteIcon', count: MOCK_TRENDS.filter(t => t.platforms.includes('tiktok')).length },
-  { id: 'linkedin', label: 'LinkedIn', icon: 'BriefcaseIcon', count: MOCK_TRENDS.filter(t => t.platforms.includes('linkedin')).length },
-  { id: 'google', label: 'Google Trends', icon: 'MagnifyingGlassIcon', count: MOCK_TRENDS.filter(t => t.platforms.includes('google')).length },
-];
 
 // ─── Heat Color Helper ────────────────────────────────────────────────────────
 
@@ -155,7 +118,7 @@ function RisingCard({ trend }: { trend: TrendItem }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ExploreContent() {
-  const [trends, setTrends] = useState<TrendItem[]>(MOCK_TRENDS);
+  const [trends, setTrends] = useState<TrendItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showRecentSearches, setShowRecentSearches] = useState(false);
   const [activeTab, setActiveTab] = useState<PlatformTab>('all');
@@ -163,17 +126,35 @@ export default function ExploreContent() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h');
   const [regionFilter, setRegionFilter] = useState<RegionFilter>('global');
   const [activeNiche, setActiveNiche] = useState<string | null>(null);
-  const [recentSearches, setRecentSearches] = useState<string[]>(RECENT_SEARCHES);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch('/api/trends')
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data.trends) && data.trends.length) setTrends(data.trends);
+        if (Array.isArray(data.trends)) setTrends(data.trends);
       })
       .catch(() => undefined);
   }, []);
+
+  // Derive niche heat from live trends instead of mock tiles
+  const nicheTiles: NicheHeatTile[] = (() => {
+    const counts: Record<string, number> = {};
+    for (const t of trends) {
+      const key = t.category || 'Other';
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    const max = Math.max(1, ...Object.values(counts));
+    return Object.entries(counts)
+      .map(([niche, count]) => ({
+        niche,
+        count,
+        heat: Math.round((count / max) * 100),
+      }))
+      .sort((a, b) => b.heat - a.heat)
+      .slice(0, 15);
+  })();
 
   const platformTabs = [
     { id: 'all' as PlatformTab, label: 'All', icon: 'Squares2X2Icon', count: trends.length },
@@ -316,7 +297,7 @@ export default function ExploreContent() {
             )}
           </div>
           <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 auto-rows-[60px] gap-2">
-            {NICHE_TILES.map((tile) => {
+            {nicheTiles.map((tile) => {
               const { bg, text, border } = getHeatStyle(tile.heat);
               const span = getTileSize(tile.heat);
               const isActive = activeNiche === tile.niche;
