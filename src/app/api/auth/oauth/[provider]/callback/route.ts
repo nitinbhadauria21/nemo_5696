@@ -45,6 +45,8 @@ export async function GET(
   if (isSupabaseConfigured() && userId) {
     const supabase = await createClient();
     if (supabase) {
+      // Never persist raw OAuth access/refresh tokens in metadata (plaintext JSONB).
+      // Status flags only — encrypt-at-rest required before storing credential material.
       await supabase.from('user_connections').upsert({
         user_id: userId,
         platform: provider,

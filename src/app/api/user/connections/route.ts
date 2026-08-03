@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getAuthUserId } from '@/lib/api/auth';
 import { trackEvent } from '@/lib/analytics/track';
+import { sanitizeConnectionMetadata } from '@/lib/connections/sanitizeMetadata';
 
 export async function GET() {
   const userId = await getAuthUserId();
@@ -15,7 +16,11 @@ export async function GET() {
         .from('user_connections')
         .select('platform, metadata, created_at')
         .eq('user_id', userId);
-      return NextResponse.json({ connections: data ?? [] });
+      const connections = (data ?? []).map((row) => ({
+        ...row,
+        metadata: sanitizeConnectionMetadata((row.metadata ?? {}) as Record<string, unknown>),
+      }));
+      return NextResponse.json({ connections });
     }
   }
 
