@@ -50,15 +50,17 @@ export default function DashboardFilters({
   const [bookmarksOnly, setBookmarksOnly] = useState(false);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
 
-  const emitChange = (overrides: Partial<{
-    categories: string[];
-    platforms: TrendPlatform[];
-    keyword: string;
-    timeframe: string;
-    bookmarksOnly: boolean;
-    countries: string[];
-    sortBy: 'score' | 'recent' | 'rising';
-  }> = {}) => {
+  const emitChange = (
+    overrides: Partial<{
+      categories: string[];
+      platforms: TrendPlatform[];
+      keyword: string;
+      timeframe: string;
+      bookmarksOnly: boolean;
+      countries: string[];
+      sortBy: 'score' | 'recent' | 'rising';
+    }> = {}
+  ) => {
     onFiltersChange?.({
       categories: selectedCategories,
       platforms: selectedPlatforms,
@@ -119,7 +121,8 @@ export default function DashboardFilters({
                 onClick={() => toggleCategory(cat)}
                 className={`px-3 py-1.5 rounded-full text-sm font-sans font-semibold transition-all duration-150 border ${
                   active
-                    ? 'bg-primary text-white border-primary' : 'bg-transparent text-foreground/65 border-border hover:border-primary/40 hover:text-foreground'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-transparent text-foreground/65 border-border hover:border-primary/40 hover:text-foreground'
                 }`}
               >
                 {cat}
@@ -136,7 +139,10 @@ export default function DashboardFilters({
         </p>
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/50" />
+            <Search
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/50"
+            />
             <input
               type="text"
               placeholder="Search keywords in all niches… e.g. 'GPT-4', 'marathon', 'crypto'"
@@ -148,9 +154,7 @@ export default function DashboardFilters({
               className="w-full bg-input border border-border rounded-lg pl-9 pr-4 py-2 text-base font-sans text-foreground placeholder:text-foreground/45 focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
-          <button className="btn-flame px-4 py-2 rounded-lg">
-            Search
-          </button>
+          <button className="btn-flame px-4 py-2 rounded-lg">Search</button>
         </div>
       </div>
 
@@ -160,10 +164,7 @@ export default function DashboardFilters({
           <p className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold">
             Location:
           </p>
-          <CountrySelector
-            selectedCountries={selectedCountries}
-            onChange={handleCountriesChange}
-          />
+          <CountrySelector selectedCountries={selectedCountries} onChange={handleCountriesChange} />
           {selectedCountries.length === 0 && (
             <span className="text-sm text-foreground/55 font-sans">
               Select up to 4 countries to filter trends by region
@@ -171,7 +172,8 @@ export default function DashboardFilters({
           )}
           {selectedCountries.length > 0 && (
             <span className="text-sm text-primary font-sans font-semibold">
-              Showing trends relevant to selected {selectedCountries.length === 1 ? 'country' : 'countries'}
+              Showing trends relevant to selected{' '}
+              {selectedCountries.length === 1 ? 'country' : 'countries'}
             </span>
           )}
         </div>
@@ -191,7 +193,8 @@ export default function DashboardFilters({
             }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-sans font-semibold border transition-all ${
               allSourcesActive
-                ? 'bg-primary text-white border-primary' : 'bg-transparent text-foreground/65 border-border hover:text-foreground'
+                ? 'bg-primary text-white border-primary'
+                : 'bg-transparent text-foreground/65 border-border hover:text-foreground'
             }`}
           >
             All Sources
@@ -204,7 +207,8 @@ export default function DashboardFilters({
                 onClick={() => togglePlatform(p)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-sans font-semibold border transition-all ${
                   active
-                    ? 'border-primary/40 bg-primary/10 text-primary' : 'bg-transparent border-border text-foreground/65 hover:text-foreground'
+                    ? 'border-primary/40 bg-primary/10 text-primary'
+                    : 'bg-transparent border-border text-foreground/65 hover:text-foreground'
                 }`}
               >
                 {PLATFORM_LABELS[p]}
@@ -230,7 +234,9 @@ export default function DashboardFilters({
                   emitChange({ sortBy: opt.id });
                 }}
                 className={`px-3 py-1.5 rounded-md text-sm font-sans font-semibold transition-all duration-150 ${
-                  sortBy === opt.id ? 'bg-primary text-white' : 'text-foreground/65 hover:text-foreground'
+                  sortBy === opt.id
+                    ? 'bg-primary text-white'
+                    : 'text-foreground/65 hover:text-foreground'
                 }`}
               >
                 {opt.label}
@@ -256,7 +262,8 @@ export default function DashboardFilters({
                 }}
                 className={`px-3 py-1.5 rounded-md text-sm font-sans font-semibold transition-all duration-150 ${
                   timeframe === tf
-                    ? 'bg-primary text-white' : 'text-foreground/65 hover:text-foreground'
+                    ? 'bg-primary text-white'
+                    : 'text-foreground/65 hover:text-foreground'
                 }`}
               >
                 {tf}
@@ -278,7 +285,8 @@ export default function DashboardFilters({
             }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-sans font-semibold transition-all duration-150 border ${
               bookmarksOnly
-                ? 'bg-primary/10 text-primary border-primary/30' : 'bg-muted text-foreground/65 border-border hover:text-foreground'
+                ? 'bg-primary/10 text-primary border-primary/30'
+                : 'bg-muted text-foreground/65 border-border hover:text-foreground'
             }`}
           >
             <Bookmark size={14} />

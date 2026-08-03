@@ -55,14 +55,18 @@ export default function AnalyticsKPICards() {
               <span className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold">
                 {kpi?.label}
               </span>
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${kpi?.accentBg}`}>
+              <div
+                className={`w-9 h-9 rounded-lg flex items-center justify-center ${kpi?.accentBg}`}
+              >
                 <IconComponent size={17} className={kpi?.accentIcon} />
               </div>
             </div>
             <span className="font-mono-custom font-bold text-2xl xl:text-3xl text-foreground tabular-nums">
               {kpi?.value}
             </span>
-            <span className={`text-sm font-sans font-semibold ${kpi?.deltaPositive ? 'text-accent' : 'text-red-500'}`}>
+            <span
+              className={`text-sm font-sans font-semibold ${kpi?.deltaPositive ? 'text-accent' : 'text-red-500'}`}
+            >
               {kpi?.delta}
             </span>
           </div>

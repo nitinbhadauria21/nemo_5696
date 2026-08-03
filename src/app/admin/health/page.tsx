@@ -67,10 +67,15 @@ export default function AdminHealthPage() {
       <div className="admin-card p-5">
         <h2 className="mb-2 font-display text-sm font-bold">Cron ingestion</h2>
         <p className="text-sm text-[var(--admin-soft)]">
-          Schedule <code className="rounded bg-[var(--admin-surface-2)] px-1.5 py-0.5 font-mono text-xs">POST /api/trends</code>{' '}
+          Schedule{' '}
+          <code className="rounded bg-[var(--admin-surface-2)] px-1.5 py-0.5 font-mono text-xs">
+            POST /api/trends
+          </code>{' '}
           with header{' '}
-          <code className="rounded bg-[var(--admin-surface-2)] px-1.5 py-0.5 font-mono text-xs">x-cron-secret</code> every
-          15–30 minutes.
+          <code className="rounded bg-[var(--admin-surface-2)] px-1.5 py-0.5 font-mono text-xs">
+            x-cron-secret
+          </code>{' '}
+          every 15–30 minutes.
         </p>
       </div>
     </div>

@@ -26,7 +26,12 @@ export default function APIKeyTab() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateKeyForm>();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CreateKeyForm>();
 
   useEffect(() => {
     fetch('/api/api-keys')
@@ -34,14 +39,22 @@ export default function APIKeyTab() {
       .then((data) => {
         if (!Array.isArray(data.keys)) return;
         setKeys(
-          data.keys.map((k: { id: string; name: string; key_prefix: string; created_at: string; last_used_at?: string }) => ({
-            id: k.id,
-            name: k.name,
-            prefix: k.key_prefix,
-            lastUsed: k.last_used_at ? new Date(k.last_used_at).toLocaleDateString() : 'Never',
-            created: new Date(k.created_at).toLocaleDateString(),
-            requests: 0,
-          }))
+          data.keys.map(
+            (k: {
+              id: string;
+              name: string;
+              key_prefix: string;
+              created_at: string;
+              last_used_at?: string;
+            }) => ({
+              id: k.id,
+              name: k.name,
+              prefix: k.key_prefix,
+              lastUsed: k.last_used_at ? new Date(k.last_used_at).toLocaleDateString() : 'Never',
+              created: new Date(k.created_at).toLocaleDateString(),
+              requests: 0,
+            })
+          )
         );
       })
       .catch(() => {});
@@ -80,7 +93,7 @@ export default function APIKeyTab() {
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
-      toast.success('API key copied — store it securely, it won\'t be shown again');
+      toast.success("API key copied — store it securely, it won't be shown again");
       setTimeout(() => setCopied(false), 2000);
     });
   };
@@ -111,11 +124,25 @@ export default function APIKeyTab() {
             <div className="flex-1 bg-input border border-border rounded-xl px-4 py-2.5 font-mono-custom text-sm text-foreground overflow-hidden">
               {showNewKey ? newKeyValue : '•'.repeat(40)}
             </div>
-            <button onClick={() => setShowNewKey((s) => !s)} className="p-2.5 rounded-xl border border-border hover:bg-muted transition-colors">
-              {showNewKey ? <EyeOff size={15} className="text-muted-foreground" /> : <Eye size={15} className="text-muted-foreground" />}
+            <button
+              onClick={() => setShowNewKey((s) => !s)}
+              className="p-2.5 rounded-xl border border-border hover:bg-muted transition-colors"
+            >
+              {showNewKey ? (
+                <EyeOff size={15} className="text-muted-foreground" />
+              ) : (
+                <Eye size={15} className="text-muted-foreground" />
+              )}
             </button>
-            <button onClick={() => handleCopy(newKeyValue)} className="p-2.5 rounded-xl border border-border hover:bg-muted transition-colors">
-              {copied ? <CheckCheck size={15} className="text-accent" /> : <Copy size={15} className="text-muted-foreground" />}
+            <button
+              onClick={() => handleCopy(newKeyValue)}
+              className="p-2.5 rounded-xl border border-border hover:bg-muted transition-colors"
+            >
+              {copied ? (
+                <CheckCheck size={15} className="text-accent" />
+              ) : (
+                <Copy size={15} className="text-muted-foreground" />
+              )}
             </button>
           </div>
           <button
@@ -138,7 +165,8 @@ export default function APIKeyTab() {
               Key name
             </label>
             <p className="text-xs text-muted-foreground font-sans mb-1.5">
-              Descriptive name to identify this key&apos;s purpose (e.g. &quot;Production Dashboard&quot;)
+              Descriptive name to identify this key&apos;s purpose (e.g. &quot;Production
+              Dashboard&quot;)
             </p>
             <input
               type="text"
@@ -156,8 +184,19 @@ export default function APIKeyTab() {
             >
               {isCreating ? (
                 <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
                 </svg>
               ) : (
                 <Plus size={14} />
@@ -177,7 +216,9 @@ export default function APIKeyTab() {
         </div>
         {keys.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-sm text-muted-foreground font-sans">No API keys yet — create one above</p>
+            <p className="text-sm text-muted-foreground font-sans">
+              No API keys yet — create one above
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -185,7 +226,10 @@ export default function APIKeyTab() {
               <thead>
                 <tr className="border-b border-border bg-muted/30">
                   {['Name', 'Key Preview', 'Created', 'Last Used', 'Requests', ''].map((col, i) => (
-                    <th key={`th-key-${i}`} className="px-4 py-2.5 text-left text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">
+                    <th
+                      key={`th-key-${i}`}
+                      className="px-4 py-2.5 text-left text-xs font-mono-custom uppercase tracking-widest text-muted-foreground"
+                    >
                       {col}
                     </th>
                   ))}
@@ -193,19 +237,38 @@ export default function APIKeyTab() {
               </thead>
               <tbody>
                 {keys.map((key) => (
-                  <tr key={key.id} className="border-b border-border hover:bg-muted/40 transition-colors group">
-                    <td className="px-4 py-3 text-sm font-sans font-medium text-foreground">{key.name}</td>
-                    <td className="px-4 py-3 font-mono-custom text-xs text-muted-foreground">{key.prefix}…</td>
-                    <td className="px-4 py-3 font-mono-custom text-xs text-muted-foreground tabular-nums">{key.created}</td>
-                    <td className="px-4 py-3 font-mono-custom text-xs text-muted-foreground tabular-nums">{key.lastUsed}</td>
-                    <td className="px-4 py-3 font-mono-custom text-xs text-foreground tabular-nums">{key.requests.toLocaleString()}</td>
+                  <tr
+                    key={key.id}
+                    className="border-b border-border hover:bg-muted/40 transition-colors group"
+                  >
+                    <td className="px-4 py-3 text-sm font-sans font-medium text-foreground">
+                      {key.name}
+                    </td>
+                    <td className="px-4 py-3 font-mono-custom text-xs text-muted-foreground">
+                      {key.prefix}…
+                    </td>
+                    <td className="px-4 py-3 font-mono-custom text-xs text-muted-foreground tabular-nums">
+                      {key.created}
+                    </td>
+                    <td className="px-4 py-3 font-mono-custom text-xs text-muted-foreground tabular-nums">
+                      {key.lastUsed}
+                    </td>
+                    <td className="px-4 py-3 font-mono-custom text-xs text-foreground tabular-nums">
+                      {key.requests.toLocaleString()}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       {deleteConfirm === key.id ? (
                         <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => handleDelete(key.id)} className="text-xs font-semibold text-red-400 hover:text-red-300 px-2 py-1 bg-red-500/10 rounded-lg">
+                          <button
+                            onClick={() => handleDelete(key.id)}
+                            className="text-xs font-semibold text-red-400 hover:text-red-300 px-2 py-1 bg-red-500/10 rounded-lg"
+                          >
                             Revoke
                           </button>
-                          <button onClick={() => setDeleteConfirm(null)} className="text-xs text-muted-foreground hover:text-foreground">
+                          <button
+                            onClick={() => setDeleteConfirm(null)}
+                            className="text-xs text-muted-foreground hover:text-foreground"
+                          >
                             Cancel
                           </button>
                         </div>

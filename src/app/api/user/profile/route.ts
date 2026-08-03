@@ -26,7 +26,9 @@ export async function GET() {
   try {
     const raw = typeof window !== 'undefined' ? null : null;
     void raw;
-  } catch { /* server only */ }
+  } catch {
+    /* server only */
+  }
 
   return NextResponse.json({
     profile: { id: userId, plan: 'free', niches: [], platforms: [] },
@@ -46,16 +48,23 @@ export async function PATCH(request: NextRequest) {
   if (body.niches !== undefined) updates.niches = body.niches;
   if (body.platforms !== undefined) updates.platforms = body.platforms;
   if (body.schedule !== undefined) updates.schedule = body.schedule;
-  if (body.onboarding_complete !== undefined) updates.onboarding_complete = body.onboarding_complete;
+  if (body.onboarding_complete !== undefined)
+    updates.onboarding_complete = body.onboarding_complete;
   if (body.connected_socials !== undefined) updates.connected_socials = body.connected_socials;
   updates.updated_at = new Date().toISOString();
 
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
-    if (!supabase) return NextResponse.json({ profile: { id: userId, ...updates }, source: 'local' });
+    if (!supabase)
+      return NextResponse.json({ profile: { id: userId, ...updates }, source: 'local' });
 
     // Prefer update; if no row (missing trigger), upsert via service role
-    let { data, error } = await supabase.from('profiles').update(updates).eq('id', userId).select().single();
+    let { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
 
     if (error || !data) {
       const admin = createAdminClient();
@@ -67,11 +76,19 @@ export async function PATCH(request: NextRequest) {
         ...updates,
       };
       if (admin) {
-        const upserted = await admin.from('profiles').upsert(upsertPayload, { onConflict: 'id' }).select().single();
+        const upserted = await admin
+          .from('profiles')
+          .upsert(upsertPayload, { onConflict: 'id' })
+          .select()
+          .single();
         data = upserted.data;
         error = upserted.error;
       } else {
-        const upserted = await supabase.from('profiles').upsert(upsertPayload, { onConflict: 'id' }).select().single();
+        const upserted = await supabase
+          .from('profiles')
+          .upsert(upsertPayload, { onConflict: 'id' })
+          .select()
+          .single();
         data = upserted.data;
         error = upserted.error;
       }

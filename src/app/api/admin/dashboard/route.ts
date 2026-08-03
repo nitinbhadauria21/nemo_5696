@@ -40,7 +40,10 @@ export async function GET() {
         admin.from('profiles').select('*', { count: 'exact', head: true }),
         admin.from('profiles').select('*', { count: 'exact', head: true }).eq('plan', 'pro'),
         admin.from('profiles').select('*', { count: 'exact', head: true }).eq('plan', 'agency'),
-        admin.from('user_events').select('*', { count: 'exact', head: true }).gte('created_at', since24h),
+        admin
+          .from('user_events')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', since24h),
         admin
           .from('user_events')
           .select('*', { count: 'exact', head: true })
@@ -122,7 +125,10 @@ export async function GET() {
 
       let supabaseOk = true;
       try {
-        const { error } = await admin.from('profiles').select('id', { head: true, count: 'exact' }).limit(1);
+        const { error } = await admin
+          .from('profiles')
+          .select('id', { head: true, count: 'exact' })
+          .limit(1);
         if (error) supabaseOk = false;
       } catch {
         supabaseOk = false;

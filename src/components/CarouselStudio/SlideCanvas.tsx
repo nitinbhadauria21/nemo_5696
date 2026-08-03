@@ -35,7 +35,8 @@ export default function SlideCanvas({ slide, format, isExport = false, id }: Sli
   const scrimStyle: React.CSSProperties = (() => {
     if (slide.scrim === 'bottom') {
       return {
-        background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',
+        background:
+          'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',
       };
     }
     if (slide.scrim === 'full') {

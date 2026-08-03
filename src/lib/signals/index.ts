@@ -31,11 +31,7 @@ export type {
   TrendRecord,
 } from './types';
 
-export {
-  PLATFORM_WEIGHTS,
-  NEMO_SCORE_WEIGHTS,
-  SCORING_TIME_RULES,
-} from './types';
+export { PLATFORM_WEIGHTS, NEMO_SCORE_WEIGHTS, SCORING_TIME_RULES } from './types';
 
 // Scoring Engine — Four Formulas + Final Nemo Score
 export {

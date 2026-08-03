@@ -19,6 +19,9 @@ export async function POST(request: NextRequest) {
     const sentiment = await runAiPrompt(prompt);
     return NextResponse.json({ sentiment });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : 'AI unavailable' }, { status: 503 });
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : 'AI unavailable' },
+      { status: 503 }
+    );
   }
 }

@@ -72,8 +72,18 @@ export default function AdminRevenueContent() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trend}>
                 <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                <XAxis dataKey="month" tick={{ fill: '#8a8076', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#8a8076', fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fill: '#8a8076', fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: '#8a8076', fontSize: 11 }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={48}
+                />
                 <Tooltip
                   formatter={(v: number) => `₹${Number(v).toLocaleString('en-IN')}`}
                   contentStyle={{
@@ -94,7 +104,15 @@ export default function AdminRevenueContent() {
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={planMix} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                <Pie
+                  data={planMix}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label
+                >
                   {planMix.map((entry, i) => (
                     <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />
                   ))}

@@ -1,15 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ANALYTICS_DAILY_DATA } from '@/lib/mockData';
 
 const DISPLAY_DATA = ANALYTICS_DAILY_DATA.filter((_, i) => i % 2 === 0);

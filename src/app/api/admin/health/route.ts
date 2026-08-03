@@ -15,7 +15,10 @@ export async function GET() {
     const admin = createAdminClient();
     if (admin) {
       const t0 = Date.now();
-      const { error } = await admin.from('profiles').select('id', { head: true, count: 'exact' }).limit(1);
+      const { error } = await admin
+        .from('profiles')
+        .select('id', { head: true, count: 'exact' })
+        .limit(1);
       const latency = Date.now() - t0;
       checks.push({
         id: 'supabase',

@@ -15,12 +15,12 @@ const PLATFORM_LABELS: { id: string; name: string }[] = [
 ];
 
 export default function DashboardSidebar({ trends }: { trends: TrendItem[] }) {
-  const topTrends = trends
-    .filter((t) => t.status === 'hot' || t.status === 'rising')
-    .slice(0, 4);
+  const topTrends = trends.filter((t) => t.status === 'hot' || t.status === 'rising').slice(0, 4);
 
   const platformStatus = PLATFORM_LABELS.map((p) => {
-    const count = trends.filter((t) => t.platforms?.includes(p.id as TrendItem['platforms'][number])).length;
+    const count = trends.filter((t) =>
+      t.platforms?.includes(p.id as TrendItem['platforms'][number])
+    ).length;
     const pct = trends.length ? Math.round((count / trends.length) * 100) : 0;
     return {
       ...p,
@@ -49,7 +49,11 @@ export default function DashboardSidebar({ trends }: { trends: TrendItem[] }) {
                     </p>
                     <div className="flex items-center gap-1.5 mt-1">
                       {trend.platforms?.slice(0, 2)?.map((p) => (
-                        <PlatformBadge key={`sidebar-plat-${trend.id}-${p}`} platform={p} size="sm" />
+                        <PlatformBadge
+                          key={`sidebar-plat-${trend.id}-${p}`}
+                          platform={p}
+                          size="sm"
+                        />
                       ))}
                     </div>
                   </div>
@@ -75,7 +79,9 @@ export default function DashboardSidebar({ trends }: { trends: TrendItem[] }) {
                 </span>
                 <span
                   className={`text-sm font-mono-custom uppercase px-1.5 py-0.5 rounded-full ${
-                    ps.status === 'live' ? 'bg-accent/10 text-accent' : 'bg-muted text-foreground/60'
+                    ps.status === 'live'
+                      ? 'bg-accent/10 text-accent'
+                      : 'bg-muted text-foreground/60'
                   }`}
                 >
                   {ps.status}
@@ -88,7 +94,8 @@ export default function DashboardSidebar({ trends }: { trends: TrendItem[] }) {
 
       <div className="card-surface p-3 border-primary/20">
         <p className="text-base text-foreground/65 font-sans leading-relaxed">
-          <span className="text-primary font-semibold">Auto-refresh</span> every 10 min from live collectors.
+          <span className="text-primary font-semibold">Auto-refresh</span> every 10 min from live
+          collectors.
         </p>
       </div>
     </div>

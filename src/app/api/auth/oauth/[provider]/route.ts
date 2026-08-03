@@ -15,11 +15,11 @@ export async function GET(
   context: { params: Promise<{ provider: string }> }
 ) {
   const { provider } = await context.params;
-  const clientId = process.env[`${provider.toUpperCase()}_CLIENT_ID`] || process.env.OAUTH_CLIENT_ID;
+  const clientId =
+    process.env[`${provider.toUpperCase()}_CLIENT_ID`] || process.env.OAUTH_CLIENT_ID;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:4028';
   const redirectUri = `${siteUrl}/api/auth/oauth/${provider}/callback`;
-  const returnTo =
-    request.nextUrl.searchParams.get('returnTo') || `/settings?oauth=${provider}`;
+  const returnTo = request.nextUrl.searchParams.get('returnTo') || `/settings?oauth=${provider}`;
 
   if (!OAUTH_BASE[provider]) {
     const dest = `${returnTo.includes('?') ? returnTo + '&' : returnTo + '?'}oauth=error&reason=unsupported_provider`;

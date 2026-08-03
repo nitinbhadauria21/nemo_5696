@@ -34,7 +34,9 @@ const RANGES = ['7d', '30d', '90d'] as const;
 
 function EmptyHint({ children }: { children: React.ReactNode }) {
   return (
-    <div className="card-surface p-8 text-center text-sm text-muted-foreground font-sans">{children}</div>
+    <div className="card-surface p-8 text-center text-sm text-muted-foreground font-sans">
+      {children}
+    </div>
   );
 }
 
@@ -128,7 +130,9 @@ export default function AnalyticsContent() {
               type="button"
               onClick={() => setRange(r)}
               className={`px-4 py-1.5 rounded-full text-sm font-mono-custom font-bold uppercase transition-all duration-150 ${
-                range === r ? 'bg-primary text-white shadow-flame-sm' : 'text-foreground/65 hover:text-foreground'
+                range === r
+                  ? 'bg-primary text-white shadow-flame-sm'
+                  : 'text-foreground/65 hover:text-foreground'
               }`}
             >
               {r}
@@ -153,7 +157,9 @@ export default function AnalyticsContent() {
                   <span className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold">
                     {kpi.label}
                   </span>
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${kpi.accentBg}`}>
+                  <div
+                    className={`w-9 h-9 rounded-lg flex items-center justify-center ${kpi.accentBg}`}
+                  >
                     <IconComponent size={17} className={kpi.accentIcon} />
                   </div>
                 </div>
@@ -180,14 +186,22 @@ export default function AnalyticsContent() {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                   <XAxis
                     dataKey="date"
-                    tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--muted-foreground)' }}
+                    tick={{
+                      fontSize: 10,
+                      fontFamily: 'var(--font-mono)',
+                      fill: 'var(--muted-foreground)',
+                    }}
                     axisLine={false}
                     tickLine={false}
                     interval="preserveStartEnd"
                   />
                   <YAxis
                     allowDecimals={false}
-                    tick={{ fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--muted-foreground)' }}
+                    tick={{
+                      fontSize: 10,
+                      fontFamily: 'var(--font-mono)',
+                      fill: 'var(--muted-foreground)',
+                    }}
                     axisLine={false}
                     tickLine={false}
                   />
@@ -211,7 +225,9 @@ export default function AnalyticsContent() {
               By category
             </h3>
             {(data?.byCategory?.length ?? 0) === 0 && !loading ? (
-              <p className="text-sm text-muted-foreground font-sans py-12 text-center">No category data</p>
+              <p className="text-sm text-muted-foreground font-sans py-12 text-center">
+                No category data
+              </p>
             ) : (
               <>
                 <ResponsiveContainer width="100%" height={160}>
@@ -265,7 +281,9 @@ export default function AnalyticsContent() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border text-left">
-                    <th className="py-2 font-mono-custom text-xs uppercase text-muted-foreground">Event</th>
+                    <th className="py-2 font-mono-custom text-xs uppercase text-muted-foreground">
+                      Event
+                    </th>
                     <th className="py-2 font-mono-custom text-xs uppercase text-muted-foreground text-right">
                       Count
                     </th>

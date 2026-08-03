@@ -48,7 +48,11 @@ export async function GET(
       await supabase.from('user_connections').upsert({
         user_id: userId,
         platform: provider,
-        metadata: { connected: true, connected_at: new Date().toISOString(), token_status: 'active' },
+        metadata: {
+          connected: true,
+          connected_at: new Date().toISOString(),
+          token_status: 'active',
+        },
       });
       await appendConnectedSocial(userId, provider);
     }

@@ -34,7 +34,8 @@ const PLATFORM_SECTIONS: PlatformSection[] = [
         id: 'yt-1',
         user: 'TechWithTim',
         handle: '@TechWithTim',
-        content: 'I built a full Claude AI agent with MCP tools in 20 minutes — here\'s the exact setup 🔥',
+        content:
+          "I built a full Claude AI agent with MCP tools in 20 minutes — here's the exact setup 🔥",
         metric1Label: 'Views',
         metric1Value: '284K',
         metric2Label: 'Likes',
@@ -77,7 +78,8 @@ const PLATFORM_SECTIONS: PlatformSection[] = [
         id: 'ig-1',
         user: 'aicreatorsclub',
         handle: '@aicreatorsclub',
-        content: 'Claude AI just changed how I create content. Here\'s my full workflow 👇 #ClaudeAI #AITools',
+        content:
+          "Claude AI just changed how I create content. Here's my full workflow 👇 #ClaudeAI #AITools",
         metric1Label: 'Likes',
         metric1Value: '47.3K',
         metric2Label: 'Saves',
@@ -101,7 +103,8 @@ const PLATFORM_SECTIONS: PlatformSection[] = [
         id: 'ig-3',
         user: 'buildinpublic',
         handle: '@buildinpublic',
-        content: 'Day 7 of building with Claude AI tools — here\'s what I learned #BuildInPublic #LLM',
+        content:
+          "Day 7 of building with Claude AI tools — here's what I learned #BuildInPublic #LLM",
         metric1Label: 'Likes',
         metric1Value: '18.9K',
         metric2Label: 'Comments',
@@ -120,7 +123,8 @@ const PLATFORM_SECTIONS: PlatformSection[] = [
         id: 'li-1',
         user: 'Lenny Rachitsky',
         handle: 'Product Advisor',
-        content: 'Claude AI tool integrations are the biggest productivity unlock I\'ve seen in 10 years. Here\'s how we\'re using it at our portfolio companies...',
+        content:
+          "Claude AI tool integrations are the biggest productivity unlock I've seen in 10 years. Here's how we're using it at our portfolio companies...",
         metric1Label: 'Reactions',
         metric1Value: '8.4K',
         metric2Label: 'Reposts',
@@ -132,7 +136,8 @@ const PLATFORM_SECTIONS: PlatformSection[] = [
         id: 'li-2',
         user: 'Shreya Doshi',
         handle: 'PM Coach',
-        content: 'I replaced 3 tools with Claude MCP integrations. The ROI is insane. Thread on how 👇',
+        content:
+          'I replaced 3 tools with Claude MCP integrations. The ROI is insane. Thread on how 👇',
         metric1Label: 'Reactions',
         metric1Value: '5.1K',
         metric2Label: 'Comments',
@@ -144,7 +149,8 @@ const PLATFORM_SECTIONS: PlatformSection[] = [
         id: 'li-3',
         user: 'Andrej Karpathy',
         handle: 'AI Researcher',
-        content: 'The MCP protocol for Claude is genuinely impressive engineering. Here\'s a technical breakdown of why it matters for enterprise AI adoption.',
+        content:
+          "The MCP protocol for Claude is genuinely impressive engineering. Here's a technical breakdown of why it matters for enterprise AI adoption.",
         metric1Label: 'Reactions',
         metric1Value: '12.7K',
         metric2Label: 'Reposts',
@@ -175,7 +181,8 @@ const PLATFORM_SECTIONS: PlatformSection[] = [
         id: 'gt-2',
         user: 'Rising Query',
         handle: 'claude tool use tutorial',
-        content: 'Rising +1,200% — primarily driven by developer searches in North America and Europe',
+        content:
+          'Rising +1,200% — primarily driven by developer searches in North America and Europe',
         metric1Label: 'Interest',
         metric1Value: '87/100',
         metric2Label: 'Regions',
@@ -187,7 +194,8 @@ const PLATFORM_SECTIONS: PlatformSection[] = [
         id: 'gt-3',
         user: 'Related Query',
         handle: 'anthropic claude api integration',
-        content: 'Steady climb +312% over 7 days — co-searched with "openai vs claude" and "best ai tools 2026"',
+        content:
+          'Steady climb +312% over 7 days — co-searched with "openai vs claude" and "best ai tools 2026"',
         metric1Label: 'Interest',
         metric1Value: '74/100',
         metric2Label: 'Regions',
@@ -201,7 +209,8 @@ const PLATFORM_SECTIONS: PlatformSection[] = [
 
 const MetricIcon = ({ label }: { label: string }) => {
   if (label === 'Views') return <Eye size={10} className="inline mr-0.5" />;
-  if (label === 'Likes' || label === 'Reactions') return <ThumbsUp size={10} className="inline mr-0.5" />;
+  if (label === 'Likes' || label === 'Reactions')
+    return <ThumbsUp size={10} className="inline mr-0.5" />;
   if (label === 'Comments') return <MessageCircle size={10} className="inline mr-0.5" />;
   return <TrendingUp size={10} className="inline mr-0.5" />;
 };
@@ -243,7 +252,9 @@ export default function RealTimeTrendingPosts() {
           {/* Platform header */}
           <div className="flex items-center gap-2 mb-3">
             <PlatformBadge platform={section.platform} size="sm" />
-            <span className="text-xs font-mono-custom font-semibold text-foreground">{section.label}</span>
+            <span className="text-xs font-mono-custom font-semibold text-foreground">
+              {section.label}
+            </span>
             <span className="ml-auto flex items-center gap-1 text-xs font-sans text-accent">
               <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block animate-pulse" />
               Live
@@ -282,13 +293,13 @@ export default function RealTimeTrendingPosts() {
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-mono-custom text-muted-foreground">
                     <MetricIcon label={post.metric1Label} />
-                    <span className="font-bold text-foreground">{post.metric1Value}</span>
-                    {' '}{post.metric1Label}
+                    <span className="font-bold text-foreground">{post.metric1Value}</span>{' '}
+                    {post.metric1Label}
                   </span>
                   <span className="text-xs font-mono-custom text-muted-foreground">
                     <MetricIcon label={post.metric2Label} />
-                    <span className="font-bold text-foreground">{post.metric2Value}</span>
-                    {' '}{post.metric2Label}
+                    <span className="font-bold text-foreground">{post.metric2Value}</span>{' '}
+                    {post.metric2Label}
                   </span>
                 </div>
               </div>

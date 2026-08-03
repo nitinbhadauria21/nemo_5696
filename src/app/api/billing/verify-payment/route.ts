@@ -31,10 +31,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Invalid payment signature' }, { status: 400 });
       }
     } else if (!mockSuccess) {
-      return NextResponse.json(
-        { error: 'Payments are not configured.' },
-        { status: 503 }
-      );
+      return NextResponse.json({ error: 'Payments are not configured.' }, { status: 503 });
     }
 
     const resolvedPlan = plan === 'agency' ? 'agency' : 'pro';

@@ -43,7 +43,9 @@ export default function AdminSidebar() {
         </div>
         <div>
           <div className="font-display text-sm font-bold text-[var(--admin-text)]">Nemo Admin</div>
-          <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--admin-mute)]">Control plane</div>
+          <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--admin-mute)]">
+            Control plane
+          </div>
         </div>
       </div>
 

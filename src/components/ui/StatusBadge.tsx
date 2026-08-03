@@ -1,6 +1,7 @@
 import React from 'react';
 
-type Status = 'hot' | 'rising' | 'fading' | 'RISING' | 'PEAKING' | 'DECLINING' | 'PREDICTED' | 'EXPIRED';
+type Status =
+  'hot' | 'rising' | 'fading' | 'RISING' | 'PEAKING' | 'DECLINING' | 'PREDICTED' | 'EXPIRED';
 
 interface StatusBadgeProps {
   status: Status;

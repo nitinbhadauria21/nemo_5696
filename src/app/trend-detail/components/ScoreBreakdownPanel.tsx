@@ -30,7 +30,8 @@ const SCORE_COMPONENTS: ScoreComponent[] = [
     abbr: 'SS',
     value: 75,
     weight: 30,
-    description: 'Log-normalized mention growth vs prior 24h — 10× increase → ~50, 100× → ~75, 1000× → ~100',
+    description:
+      'Log-normalized mention growth vs prior 24h — 10× increase → ~50, 100× → ~75, 1000× → ~100',
     color: 'bg-purple-500',
   },
   {
@@ -39,7 +40,8 @@ const SCORE_COMPONENTS: ScoreComponent[] = [
     abbr: 'CVS',
     value: 88,
     weight: 25,
-    description: 'Recency-weighted creator adoption: (creators_6h × 4 + creators_24h) / (creators_72h + 1)',
+    description:
+      'Recency-weighted creator adoption: (creators_6h × 4 + creators_24h) / (creators_72h + 1)',
     color: 'bg-primary',
   },
   {
@@ -48,7 +50,8 @@ const SCORE_COMPONENTS: ScoreComponent[] = [
     abbr: 'CPS',
     value: 62,
     weight: 25,
-    description: 'Weighted platform presence — TikTok 22%, Instagram 20%, YouTube 20%, Google 18%, X 12%, Reddit 5%, LinkedIn 3%',
+    description:
+      'Weighted platform presence — TikTok 22%, Instagram 20%, YouTube 20%, Google 18%, X 12%, Reddit 5%, LinkedIn 3%',
     color: 'bg-secondary',
   },
   {
@@ -57,7 +60,8 @@ const SCORE_COMPONENTS: ScoreComponent[] = [
     abbr: 'FSH',
     value: 100,
     weight: 20,
-    description: 'Time-decay: 1.0 at detection → 0.67 at 24h → 0.33 at 48h → 0.1 at 72h → expired at 7 days',
+    description:
+      'Time-decay: 1.0 at detection → 0.67 at 24h → 0.33 at 48h → 0.1 at 72h → expired at 7 days',
     color: 'bg-accent',
   },
 ];
@@ -81,10 +85,13 @@ export default function ScoreBreakdownPanel({
 }: ScoreBreakdownPanelProps) {
   // Use passed-in values if available, otherwise fall back to mock values
   const components = SCORE_COMPONENTS.map((comp) => {
-    if (comp.abbr === 'CVS' && creatorVelocityScore !== undefined) return { ...comp, value: creatorVelocityScore };
+    if (comp.abbr === 'CVS' && creatorVelocityScore !== undefined)
+      return { ...comp, value: creatorVelocityScore };
     if (comp.abbr === 'SS' && spikeScore !== undefined) return { ...comp, value: spikeScore };
-    if (comp.abbr === 'CPS' && crossPlatformScore !== undefined) return { ...comp, value: crossPlatformScore };
-    if (comp.abbr === 'FSH' && freshnessScore !== undefined) return { ...comp, value: freshnessScore };
+    if (comp.abbr === 'CPS' && crossPlatformScore !== undefined)
+      return { ...comp, value: crossPlatformScore };
+    if (comp.abbr === 'FSH' && freshnessScore !== undefined)
+      return { ...comp, value: freshnessScore };
     return comp;
   });
 
@@ -95,7 +102,9 @@ export default function ScoreBreakdownPanel({
           <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-1">
             NEMO Score Breakdown
           </h3>
-          <p className="text-xs text-muted-foreground font-sans">Composite scoring across 4 signals × freshness multiplier</p>
+          <p className="text-xs text-muted-foreground font-sans">
+            Composite scoring across 4 signals × freshness multiplier
+          </p>
         </div>
         <div className="text-right">
           <div className="font-mono-custom font-bold text-5xl text-primary tabular-nums">
@@ -113,7 +122,9 @@ export default function ScoreBreakdownPanel({
             <div key={comp.id}>
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-mono-custom font-bold text-foreground">{comp.abbr}</span>
+                  <span className="text-sm font-mono-custom font-bold text-foreground">
+                    {comp.abbr}
+                  </span>
                   <span className="text-xs font-sans text-muted-foreground">{comp.label}</span>
                 </div>
                 <div className="flex items-center gap-2">

@@ -35,9 +35,7 @@ export default function DashboardKPICards({ trends }: { trends: TrendItem[] }) {
   const total = trends.length;
   const rising = trends.filter((t) => t.status === 'rising' || t.status === 'hot').length;
   const avgSpike =
-    total > 0
-      ? Math.round(trends.reduce((sum, t) => sum + (t.velocity || 0), 0) / total)
-      : 0;
+    total > 0 ? Math.round(trends.reduce((sum, t) => sum + (t.velocity || 0), 0) / total) : 0;
 
   const platformCounts: Record<string, number> = {};
   for (const t of trends) {
@@ -45,8 +43,7 @@ export default function DashboardKPICards({ trends }: { trends: TrendItem[] }) {
       platformCounts[p] = (platformCounts[p] || 0) + 1;
     }
   }
-  const topSource =
-    Object.entries(platformCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+  const topSource = Object.entries(platformCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
 
   const kpiData = [
     {
@@ -93,14 +90,18 @@ export default function DashboardKPICards({ trends }: { trends: TrendItem[] }) {
             key={kpi.id}
             className={`${a.bg} border ${a.border} rounded-2xl p-4 flex items-center gap-3`}
           >
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${a.icon}`}>
+            <div
+              className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${a.icon}`}
+            >
               <IconComponent size={20} />
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-mono-custom text-sm font-bold text-foreground/60 uppercase tracking-wider leading-tight mb-1 truncate">
                 {kpi.label}
               </p>
-              <p className={`font-display font-extrabold tabular-nums text-2xl leading-none truncate ${a.value}`}>
+              <p
+                className={`font-display font-extrabold tabular-nums text-2xl leading-none truncate ${a.value}`}
+              >
                 {kpi.value}
               </p>
               <p className="text-sm font-sans text-foreground/65 mt-1 truncate">{kpi.sub}</p>

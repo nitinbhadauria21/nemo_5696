@@ -9,6 +9,8 @@ export async function requireAdminSession(): Promise<true | NextResponse> {
   return true;
 }
 
-export function isAdminCookie(requestCookies: { get: (name: string) => { value: string } | undefined }) {
+export function isAdminCookie(requestCookies: {
+  get: (name: string) => { value: string } | undefined;
+}) {
   return Boolean(requestCookies.get('nemo_admin_session')?.value);
 }

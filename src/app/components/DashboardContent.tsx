@@ -109,8 +109,12 @@ export default function DashboardContent() {
 
   const filteredTrends = trends.filter((t) => {
     if (activeFilters.bookmarksOnly && !t.isBookmarked) return false;
-    if (!activeFilters.categories.includes('All') && !activeFilters.categories.includes(t.category)) return false;
-    if (activeFilters.platforms.length > 0 && !activeFilters.platforms.some((p) => t.platforms.includes(p))) {
+    if (!activeFilters.categories.includes('All') && !activeFilters.categories.includes(t.category))
+      return false;
+    if (
+      activeFilters.platforms.length > 0 &&
+      !activeFilters.platforms.some((p) => t.platforms.includes(p))
+    ) {
       return false;
     }
     if (
@@ -168,7 +172,9 @@ export default function DashboardContent() {
           <LiveBadge />
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button className="btn-flame px-5 py-2.5 whitespace-nowrap rounded-xl">+ Add to Queue</button>
+          <button className="btn-flame px-5 py-2.5 whitespace-nowrap rounded-xl">
+            + Add to Queue
+          </button>
         </div>
       </div>
 
@@ -193,12 +199,19 @@ export default function DashboardContent() {
 
             <div className="rounded-2xl border-2 border-primary/25 bg-primary/5 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <p className="text-xs font-mono-custom uppercase tracking-widest text-primary font-bold">Daily digest</p>
+                <p className="text-xs font-mono-custom uppercase tracking-widest text-primary font-bold">
+                  Daily digest
+                </p>
                 <p className="text-sm text-foreground font-sans mt-1">
-                  {hotCount + risingCount} trends need your attention today — {featuredTrends[0]?.title ?? 'refresh for latest picks'} leads the pack.
+                  {hotCount + risingCount} trends need your attention today —{' '}
+                  {featuredTrends[0]?.title ?? 'refresh for latest picks'} leads the pack.
                 </p>
               </div>
-              <button type="button" onClick={handleRefresh} className="text-sm font-semibold text-primary hover:underline self-start sm:self-center">
+              <button
+                type="button"
+                onClick={handleRefresh}
+                className="text-sm font-semibold text-primary hover:underline self-start sm:self-center"
+              >
                 Refresh digest →
               </button>
             </div>
@@ -208,7 +221,11 @@ export default function DashboardContent() {
                 <h2 className="font-display font-bold text-lg mb-3">Top 3 Featured Trends</h2>
                 <div className="grid sm:grid-cols-3 gap-3">
                   {featuredTrends.map((trend) => (
-                    <TrendCard key={`featured-${trend.id}`} trend={trend} onBookmarkToggle={handleBookmarkToggle} />
+                    <TrendCard
+                      key={`featured-${trend.id}`}
+                      trend={trend}
+                      onBookmarkToggle={handleBookmarkToggle}
+                    />
                   ))}
                 </div>
               </div>
@@ -236,7 +253,9 @@ export default function DashboardContent() {
 
             {activeTrends.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <p className="font-display font-bold text-foreground text-xl mb-2">No trends found</p>
+                <p className="font-display font-bold text-foreground text-xl mb-2">
+                  No trends found
+                </p>
                 <p className="text-base text-foreground/65 font-sans">
                   Try selecting different countries or clear the location filter
                 </p>
@@ -256,13 +275,21 @@ export default function DashboardContent() {
                   onClick={() => setGraveyardOpen((v) => !v)}
                   className="w-full flex items-center justify-between px-4 py-3 bg-muted/50 text-left"
                 >
-                  <span className="font-display font-semibold">Trend Graveyard ({graveyardTrends.length})</span>
-                  <span className="text-sm text-muted-foreground">{graveyardOpen ? 'Hide' : 'Show'}</span>
+                  <span className="font-display font-semibold">
+                    Trend Graveyard ({graveyardTrends.length})
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {graveyardOpen ? 'Hide' : 'Show'}
+                  </span>
                 </button>
                 {graveyardOpen && (
                   <div className="p-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                     {graveyardTrends.map((trend) => (
-                      <TrendCard key={`grave-${trend.id}`} trend={trend} onBookmarkToggle={handleBookmarkToggle} />
+                      <TrendCard
+                        key={`grave-${trend.id}`}
+                        trend={trend}
+                        onBookmarkToggle={handleBookmarkToggle}
+                      />
                     ))}
                   </div>
                 )}

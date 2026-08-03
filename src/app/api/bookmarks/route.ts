@@ -19,7 +19,10 @@ export async function GET() {
   if (isSupabaseConfigured() && !demo) {
     const supabase = await createClient();
     if (!supabase) return NextResponse.json({ bookmarks: [] });
-    const { data } = await supabase.from('trend_bookmarks').select('trend_id').eq('user_id', userId);
+    const { data } = await supabase
+      .from('trend_bookmarks')
+      .select('trend_id')
+      .eq('user_id', userId);
     return NextResponse.json({ bookmarks: (data ?? []).map((r) => r.trend_id) });
   }
   return NextResponse.json({ bookmarks: [...userKey(userId)] });

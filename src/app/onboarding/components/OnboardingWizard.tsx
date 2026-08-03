@@ -34,11 +34,26 @@ const PLATFORMS = [
 ];
 
 const SOCIAL_PLATFORMS = [
-  { id: 'instagram', label: 'Instagram', icon: '📸', description: 'Connect to track Reels performance' },
+  {
+    id: 'instagram',
+    label: 'Instagram',
+    icon: '📸',
+    description: 'Connect to track Reels performance',
+  },
   { id: 'youtube', label: 'YouTube', icon: '▶️', description: 'Connect to track Shorts & videos' },
   { id: 'tiktok', label: 'TikTok', icon: '🎵', description: 'Connect to track viral content' },
-  { id: 'linkedin', label: 'LinkedIn', icon: '💼', description: 'Connect to track professional content' },
-  { id: 'twitter', label: 'Twitter / X', icon: '𝕏', description: 'Connect to track trending topics' },
+  {
+    id: 'linkedin',
+    label: 'LinkedIn',
+    icon: '💼',
+    description: 'Connect to track professional content',
+  },
+  {
+    id: 'twitter',
+    label: 'Twitter / X',
+    icon: '𝕏',
+    description: 'Connect to track trending topics',
+  },
 ];
 
 const SCHEDULE_OPTIONS = [
@@ -90,9 +105,7 @@ export default function OnboardingWizard() {
   }, []);
 
   const toggleNiche = (id: string) => {
-    setSelectedNiches((prev) =>
-      prev.includes(id) ? prev.filter((n) => n !== id) : [...prev, id]
-    );
+    setSelectedNiches((prev) => (prev.includes(id) ? prev.filter((n) => n !== id) : [...prev, id]));
   };
 
   const togglePlatform = (id: string) => {
@@ -183,7 +196,8 @@ export default function OnboardingWizard() {
                   i < step
                     ? 'bg-primary text-white'
                     : i === step
-                    ? 'bg-primary text-white ring-4 ring-primary/20' :'bg-muted text-muted-foreground'
+                      ? 'bg-primary text-white ring-4 ring-primary/20'
+                      : 'bg-muted text-muted-foreground'
                 }`}
               >
                 {i < step ? <CheckIcon className="w-4 h-4" /> : i + 1}
@@ -206,7 +220,6 @@ export default function OnboardingWizard() {
       {/* Content */}
       <div className="flex-1 flex flex-col items-center px-4 pb-8">
         <div className="w-full max-w-2xl">
-
           {/* Step 0: Niches */}
           {step === 0 && (
             <div>
@@ -227,7 +240,8 @@ export default function OnboardingWizard() {
                       onClick={() => toggleNiche(niche.id)}
                       className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-150 ${
                         selected
-                          ? 'border-primary bg-primary/10 text-primary' :'border-border bg-card text-foreground hover:border-primary/40 hover:bg-muted'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-card text-foreground hover:border-primary/40 hover:bg-muted'
                       }`}
                     >
                       {selected && (
@@ -236,7 +250,9 @@ export default function OnboardingWizard() {
                         </div>
                       )}
                       <span className="text-2xl">{niche.emoji}</span>
-                      <span className="text-xs font-sans font-semibold text-center leading-tight">{niche.label}</span>
+                      <span className="text-xs font-sans font-semibold text-center leading-tight">
+                        {niche.label}
+                      </span>
                     </button>
                   );
                 })}
@@ -269,10 +285,13 @@ export default function OnboardingWizard() {
                       onClick={() => togglePlatform(platform.id)}
                       className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-150 ${
                         selected
-                          ? 'border-primary bg-primary/10' :'border-border bg-card hover:border-primary/40 hover:bg-muted'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border bg-card hover:border-primary/40 hover:bg-muted'
                       }`}
                     >
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${platform.color} flex items-center justify-center text-lg flex-shrink-0`}>
+                      <div
+                        className={`w-10 h-10 rounded-xl bg-gradient-to-br ${platform.color} flex items-center justify-center text-lg flex-shrink-0`}
+                      >
                         {platform.icon}
                       </div>
                       <span className="font-sans font-semibold text-foreground flex-1 text-left">
@@ -304,7 +323,8 @@ export default function OnboardingWizard() {
                   Connect your social accounts
                 </h2>
                 <p className="text-sm text-muted-foreground font-sans">
-                  Connect at least one account for personalised trends — or skip and do this later in Settings.
+                  Connect at least one account for personalised trends — or skip and do this later
+                  in Settings.
                 </p>
               </div>
               <div className="space-y-3">
@@ -315,15 +335,21 @@ export default function OnboardingWizard() {
                     <div
                       key={platform.id}
                       className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
-                        connected ? 'border-green-400 bg-green-50 dark:bg-green-900/20' : 'border-border bg-card'
+                        connected
+                          ? 'border-green-400 bg-green-50 dark:bg-green-900/20'
+                          : 'border-border bg-card'
                       }`}
                     >
                       <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-xl flex-shrink-0">
                         {platform.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-sans font-semibold text-foreground text-sm">{platform.label}</p>
-                        <p className="text-xs text-muted-foreground font-sans">{platform.description}</p>
+                        <p className="font-sans font-semibold text-foreground text-sm">
+                          {platform.label}
+                        </p>
+                        <p className="text-xs text-muted-foreground font-sans">
+                          {platform.description}
+                        </p>
                       </div>
                       {connected ? (
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
@@ -378,12 +404,15 @@ export default function OnboardingWizard() {
                       onClick={() => setSelectedSchedule(option.id)}
                       className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-150 ${
                         selected
-                          ? 'border-primary bg-primary/10' :'border-border bg-card hover:border-primary/40 hover:bg-muted'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border bg-card hover:border-primary/40 hover:bg-muted'
                       }`}
                     >
                       <span className="text-2xl">{option.emoji}</span>
                       <div className="flex-1 text-left">
-                        <p className="font-sans font-semibold text-foreground text-sm">{option.label}</p>
+                        <p className="font-sans font-semibold text-foreground text-sm">
+                          {option.label}
+                        </p>
                         <p className="text-xs text-muted-foreground font-sans">{option.time}</p>
                       </div>
                       {selected && (

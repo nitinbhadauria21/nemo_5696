@@ -9,7 +9,10 @@ function CustomTooltip({ active, payload }: any) {
   return (
     <div className="card-surface p-3 shadow-card-hover text-xs">
       <p className="font-sans font-medium text-foreground">{payload[0]?.name}</p>
-      <p className="font-mono-custom font-bold tabular-nums" style={{ color: payload[0]?.payload?.color }}>
+      <p
+        className="font-mono-custom font-bold tabular-nums"
+        style={{ color: payload[0]?.payload?.color }}
+      >
         {payload[0]?.value}% of trends
       </p>
     </div>
@@ -46,10 +49,15 @@ export default function PlatformPieChart() {
         {PLATFORM_DISTRIBUTION.map((p) => (
           <div key={`legend-${p.name}`} className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
+              <span
+                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                style={{ backgroundColor: p.color }}
+              />
               <span className="text-xs font-sans text-muted-foreground">{p.name}</span>
             </div>
-            <span className="text-xs font-mono-custom font-bold text-foreground tabular-nums">{p.value}%</span>
+            <span className="text-xs font-mono-custom font-bold text-foreground tabular-nums">
+              {p.value}%
+            </span>
           </div>
         ))}
       </div>

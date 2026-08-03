@@ -2,7 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { PlusIcon, ListBulletIcon, ViewColumnsIcon, ArrowDownTrayIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import {
+  PlusIcon,
+  ListBulletIcon,
+  ViewColumnsIcon,
+  ArrowDownTrayIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 
 interface QueueItem {
@@ -31,15 +37,33 @@ const STATUS_FROM_API: Record<string, QueueItem['status']> = {
 const PLATFORM_COLORS: Record<string, string> = {
   'YouTube Shorts': 'bg-red-500/10 text-red-600 border border-red-500/20',
   'Instagram Reels': 'bg-pink-500/10 text-pink-600 border border-pink-500/20',
-  'TikTok': 'bg-slate-500/10 text-slate-600 border border-slate-500/20',
-  'LinkedIn': 'bg-blue-500/10 text-blue-600 border border-blue-500/20',
+  TikTok: 'bg-slate-500/10 text-slate-600 border border-slate-500/20',
+  LinkedIn: 'bg-blue-500/10 text-blue-600 border border-blue-500/20',
   'Twitter / X': 'bg-sky-500/10 text-sky-600 border border-sky-500/20',
 };
 
 const COLUMNS = [
-  { id: 'todo', label: 'To Do', color: 'border-amber-400/50', dot: 'bg-amber-400', bg: 'bg-amber-400/5' },
-  { id: 'in_progress', label: 'In Progress', color: 'border-blue-400/50', dot: 'bg-blue-400', bg: 'bg-blue-400/5' },
-  { id: 'published', label: 'Published', color: 'border-green-400/50', dot: 'bg-green-400', bg: 'bg-green-400/5' },
+  {
+    id: 'todo',
+    label: 'To Do',
+    color: 'border-amber-400/50',
+    dot: 'bg-amber-400',
+    bg: 'bg-amber-400/5',
+  },
+  {
+    id: 'in_progress',
+    label: 'In Progress',
+    color: 'border-blue-400/50',
+    dot: 'bg-blue-400',
+    bg: 'bg-blue-400/5',
+  },
+  {
+    id: 'published',
+    label: 'Published',
+    color: 'border-green-400/50',
+    dot: 'bg-green-400',
+    bg: 'bg-green-400/5',
+  },
 ] as const;
 
 export default function ContentQueueContent() {
@@ -47,7 +71,12 @@ export default function ContentQueueContent() {
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [showAddModal, setShowAddModal] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
-  const [newItem, setNewItem] = useState({ title: '', platform: 'YouTube Shorts', niche: 'AI & Tech', notes: '' });
+  const [newItem, setNewItem] = useState({
+    title: '',
+    platform: 'YouTube Shorts',
+    niche: 'AI & Tech',
+    notes: '',
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -56,16 +85,25 @@ export default function ContentQueueContent() {
       .then((data) => {
         if (!Array.isArray(data.items)) return;
         setItems(
-          data.items.map((i: { id: string; title: string; platform?: string; status?: string; notes?: string; created_at?: string }) => ({
-            id: i.id,
-            title: i.title,
-            platform: i.platform || 'YouTube Shorts',
-            niche: 'General',
-            status: STATUS_FROM_API[i.status || 'ideas'] || 'todo',
-            nemoScore: 70,
-            addedAt: i.created_at ? new Date(i.created_at).toLocaleDateString() : 'recently',
-            notes: i.notes,
-          }))
+          data.items.map(
+            (i: {
+              id: string;
+              title: string;
+              platform?: string;
+              status?: string;
+              notes?: string;
+              created_at?: string;
+            }) => ({
+              id: i.id,
+              title: i.title,
+              platform: i.platform || 'YouTube Shorts',
+              niche: 'General',
+              status: STATUS_FROM_API[i.status || 'ideas'] || 'todo',
+              nemoScore: 70,
+              addedAt: i.created_at ? new Date(i.created_at).toLocaleDateString() : 'recently',
+              notes: i.notes,
+            })
+          )
         );
       })
       .catch(() => {});
@@ -122,8 +160,13 @@ export default function ContentQueueContent() {
   };
 
   const handleExport = () => {
-    const csv = ['Title,Platform,Niche,Status,Nemo Score,Added', ...items.map((i) => `"${i.title}","${i.platform}","${i.niche}","${i.status}",${i.nemoScore},"${i.addedAt}"`)]
-      .join('\n');
+    const csv = [
+      'Title,Platform,Niche,Status,Nemo Score,Added',
+      ...items.map(
+        (i) =>
+          `"${i.title}","${i.platform}","${i.niche}","${i.status}",${i.nemoScore},"${i.addedAt}"`
+      ),
+    ].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -149,7 +192,9 @@ export default function ContentQueueContent() {
           </div>
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">Content Queue</h1>
-            <p className="text-base text-foreground/65 font-sans mt-0.5">{items.length} items · Drag to move between stages</p>
+            <p className="text-base text-foreground/65 font-sans mt-0.5">
+              {items.length} items · Drag to move between stages
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -216,7 +261,9 @@ export default function ContentQueueContent() {
                         className="bg-card border-2 border-border rounded-xl p-3.5 cursor-grab active:cursor-grabbing hover:border-primary/30 hover:shadow-card transition-all group"
                       >
                         <div className="flex items-start justify-between gap-2 mb-2.5">
-                          <p className="text-base font-bold font-sans text-foreground leading-snug flex-1">{item.title}</p>
+                          <p className="text-base font-bold font-sans text-foreground leading-snug flex-1">
+                            {item.title}
+                          </p>
                           <button
                             onClick={() => removeItem(item.id)}
                             className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-red-500 transition-all flex-shrink-0 p-0.5"
@@ -225,7 +272,9 @@ export default function ContentQueueContent() {
                           </button>
                         </div>
                         <div className="flex flex-wrap gap-1.5 mb-2.5">
-                          <span className={`text-sm px-2.5 py-0.5 rounded-full font-bold font-sans ${PLATFORM_COLORS[item.platform] || 'bg-muted text-foreground/65'}`}>
+                          <span
+                            className={`text-sm px-2.5 py-0.5 rounded-full font-bold font-sans ${PLATFORM_COLORS[item.platform] || 'bg-muted text-foreground/65'}`}
+                          >
                             {item.platform}
                           </span>
                           <span className="text-sm px-2.5 py-0.5 rounded-full bg-muted text-foreground/65 font-sans font-semibold border border-border">
@@ -233,17 +282,28 @@ export default function ContentQueueContent() {
                           </span>
                         </div>
                         {item.notes && (
-                          <p className="text-sm text-foreground/60 font-sans italic mb-2.5">{item.notes}</p>
+                          <p className="text-sm text-foreground/60 font-sans italic mb-2.5">
+                            {item.notes}
+                          </p>
                         )}
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-foreground/55 font-sans">{item.addedAt}</span>
+                          <span className="text-sm text-foreground/55 font-sans">
+                            {item.addedAt}
+                          </span>
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => router.push(`/carousel?topic=${encodeURIComponent(item.title)}`)}
+                              onClick={() =>
+                                router.push(`/carousel?topic=${encodeURIComponent(item.title)}`)
+                              }
                               className="text-xs font-bold font-sans px-2 py-1 rounded-lg border border-border text-foreground/60 hover:text-white hover:border-[#002FA7] transition-all"
                               style={{ background: 'transparent' }}
-                              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#002FA7'; }}
-                              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                              onMouseEnter={(e) => {
+                                (e.currentTarget as HTMLButtonElement).style.background = '#002FA7';
+                              }}
+                              onMouseLeave={(e) => {
+                                (e.currentTarget as HTMLButtonElement).style.background =
+                                  'transparent';
+                              }}
                               title="Make Carousel"
                             >
                               🎠 Make Carousel
@@ -257,7 +317,9 @@ export default function ContentQueueContent() {
                     ))}
                     {colItems.length === 0 && (
                       <div className="flex flex-col items-center justify-center py-10 text-center">
-                        <p className="text-base text-foreground/50 font-sans font-medium">Drop items here</p>
+                        <p className="text-base text-foreground/50 font-sans font-medium">
+                          Drop items here
+                        </p>
                       </div>
                     )}
                   </div>
@@ -274,8 +336,12 @@ export default function ContentQueueContent() {
               <thead>
                 <tr className="border-b-2 border-border bg-muted/50">
                   <th className="text-left px-5 py-4 text-sm font-bold text-foreground">Title</th>
-                  <th className="text-left px-5 py-4 text-sm font-bold text-foreground hidden sm:table-cell">Platform</th>
-                  <th className="text-left px-5 py-4 text-sm font-bold text-foreground hidden md:table-cell">Niche</th>
+                  <th className="text-left px-5 py-4 text-sm font-bold text-foreground hidden sm:table-cell">
+                    Platform
+                  </th>
+                  <th className="text-left px-5 py-4 text-sm font-bold text-foreground hidden md:table-cell">
+                    Niche
+                  </th>
                   <th className="text-left px-5 py-4 text-sm font-bold text-foreground">Status</th>
                   <th className="text-right px-5 py-4 text-sm font-bold text-foreground">Score</th>
                   <th className="px-5 py-4" />
@@ -285,21 +351,34 @@ export default function ContentQueueContent() {
                 {items.map((item, i) => {
                   const col = COLUMNS.find((c) => c.id === item.status);
                   return (
-                    <tr key={item.id} className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors`}>
-                      <td className="px-5 py-4 text-base font-bold text-foreground">{item.title}</td>
+                    <tr
+                      key={item.id}
+                      className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors`}
+                    >
+                      <td className="px-5 py-4 text-base font-bold text-foreground">
+                        {item.title}
+                      </td>
                       <td className="px-5 py-4 hidden sm:table-cell">
-                        <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${PLATFORM_COLORS[item.platform] || 'bg-muted text-muted-foreground'}`}>
+                        <span
+                          className={`text-xs px-2.5 py-1 rounded-full font-bold ${PLATFORM_COLORS[item.platform] || 'bg-muted text-muted-foreground'}`}
+                        >
                           {item.platform}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-sm text-muted-foreground font-medium hidden md:table-cell">{item.niche}</td>
+                      <td className="px-5 py-4 text-sm text-muted-foreground font-medium hidden md:table-cell">
+                        {item.niche}
+                      </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
                           <div className={`w-2.5 h-2.5 rounded-full ${col?.dot}`} />
-                          <span className="text-sm text-muted-foreground font-semibold capitalize">{item.status.replace('_', ' ')}</span>
+                          <span className="text-sm text-muted-foreground font-semibold capitalize">
+                            {item.status.replace('_', ' ')}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-right font-mono-custom font-extrabold text-primary text-lg">{item.nemoScore}</td>
+                      <td className="px-5 py-4 text-right font-mono-custom font-extrabold text-primary text-lg">
+                        {item.nemoScore}
+                      </td>
                       <td className="px-5 py-4 text-right">
                         <button
                           onClick={() => removeItem(item.id)}
@@ -323,13 +402,18 @@ export default function ContentQueueContent() {
           <div className="bg-card border-2 border-border rounded-2xl p-6 w-full max-w-md shadow-nav animate-scale-in">
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-display text-xl font-extrabold text-foreground">Add to Queue</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-muted-foreground hover:text-foreground p-1">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="text-muted-foreground hover:text-foreground p-1"
+              >
                 <XMarkIcon className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-foreground mb-2">Content Title *</label>
+                <label className="block text-sm font-bold text-foreground mb-2">
+                  Content Title *
+                </label>
                 <input
                   type="text"
                   value={newItem.title}
@@ -347,7 +431,9 @@ export default function ContentQueueContent() {
                     className="w-full px-3 py-3 rounded-xl border-2 border-border bg-background text-foreground text-sm font-sans focus:outline-none focus:border-primary/50"
                   >
                     {Object.keys(PLATFORM_COLORS).map((p) => (
-                      <option key={p} value={p}>{p}</option>
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -358,14 +444,28 @@ export default function ContentQueueContent() {
                     onChange={(e) => setNewItem((p) => ({ ...p, niche: e.target.value }))}
                     className="w-full px-3 py-3 rounded-xl border-2 border-border bg-background text-foreground text-sm font-sans focus:outline-none focus:border-primary/50"
                   >
-                    {['AI & Tech', 'Finance', 'Fitness', 'Food', 'Travel', 'Fashion', 'Gaming', 'Education', 'Business'].map((n) => (
-                      <option key={n} value={n}>{n}</option>
+                    {[
+                      'AI & Tech',
+                      'Finance',
+                      'Fitness',
+                      'Food',
+                      'Travel',
+                      'Fashion',
+                      'Gaming',
+                      'Education',
+                      'Business',
+                    ].map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-bold text-foreground mb-2">Notes (optional)</label>
+                <label className="block text-sm font-bold text-foreground mb-2">
+                  Notes (optional)
+                </label>
                 <textarea
                   value={newItem.notes}
                   onChange={(e) => setNewItem((p) => ({ ...p, notes: e.target.value }))}

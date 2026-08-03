@@ -99,7 +99,7 @@ export default function ProfileTab() {
           <div>
             <p className="text-sm font-sans font-semibold text-foreground">{displayName}</p>
             <p className="text-xs text-muted-foreground font-sans mt-0.5 capitalize">
-              {(profile?.plan || 'free')} plan
+              {profile?.plan || 'free'} plan
             </p>
           </div>
         </div>
@@ -123,18 +123,24 @@ export default function ProfileTab() {
           </div>
 
           <div>
-            <label className="block text-sm font-sans font-medium text-foreground mb-1.5">Email address</label>
+            <label className="block text-sm font-sans font-medium text-foreground mb-1.5">
+              Email address
+            </label>
             <input
               type="email"
               {...register('email')}
               readOnly
               className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-sm text-foreground/70 focus:outline-none cursor-not-allowed"
             />
-            <p className="mt-1 text-xs text-muted-foreground">Email is managed by your login account</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Email is managed by your login account
+            </p>
           </div>
 
           <div>
-            <label className="block text-sm font-sans font-medium text-foreground mb-1.5">Timezone</label>
+            <label className="block text-sm font-sans font-medium text-foreground mb-1.5">
+              Timezone
+            </label>
             <select
               {...register('timezone')}
               className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -148,7 +154,9 @@ export default function ProfileTab() {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-sans font-medium text-foreground mb-1.5">Bio</label>
+            <label className="block text-sm font-sans font-medium text-foreground mb-1.5">
+              Bio
+            </label>
             <textarea
               {...register('bio')}
               rows={3}

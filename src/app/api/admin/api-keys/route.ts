@@ -27,7 +27,10 @@ export async function GET() {
   const userIds = [...new Set((keys ?? []).map((k) => k.user_id))];
   const emailById: Record<string, string | null> = {};
   if (userIds.length > 0) {
-    const { data: profiles } = await admin.from('profiles').select('id, email, full_name').in('id', userIds);
+    const { data: profiles } = await admin
+      .from('profiles')
+      .select('id, email, full_name')
+      .in('id', userIds);
     for (const p of profiles ?? []) {
       emailById[p.id] = p.email ?? p.full_name;
     }

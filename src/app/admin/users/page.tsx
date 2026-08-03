@@ -26,7 +26,8 @@ type Kpis = {
 
 function planPill(plan?: string | null) {
   const p = (plan || 'free').toLowerCase();
-  const cls = p === 'agency' ? 'admin-pill-agency' : p === 'pro' ? 'admin-pill-pro' : 'admin-pill-free';
+  const cls =
+    p === 'agency' ? 'admin-pill-agency' : p === 'pro' ? 'admin-pill-pro' : 'admin-pill-free';
   return <span className={`admin-pill ${cls}`}>{p}</span>;
 }
 
@@ -84,7 +85,10 @@ export default function AdminUsersContent() {
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative min-w-[220px] flex-1">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-mute)]" />
+          <Search
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-mute)]"
+          />
           <input
             className="admin-input pl-9"
             placeholder="Search name, email, id…"

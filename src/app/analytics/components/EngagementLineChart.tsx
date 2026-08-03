@@ -57,8 +57,8 @@ export default function EngagementLineChart() {
         </LineChart>
       </ResponsiveContainer>
       <p className="text-xs text-muted-foreground font-sans mt-2">
-        Peak: <span className="font-mono-custom text-foreground font-bold">Thursday 9.4%</span> · Lowest:{' '}
-        <span className="font-mono-custom text-foreground">Sunday 5.8%</span>
+        Peak: <span className="font-mono-custom text-foreground font-bold">Thursday 9.4%</span> ·
+        Lowest: <span className="font-mono-custom text-foreground">Sunday 5.8%</span>
       </p>
     </div>
   );

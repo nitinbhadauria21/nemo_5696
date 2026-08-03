@@ -3,10 +3,7 @@ import { getTrends, getRelatedTrends } from '@/lib/trends/store';
 import { MOCK_TRENDS } from '@/lib/mockData';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 
-export async function GET(
-  _request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
   const result = await getTrends({ refresh: false });
   let trend = result.trends.find((t) => t.id === id);

@@ -113,7 +113,9 @@ export default function MCPConfigTab() {
         <button
           onClick={() => setActiveSection('mcp')}
           className={`px-4 py-2 rounded-full text-sm font-sans font-semibold transition-all ${
-            activeSection === 'mcp' ?'bg-primary text-white shadow-flame-sm' :'bg-muted text-muted-foreground hover:text-foreground'
+            activeSection === 'mcp'
+              ? 'bg-primary text-white shadow-flame-sm'
+              : 'bg-muted text-muted-foreground hover:text-foreground'
           }`}
         >
           MCP Server Config
@@ -122,7 +124,8 @@ export default function MCPConfigTab() {
           onClick={() => setActiveSection('docs')}
           className={`px-4 py-2 rounded-full text-sm font-sans font-semibold transition-all ${
             activeSection === 'docs'
-              ? 'bg-primary text-white shadow-flame-sm' :'bg-muted text-muted-foreground hover:text-foreground'
+              ? 'bg-primary text-white shadow-flame-sm'
+              : 'bg-muted text-muted-foreground hover:text-foreground'
           }`}
         >
           REST API Docs
@@ -133,7 +136,9 @@ export default function MCPConfigTab() {
           <div className="card-surface p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-sans font-semibold text-foreground">Claude Desktop / Cursor MCP Config</h3>
+                <h3 className="text-sm font-sans font-semibold text-foreground">
+                  Claude Desktop / Cursor MCP Config
+                </h3>
                 <p className="text-xs text-muted-foreground font-sans mt-0.5">
                   Add NEMO as an MCP server in your Claude Desktop or Cursor IDE
                 </p>
@@ -179,7 +184,9 @@ export default function MCPConfigTab() {
           <div className="card-surface p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-sans font-semibold text-foreground">REST API Documentation</h3>
+                <h3 className="text-sm font-sans font-semibold text-foreground">
+                  REST API Documentation
+                </h3>
                 <p className="text-xs text-muted-foreground font-sans mt-0.5">
                   Full API reference with your key pre-filled
                 </p>
@@ -189,7 +196,11 @@ export default function MCPConfigTab() {
                   onClick={copyDocs}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-border bg-card text-sm font-sans font-medium hover:bg-muted transition-all"
                 >
-                  {copiedDocs ? <CheckCheck size={14} className="text-accent" /> : <Copy size={14} />}
+                  {copiedDocs ? (
+                    <CheckCheck size={14} className="text-accent" />
+                  ) : (
+                    <Copy size={14} />
+                  )}
                   Copy
                 </button>
                 <button

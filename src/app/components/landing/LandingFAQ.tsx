@@ -38,11 +38,7 @@ export default function LandingFAQ() {
         const isOpen = openIndex === i;
         return (
           <div key={item.q} className={`faq-item${isOpen ? ' open' : ''}`}>
-            <button
-              type="button"
-              className="faq-q"
-              onClick={() => setOpenIndex(isOpen ? -1 : i)}
-            >
+            <button type="button" className="faq-q" onClick={() => setOpenIndex(isOpen ? -1 : i)}>
               <h3>{item.q}</h3>
               <span className="plus">+</span>
             </button>

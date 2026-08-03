@@ -92,7 +92,10 @@ async function completeOpenAI(
 
   if (!res.ok) {
     const details = await res.text();
-    const err = new Error(details || res.statusText) as Error & { statusCode?: number; llmProvider?: string };
+    const err = new Error(details || res.statusText) as Error & {
+      statusCode?: number;
+      llmProvider?: string;
+    };
     err.statusCode = res.status;
     err.llmProvider = 'OPEN_AI';
     throw err;
@@ -125,7 +128,10 @@ async function completePerplexity(
 
   if (!res.ok) {
     const details = await res.text();
-    const err = new Error(details || res.statusText) as Error & { statusCode?: number; llmProvider?: string };
+    const err = new Error(details || res.statusText) as Error & {
+      statusCode?: number;
+      llmProvider?: string;
+    };
     err.statusCode = res.status;
     err.llmProvider = 'PERPLEXITY';
     throw err;
@@ -140,7 +146,10 @@ async function completeAnthropic(
   apiKey: string,
   parameters: CompletionParams
 ) {
-  const system = messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n');
+  const system = messages
+    .filter((m) => m.role === 'system')
+    .map((m) => m.content)
+    .join('\n');
   const anthropicMessages = messages
     .filter((m) => m.role !== 'system')
     .map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }));
@@ -163,7 +172,10 @@ async function completeAnthropic(
 
   if (!res.ok) {
     const details = await res.text();
-    const err = new Error(details || res.statusText) as Error & { statusCode?: number; llmProvider?: string };
+    const err = new Error(details || res.statusText) as Error & {
+      statusCode?: number;
+      llmProvider?: string;
+    };
     err.statusCode = res.status;
     err.llmProvider = 'ANTHROPIC';
     throw err;
@@ -180,7 +192,10 @@ async function* streamAnthropic(
   apiKey: string,
   parameters: CompletionParams
 ) {
-  const system = messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n');
+  const system = messages
+    .filter((m) => m.role === 'system')
+    .map((m) => m.content)
+    .join('\n');
   const anthropicMessages = messages
     .filter((m) => m.role !== 'system')
     .map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }));
@@ -204,7 +219,10 @@ async function* streamAnthropic(
 
   if (!res.ok) {
     const details = await res.text();
-    const err = new Error(details || res.statusText) as Error & { statusCode?: number; llmProvider?: string };
+    const err = new Error(details || res.statusText) as Error & {
+      statusCode?: number;
+      llmProvider?: string;
+    };
     err.statusCode = res.status;
     err.llmProvider = 'ANTHROPIC';
     throw err;
@@ -243,7 +261,10 @@ async function completeGemini(
   apiKey: string,
   parameters: CompletionParams
 ) {
-  const system = messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n');
+  const system = messages
+    .filter((m) => m.role === 'system')
+    .map((m) => m.content)
+    .join('\n');
   const contents = messages
     .filter((m) => m.role !== 'system')
     .map((m) => ({
@@ -267,14 +288,19 @@ async function completeGemini(
 
   if (!res.ok) {
     const details = await res.text();
-    const err = new Error(details || res.statusText) as Error & { statusCode?: number; llmProvider?: string };
+    const err = new Error(details || res.statusText) as Error & {
+      statusCode?: number;
+      llmProvider?: string;
+    };
     err.statusCode = res.status;
     err.llmProvider = 'GEMINI';
     throw err;
   }
 
   const data = await res.json();
-  const content = data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('') ?? '';
+  const content =
+    data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('') ??
+    '';
   return openAiShape(content, model);
 }
 

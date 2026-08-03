@@ -4,8 +4,14 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 
 import { toast } from 'sonner';
 import {
-  Slide, Format, SlideType, TextPos, Scrim,
-  FORMAT_DIMENSIONS, ACCENT_COLORS, defaultSlide,
+  Slide,
+  Format,
+  SlideType,
+  TextPos,
+  Scrim,
+  FORMAT_DIMENSIONS,
+  ACCENT_COLORS,
+  defaultSlide,
 } from './types';
 import SlideCanvas from './SlideCanvas';
 
@@ -28,8 +34,14 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 function SegBtn({
-  active, onClick, children,
-}: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <button
       onClick={onClick}
@@ -45,8 +57,14 @@ function SegBtn({
 }
 
 function ColorSwatch({
-  hex, selected, onClick,
-}: { hex: string; selected: boolean; onClick: () => void }) {
+  hex,
+  selected,
+  onClick,
+}: {
+  hex: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}
@@ -74,8 +92,16 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 }
 
 function TextInput({
-  value, onChange, placeholder, className = '',
-}: { value: string; onChange: (v: string) => void; placeholder?: string; className?: string }) {
+  value,
+  onChange,
+  placeholder,
+  className = '',
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  className?: string;
+}) {
   return (
     <input
       type="text"
@@ -88,8 +114,16 @@ function TextInput({
 }
 
 function TextArea({
-  value, onChange, placeholder, rows = 3,
-}: { value: string; onChange: (v: string) => void; placeholder?: string; rows?: number }) {
+  value,
+  onChange,
+  placeholder,
+  rows = 3,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  rows?: number;
+}) {
   return (
     <textarea
       rows={rows}
@@ -102,16 +136,32 @@ function TextArea({
 }
 
 function Slider({
-  label, value, min, max, step, unit, onChange,
+  label,
+  value,
+  min,
+  max,
+  step,
+  unit,
+  onChange,
 }: {
-  label: string; value: number; min: number; max: number; step: number; unit: string;
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  unit: string;
   onChange: (v: number) => void;
 }) {
   return (
     <div className="mb-4">
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs font-semibold text-foreground/65 uppercase tracking-wide">{label}</span>
-        <span className="text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-md">{value}{unit}</span>
+        <span className="text-xs font-semibold text-foreground/65 uppercase tracking-wide">
+          {label}
+        </span>
+        <span className="text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-md">
+          {value}
+          {unit}
+        </span>
       </div>
       <input
         type="range"
@@ -134,7 +184,10 @@ interface CarouselStudioProps {
   defaultSig?: string;
 }
 
-export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo' }: CarouselStudioProps) {
+export default function CarouselStudio({
+  initialTopic = '',
+  defaultSig = '@nemo',
+}: CarouselStudioProps) {
   const [format, setFormat] = useState<Format>('3:4');
   const [slides, setSlides] = useState<Slide[]>([defaultSlide(defaultSig)]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -153,13 +206,16 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
 
   const slide = slides[currentIndex];
 
-  const updateSlide = useCallback((patch: Partial<Slide>) => {
-    setSlides((prev) => {
-      const updated = [...prev];
-      updated[currentIndex] = { ...updated[currentIndex], ...patch };
-      return updated;
-    });
-  }, [currentIndex]);
+  const updateSlide = useCallback(
+    (patch: Partial<Slide>) => {
+      setSlides((prev) => {
+        const updated = [...prev];
+        updated[currentIndex] = { ...updated[currentIndex], ...patch };
+        return updated;
+      });
+    },
+    [currentIndex]
+  );
 
   const addSlide = () => {
     const newSlide = defaultSlide(defaultSig);
@@ -270,14 +326,12 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
 
   return (
     <div className="flex flex-col lg:flex-row gap-0 min-h-0 flex-1">
-
       {/* ── LEFT PANEL ── */}
       <div
         className="w-full lg:w-[320px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-card overflow-y-auto"
         style={{ maxHeight: 'calc(100vh - 130px)' }}
       >
         <div className="px-4 py-4 space-y-0">
-
           {/* §01 FORMAT */}
           <div className="pb-4">
             <SectionTitle>§01 Format</SectionTitle>
@@ -308,7 +362,11 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
             ) : (
               <div className="relative rounded-lg overflow-hidden border border-border">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={slide.img} alt="Uploaded slide background" className="w-full h-24 object-cover" />
+                <img
+                  src={slide.img}
+                  alt="Uploaded slide background"
+                  className="w-full h-24 object-cover"
+                />
                 <button
                   onClick={() => updateSlide({ img: null })}
                   className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md hover:bg-black/80 transition-all"
@@ -329,9 +387,33 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
               }}
             />
             <div className="mt-4">
-              <Slider label="Image Scale" value={slide.imgScale} min={100} max={220} step={1} unit="%" onChange={(v) => updateSlide({ imgScale: v })} />
-              <Slider label="Horizontal Position" value={slide.imgPosX} min={0} max={100} step={1} unit="%" onChange={(v) => updateSlide({ imgPosX: v })} />
-              <Slider label="Vertical Position" value={slide.imgPosY} min={0} max={100} step={1} unit="%" onChange={(v) => updateSlide({ imgPosY: v })} />
+              <Slider
+                label="Image Scale"
+                value={slide.imgScale}
+                min={100}
+                max={220}
+                step={1}
+                unit="%"
+                onChange={(v) => updateSlide({ imgScale: v })}
+              />
+              <Slider
+                label="Horizontal Position"
+                value={slide.imgPosX}
+                min={0}
+                max={100}
+                step={1}
+                unit="%"
+                onChange={(v) => updateSlide({ imgPosX: v })}
+              />
+              <Slider
+                label="Vertical Position"
+                value={slide.imgPosY}
+                min={0}
+                max={100}
+                step={1}
+                unit="%"
+                onChange={(v) => updateSlide({ imgPosY: v })}
+              />
             </div>
           </div>
 
@@ -346,9 +428,19 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
               <FieldLabel>Slide Type</FieldLabel>
               <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
                 {(['cover', 'bignum', 'numbered', 'free', 'outro'] as SlideType[]).map((t) => {
-                  const labels: Record<SlideType, string> = { cover: 'Cover', bignum: 'Big №', numbered: 'Num', free: 'Free', outro: 'Outro' };
+                  const labels: Record<SlideType, string> = {
+                    cover: 'Cover',
+                    bignum: 'Big №',
+                    numbered: 'Num',
+                    free: 'Free',
+                    outro: 'Outro',
+                  };
                   return (
-                    <SegBtn key={t} active={slide.type === t} onClick={() => updateSlide({ type: t })}>
+                    <SegBtn
+                      key={t}
+                      active={slide.type === t}
+                      onClick={() => updateSlide({ type: t })}
+                    >
                       {labels[t]}
                     </SegBtn>
                   );
@@ -361,7 +453,11 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
               <FieldLabel>Text Position</FieldLabel>
               <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
                 {(['center', 'bottom'] as TextPos[]).map((p) => (
-                  <SegBtn key={p} active={slide.textPos === p} onClick={() => updateSlide({ textPos: p })}>
+                  <SegBtn
+                    key={p}
+                    active={slide.textPos === p}
+                    onClick={() => updateSlide({ textPos: p })}
+                  >
                     {p.charAt(0).toUpperCase() + p.slice(1)}
                   </SegBtn>
                 ))}
@@ -370,7 +466,6 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
 
             {/* Conditional fields */}
             <div className="space-y-3">
-
               {slide.type !== 'bignum' && (
                 <div>
                   <FieldLabel>Kicker</FieldLabel>
@@ -399,22 +494,39 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
                   <div className="grid grid-cols-3 gap-2">
                     <div>
                       <p className="text-[10px] text-foreground/50 mb-1">Number</p>
-                      <TextInput value={slide.bignum} onChange={(v) => updateSlide({ bignum: v })} placeholder="47" />
+                      <TextInput
+                        value={slide.bignum}
+                        onChange={(v) => updateSlide({ bignum: v })}
+                        placeholder="47"
+                      />
                     </div>
                     <div>
                       <p className="text-[10px] text-foreground/50 mb-1">Suffix</p>
-                      <TextInput value={slide.bigsuffix} onChange={(v) => updateSlide({ bigsuffix: v })} placeholder="%" />
+                      <TextInput
+                        value={slide.bigsuffix}
+                        onChange={(v) => updateSlide({ bigsuffix: v })}
+                        placeholder="%"
+                      />
                     </div>
                     <div>
                       <p className="text-[10px] text-foreground/50 mb-1">Label</p>
-                      <TextInput value={slide.toplabel} onChange={(v) => updateSlide({ toplabel: v })} placeholder="label" />
+                      <TextInput
+                        value={slide.toplabel}
+                        onChange={(v) => updateSlide({ toplabel: v })}
+                        placeholder="label"
+                      />
                     </div>
                   </div>
                 </div>
               )}
 
               <div>
-                <FieldLabel>Title <span className="normal-case font-normal text-foreground/40">(*word* = italic)</span></FieldLabel>
+                <FieldLabel>
+                  Title{' '}
+                  <span className="normal-case font-normal text-foreground/40">
+                    (*word* = italic)
+                  </span>
+                </FieldLabel>
                 <TextArea
                   rows={3}
                   value={slide.title}
@@ -484,7 +596,11 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
               <FieldLabel>Gradient Overlay</FieldLabel>
               <div className="flex items-center gap-1 bg-muted rounded-lg p-1 mt-1">
                 {(['bottom', 'full', 'none'] as Scrim[]).map((s) => (
-                  <SegBtn key={s} active={slide.scrim === s} onClick={() => updateSlide({ scrim: s })}>
+                  <SegBtn
+                    key={s}
+                    active={slide.scrim === s}
+                    onClick={() => updateSlide({ scrim: s })}
+                  >
                     {s.charAt(0).toUpperCase() + s.slice(1)}
                   </SegBtn>
                 ))}
@@ -518,13 +634,11 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
               Images stay local in your browser. Nothing is uploaded to Nemo servers.
             </p>
           </div>
-
         </div>
       </div>
 
       {/* ── RIGHT AREA (Preview) ── */}
       <div className="flex-1 flex flex-col items-center bg-background overflow-y-auto p-4 sm:p-6">
-
         {/* Slide navigation bar */}
         <div className="flex items-center gap-2 mb-5 bg-card border border-border rounded-xl px-3 py-2 w-full max-w-xl">
           <button
@@ -569,11 +683,7 @@ export default function CarouselStudio({ initialTopic = '', defaultSig = '@nemo'
             backgroundSize: '16px 16px',
           }}
         >
-          <SlideCanvas
-            slide={slide}
-            format={format}
-            id={`slide-preview-${currentIndex}`}
-          />
+          <SlideCanvas slide={slide} format={format} id={`slide-preview-${currentIndex}`} />
         </div>
 
         {/* Slide dots */}

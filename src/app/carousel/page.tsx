@@ -46,13 +46,15 @@ function CarouselStudioPageInner() {
 
 export default function CarouselStudioPage() {
   return (
-    <Suspense fallback={
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <p className="text-foreground/60 font-sans">Loading Carousel Studio…</p>
-        </div>
-      </AppLayout>
-    }>
+    <Suspense
+      fallback={
+        <AppLayout>
+          <div className="flex items-center justify-center min-h-screen">
+            <p className="text-foreground/60 font-sans">Loading Carousel Studio…</p>
+          </div>
+        </AppLayout>
+      }
+    >
       <CarouselStudioPageInner />
     </Suspense>
   );

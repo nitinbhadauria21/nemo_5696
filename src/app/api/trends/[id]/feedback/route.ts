@@ -3,10 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { resolveUserId } from '@/lib/api/requireUser';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const resolved = await resolveUserId();
   if ('error' in resolved) return resolved.error;
   const { userId, demo } = resolved;

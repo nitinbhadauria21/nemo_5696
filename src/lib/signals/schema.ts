@@ -438,8 +438,8 @@ export const SCHEMA_DATE = '2026-07-14';
  */
 export const SCHEMA_PLATFORM_WEIGHTS = {
   tiktok: 0.22,
-  instagram: 0.20,
-  youtube: 0.20,
+  instagram: 0.2,
+  youtube: 0.2,
   google_trends: 0.18,
   twitter: 0.12,
   reddit: 0.05,
@@ -451,10 +451,10 @@ export const SCHEMA_PLATFORM_WEIGHTS = {
  * These are the authoritative values — must match NEMO_SCORE_WEIGHTS in types.ts.
  */
 export const SCHEMA_NEMO_SCORE_WEIGHTS = {
-  creator_velocity: 0.25,  // 25%
-  spike_score: 0.30,        // 30%
-  cross_platform: 0.25,     // 25%
-  freshness: 0.20,          // 20%
+  creator_velocity: 0.25, // 25%
+  spike_score: 0.3, // 30%
+  cross_platform: 0.25, // 25%
+  freshness: 0.2, // 20%
 } as const;
 
 /**
@@ -462,27 +462,47 @@ export const SCHEMA_NEMO_SCORE_WEIGHTS = {
  * These were missing from the original spec.
  */
 export const NEW_SIGNALS_V1 = [
-  { platform: 'instagram',    signal: 'audio_reuse_velocity',         tier: 'HIGH',   weight: '10%' },
-  { platform: 'youtube',      signal: 'topic_cluster_score',          tier: 'HIGH',   weight: '8%' },
-  { platform: 'youtube',      signal: 'traffic_source_weight',        tier: 'MEDIUM', weight: '4%' },
-  { platform: 'google_trends', signal: 'geo_spread_score',            tier: 'HIGH',   weight: '8%' },
-  { platform: 'google_trends', signal: 'query_cluster_id',            tier: 'LOW',    weight: '0%' },
-  { platform: 'reddit',       signal: 'comment_keyword_cluster',      tier: 'MEDIUM', weight: '5%' },
-  { platform: 'tiktok',       signal: 'region_spread_score',          tier: 'HIGH',   weight: '12%' },
-  { platform: 'tiktok',       signal: 'creator_amplification_score',  tier: 'HIGH',   weight: '8%' },
-  { platform: 'twitter',      signal: 'novelty_score',                tier: 'HIGH',   weight: '10%' },
-  { platform: 'linkedin',     signal: 'professional_diversity_score', tier: 'HIGH',   weight: '10%' },
-  { platform: 'all',          signal: 'cross_platform_score',         tier: 'CORE',   weight: '25% of Nemo Score' },
-  { platform: 'all',          signal: 'freshness_multiplier',         tier: 'CORE',   weight: 'Final multiplier' },
+  { platform: 'instagram', signal: 'audio_reuse_velocity', tier: 'HIGH', weight: '10%' },
+  { platform: 'youtube', signal: 'topic_cluster_score', tier: 'HIGH', weight: '8%' },
+  { platform: 'youtube', signal: 'traffic_source_weight', tier: 'MEDIUM', weight: '4%' },
+  { platform: 'google_trends', signal: 'geo_spread_score', tier: 'HIGH', weight: '8%' },
+  { platform: 'google_trends', signal: 'query_cluster_id', tier: 'LOW', weight: '0%' },
+  { platform: 'reddit', signal: 'comment_keyword_cluster', tier: 'MEDIUM', weight: '5%' },
+  { platform: 'tiktok', signal: 'region_spread_score', tier: 'HIGH', weight: '12%' },
+  { platform: 'tiktok', signal: 'creator_amplification_score', tier: 'HIGH', weight: '8%' },
+  { platform: 'twitter', signal: 'novelty_score', tier: 'HIGH', weight: '10%' },
+  { platform: 'linkedin', signal: 'professional_diversity_score', tier: 'HIGH', weight: '10%' },
+  { platform: 'all', signal: 'cross_platform_score', tier: 'CORE', weight: '25% of Nemo Score' },
+  { platform: 'all', signal: 'freshness_multiplier', tier: 'CORE', weight: 'Final multiplier' },
 ] as const;
 
 /**
  * Signals removed or de-prioritized in this version (v1.0).
  */
 export const REMOVED_SIGNALS_V1 = [
-  { platform: 'instagram',    signal: 'accounts_reached',             reason: 'Account management metric only; not available for third-party content' },
-  { platform: 'instagram',    signal: 'active_times',                 reason: "Belongs in 'best time to post' feature, not trend detection" },
-  { platform: 'youtube',      signal: 'shares_count',                 reason: 'Unreliable signal; invest in comment velocity instead' },
-  { platform: 'linkedin',     signal: 'hashtag_frequency_in_text',    reason: 'De-prioritized to supplementary only; LinkedIn users use hashtags inconsistently' },
-  { platform: 'linkedin',     signal: 'profile_views_follower_delta', reason: 'Moved to creator_amplification_score only; lags trend detection' },
+  {
+    platform: 'instagram',
+    signal: 'accounts_reached',
+    reason: 'Account management metric only; not available for third-party content',
+  },
+  {
+    platform: 'instagram',
+    signal: 'active_times',
+    reason: "Belongs in 'best time to post' feature, not trend detection",
+  },
+  {
+    platform: 'youtube',
+    signal: 'shares_count',
+    reason: 'Unreliable signal; invest in comment velocity instead',
+  },
+  {
+    platform: 'linkedin',
+    signal: 'hashtag_frequency_in_text',
+    reason: 'De-prioritized to supplementary only; LinkedIn users use hashtags inconsistently',
+  },
+  {
+    platform: 'linkedin',
+    signal: 'profile_views_follower_delta',
+    reason: 'Moved to creator_amplification_score only; lags trend detection',
+  },
 ] as const;

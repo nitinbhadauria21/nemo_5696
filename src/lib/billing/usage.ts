@@ -41,7 +41,11 @@ export async function getPlanForRequest(request: NextRequest): Promise<PlanId> {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        const { data } = await supabase.from('profiles').select('plan').eq('id', user.id).maybeSingle();
+        const { data } = await supabase
+          .from('profiles')
+          .select('plan')
+          .eq('id', user.id)
+          .maybeSingle();
         if (data?.plan === 'pro' || data?.plan === 'agency' || data?.plan === 'free') {
           return data.plan;
         }

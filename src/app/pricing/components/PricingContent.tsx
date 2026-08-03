@@ -127,7 +127,10 @@ export default function PricingContent() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b-2 border-border px-6 py-4 flex items-center justify-between">
-        <Link href="/dashboard" className="text-sm font-bold font-sans text-muted-foreground hover:text-foreground transition-colors">
+        <Link
+          href="/dashboard"
+          className="text-sm font-bold font-sans text-muted-foreground hover:text-foreground transition-colors"
+        >
           ← Back to Dashboard
         </Link>
         <Link href="/login" className="text-sm font-bold font-sans text-primary hover:underline">
@@ -149,7 +152,9 @@ export default function PricingContent() {
             <button
               onClick={() => setAnnual(false)}
               className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
-                !annual ? 'bg-card text-foreground shadow-card border border-border' : 'text-muted-foreground hover:text-foreground'
+                !annual
+                  ? 'bg-card text-foreground shadow-card border border-border'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Monthly
@@ -157,7 +162,9 @@ export default function PricingContent() {
             <button
               onClick={() => setAnnual(true)}
               className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
-                annual ? 'bg-card text-foreground shadow-card border border-border' : 'text-muted-foreground hover:text-foreground'
+                annual
+                  ? 'bg-card text-foreground shadow-card border border-border'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Annual
@@ -182,21 +189,31 @@ export default function PricingContent() {
                 }`}
               >
                 {plan?.badge && (
-                  <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-bold ${
-                    plan?.highlight ? 'bg-primary text-white' : 'bg-secondary text-secondary-foreground'
-                  }`}>
+                  <div
+                    className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-bold ${
+                      plan?.highlight
+                        ? 'bg-primary text-white'
+                        : 'bg-secondary text-secondary-foreground'
+                    }`}
+                  >
                     {plan?.badge}
                   </div>
                 )}
                 <div className="mb-6">
-                  <h3 className="font-display text-2xl font-extrabold text-foreground mb-1">{plan?.name}</h3>
-                  <p className="text-sm text-muted-foreground font-sans mb-5 font-medium">{plan?.description}</p>
+                  <h3 className="font-display text-2xl font-extrabold text-foreground mb-1">
+                    {plan?.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground font-sans mb-5 font-medium">
+                    {plan?.description}
+                  </p>
                   <div className="flex items-end gap-1">
                     <span className="font-display text-4xl font-extrabold text-foreground">
                       {price === 0 ? 'Free' : `₹${price?.toLocaleString()}`}
                     </span>
                     {price > 0 && (
-                      <span className="text-muted-foreground font-sans text-base mb-1.5 font-medium">/mo</span>
+                      <span className="text-muted-foreground font-sans text-base mb-1.5 font-medium">
+                        /mo
+                      </span>
                     )}
                   </div>
                   {annual && price > 0 && (
@@ -209,7 +226,8 @@ export default function PricingContent() {
                   href={plan?.ctaHref}
                   className={`w-full text-center py-3.5 rounded-xl font-bold text-base transition-all mb-6 ${
                     plan?.highlight
-                      ? 'btn-flame' :'border-2 border-border text-foreground hover:bg-muted font-bold'
+                      ? 'btn-flame'
+                      : 'border-2 border-border text-foreground hover:bg-muted font-bold'
                   }`}
                 >
                   {plan?.cta}
@@ -222,7 +240,9 @@ export default function PricingContent() {
                       ) : (
                         <LockClosedIcon className="w-4 h-4 text-muted-foreground/40 flex-shrink-0" />
                       )}
-                      <span className={`text-sm font-sans font-medium ${f?.included ? 'text-foreground' : 'text-muted-foreground/60'}`}>
+                      <span
+                        className={`text-sm font-sans font-medium ${f?.included ? 'text-foreground' : 'text-muted-foreground/60'}`}
+                      >
                         {f?.text}
                       </span>
                     </li>
@@ -242,19 +262,38 @@ export default function PricingContent() {
             <table className="w-full font-sans">
               <thead>
                 <tr className="border-b-2 border-border bg-muted/50">
-                  <th className="text-left px-5 py-4 text-base font-bold text-foreground">Feature</th>
-                  <th className="text-center px-5 py-4 text-base font-bold text-muted-foreground">Free</th>
-                  <th className="text-center px-5 py-4 text-base font-extrabold text-primary">Pro</th>
-                  <th className="text-center px-5 py-4 text-base font-bold text-muted-foreground">Agency</th>
+                  <th className="text-left px-5 py-4 text-base font-bold text-foreground">
+                    Feature
+                  </th>
+                  <th className="text-center px-5 py-4 text-base font-bold text-muted-foreground">
+                    Free
+                  </th>
+                  <th className="text-center px-5 py-4 text-base font-extrabold text-primary">
+                    Pro
+                  </th>
+                  <th className="text-center px-5 py-4 text-base font-bold text-muted-foreground">
+                    Agency
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {COMPARISON_ROWS?.map((row, i) => (
-                  <tr key={`cmp-${i}`} className={`border-b border-border last:border-0 ${i % 2 === 0 ? '' : 'bg-muted/20'}`}>
-                    <td className="px-5 py-4 text-base text-foreground font-semibold">{row?.feature}</td>
-                    <td className="px-5 py-4 text-center text-base text-muted-foreground font-medium">{row?.free}</td>
-                    <td className="px-5 py-4 text-center text-base text-primary font-bold">{row?.pro}</td>
-                    <td className="px-5 py-4 text-center text-base text-muted-foreground font-medium">{row?.agency}</td>
+                  <tr
+                    key={`cmp-${i}`}
+                    className={`border-b border-border last:border-0 ${i % 2 === 0 ? '' : 'bg-muted/20'}`}
+                  >
+                    <td className="px-5 py-4 text-base text-foreground font-semibold">
+                      {row?.feature}
+                    </td>
+                    <td className="px-5 py-4 text-center text-base text-muted-foreground font-medium">
+                      {row?.free}
+                    </td>
+                    <td className="px-5 py-4 text-center text-base text-primary font-bold">
+                      {row?.pro}
+                    </td>
+                    <td className="px-5 py-4 text-center text-base text-muted-foreground font-medium">
+                      {row?.agency}
+                    </td>
                   </tr>
                 ))}
               </tbody>

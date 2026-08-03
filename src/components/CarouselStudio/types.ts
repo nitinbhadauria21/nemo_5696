@@ -35,10 +35,10 @@ export interface FormatDimension {
 }
 
 export const FORMAT_DIMENSIONS: Record<Format, FormatDimension> = {
-  '3:4':  { w: 2160, h: 2880, previewW: 324, previewH: 432,  label: 'IG 3:4' },
-  '4:5':  { w: 2160, h: 2700, previewW: 324, previewH: 405,  label: 'LI 4:5' },
-  '1:1':  { w: 2160, h: 2160, previewW: 324, previewH: 324,  label: '1:1' },
-  '9:16': { w: 2160, h: 3840, previewW: 182, previewH: 324,  label: '9:16' },
+  '3:4': { w: 2160, h: 2880, previewW: 324, previewH: 432, label: 'IG 3:4' },
+  '4:5': { w: 2160, h: 2700, previewW: 324, previewH: 405, label: 'LI 4:5' },
+  '1:1': { w: 2160, h: 2160, previewW: 324, previewH: 324, label: '1:1' },
+  '9:16': { w: 2160, h: 3840, previewW: 182, previewH: 324, label: '9:16' },
 };
 
 export const ACCENT_COLORS = [

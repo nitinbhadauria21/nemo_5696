@@ -6,7 +6,10 @@ import { memo } from 'react';
 type WordmarkSize = 'sm' | 'md' | 'lg';
 type WordmarkVariant = 'onFlame' | 'onLight';
 
-const SIZE_MAP: Record<WordmarkSize, { mark: number; markFont: number; word: number; gap: number }> = {
+const SIZE_MAP: Record<
+  WordmarkSize,
+  { mark: number; markFont: number; word: number; gap: number }
+> = {
   sm: { mark: 28, markFont: 16, word: 18, gap: 8 },
   md: { mark: 34, markFont: 20, word: 22, gap: 10 },
   lg: { mark: 42, markFont: 26, word: 28, gap: 12 },
@@ -52,10 +55,7 @@ const NemoWordmark = memo(function NemoWordmark({
   const wordColor = variant === 'onFlame' ? 'text-white' : 'text-foreground';
 
   const content = (
-    <div
-      className={`inline-flex items-center min-w-0 ${className}`}
-      style={{ gap: s.gap }}
-    >
+    <div className={`inline-flex items-center min-w-0 ${className}`} style={{ gap: s.gap }}>
       <NemoMark size={s.mark} />
       <span
         className={`font-display font-bold leading-none whitespace-nowrap ${wordColor}`}

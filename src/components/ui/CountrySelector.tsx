@@ -10,7 +10,11 @@ interface CountrySelectorProps {
   compact?: boolean;
 }
 
-export default function CountrySelector({ selectedCountries, onChange, compact = false }: CountrySelectorProps) {
+export default function CountrySelector({
+  selectedCountries,
+  onChange,
+  compact = false,
+}: CountrySelectorProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -56,7 +60,9 @@ export default function CountrySelector({ selectedCountries, onChange, compact =
         role="button"
         tabIndex={0}
         onClick={() => setOpen((o) => !o)}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setOpen((o) => !o); }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') setOpen((o) => !o);
+        }}
         className={`flex items-center gap-2 rounded-lg border transition-all duration-150 cursor-pointer ${
           compact ? 'px-3 py-1.5 text-xs' : 'px-3 py-2 text-sm'
         } ${
@@ -65,7 +71,10 @@ export default function CountrySelector({ selectedCountries, onChange, compact =
             : 'border-border bg-input text-muted-foreground hover:text-foreground hover:border-primary/30'
         }`}
       >
-        <Globe size={compact ? 12 : 14} className={selectedCountries.length > 0 ? 'text-primary' : ''} />
+        <Globe
+          size={compact ? 12 : 14}
+          className={selectedCountries.length > 0 ? 'text-primary' : ''}
+        />
         {selectedCountries.length === 0 ? (
           <span className="font-sans font-medium">Location</span>
         ) : (
@@ -106,8 +115,7 @@ export default function CountrySelector({ selectedCountries, onChange, compact =
               </p>
               <span
                 className={`text-[10px] font-mono-custom font-bold px-2 py-0.5 rounded-full ${
-                  atLimit
-                    ? 'bg-red-500/10 text-red-500' :'bg-primary/10 text-primary'
+                  atLimit ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary'
                 }`}
               >
                 {selectedCountries.length}/{MAX_COUNTRIES}
@@ -132,7 +140,9 @@ export default function CountrySelector({ selectedCountries, onChange, compact =
           {/* List */}
           <div className="max-h-56 overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <p className="text-xs text-muted-foreground font-sans text-center py-4">No countries found</p>
+              <p className="text-xs text-muted-foreground font-sans text-center py-4">
+                No countries found
+              </p>
             ) : (
               filtered.map((country) => {
                 const selected = selectedCountries.includes(country.code);
@@ -146,17 +156,25 @@ export default function CountrySelector({ selectedCountries, onChange, compact =
                       selected
                         ? 'bg-primary/10 text-primary'
                         : disabled
-                        ? 'opacity-40 cursor-not-allowed text-muted-foreground'
-                        : 'text-foreground hover:bg-muted'
+                          ? 'opacity-40 cursor-not-allowed text-muted-foreground'
+                          : 'text-foreground hover:bg-muted'
                     }`}
                   >
                     <span className="text-base leading-none">{country.flag}</span>
                     <span className="flex-1">{country.name}</span>
-                    <span className="text-[10px] font-mono-custom text-muted-foreground">{country.code}</span>
+                    <span className="text-[10px] font-mono-custom text-muted-foreground">
+                      {country.code}
+                    </span>
                     {selected && (
                       <span className="w-4 h-4 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                         <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                          <path d="M1.5 4L3 5.5L6.5 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path
+                            d="M1.5 4L3 5.5L6.5 2"
+                            stroke="white"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                       </span>
                     )}
@@ -173,7 +191,10 @@ export default function CountrySelector({ selectedCountries, onChange, compact =
                 Showing trends for selected countries only
               </span>
               <button
-                onClick={() => { onChange([]); setOpen(false); }}
+                onClick={() => {
+                  onChange([]);
+                  setOpen(false);
+                }}
                 className="text-[11px] text-red-400 hover:text-red-500 font-sans font-medium transition-colors"
               >
                 Clear all

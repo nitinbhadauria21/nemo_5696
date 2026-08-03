@@ -6,10 +6,7 @@ import { resolveUserId } from '@/lib/api/requireUser';
 
 const memoryBookmarks = new Map<string, Set<string>>();
 
-export async function DELETE(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
   const resolved = await resolveUserId();
   if ('error' in resolved) return resolved.error;

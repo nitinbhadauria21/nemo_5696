@@ -5,47 +5,47 @@
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
 :root {
-  --background: #F4F5F7;
-  --foreground: #0D0D0D;
-  --primary: #FF4500;
-  --primary-foreground: #FFFFFF;
-  --secondary: #FFB800;
-  --secondary-foreground: #0D0D0D;
-  --accent: #00C896;
-  --accent-foreground: #FFFFFF;
-  --muted: #ECEEF2;
-  --muted-foreground: #3A3F4E;
-  --card: #FFFFFF;
-  --card-foreground: #0D0D0D;
-  --border: #D4D7E0;
-  --input: #ECEEF2;
-  --ring: #FF4500;
+  --background: #f4f5f7;
+  --foreground: #0d0d0d;
+  --primary: #ff4500;
+  --primary-foreground: #ffffff;
+  --secondary: #ffb800;
+  --secondary-foreground: #0d0d0d;
+  --accent: #00c896;
+  --accent-foreground: #ffffff;
+  --muted: #eceef2;
+  --muted-foreground: #3a3f4e;
+  --card: #ffffff;
+  --card-foreground: #0d0d0d;
+  --border: #d4d7e0;
+  --input: #eceef2;
+  --ring: #ff4500;
   --radius: 12px;
   --font-sans: Arial, 'DM Sans', system-ui, sans-serif;
   --font-display: 'Fredoka', system-ui, sans-serif;
   --font-mono: 'Space Mono', monospace;
-  --flame-gradient: linear-gradient(135deg, #FF4500 0%, #FF8C00 50%, #FFB800 100%);
-  --flame-gradient-soft: linear-gradient(135deg, rgba(255,69,0,0.12), rgba(255,184,0,0.12));
+  --flame-gradient: linear-gradient(135deg, #ff4500 0%, #ff8c00 50%, #ffb800 100%);
+  --flame-gradient-soft: linear-gradient(135deg, rgba(255, 69, 0, 0.12), rgba(255, 184, 0, 0.12));
   --sidebar-width: 256px;
   --sidebar-collapsed: 68px;
 }
 
 .dark {
-  --background: #0A0A0F;
-  --foreground: #F0F0F5;
-  --primary: #FF4500;
-  --primary-foreground: #FFFFFF;
-  --secondary: #FFB800;
-  --secondary-foreground: #0A0A0F;
-  --accent: #00C896;
+  --background: #0a0a0f;
+  --foreground: #f0f0f5;
+  --primary: #ff4500;
+  --primary-foreground: #ffffff;
+  --secondary: #ffb800;
+  --secondary-foreground: #0a0a0f;
+  --accent: #00c896;
   --accent-foreground: #000000;
   --muted: #141420;
-  --muted-foreground: #9A9AB0;
+  --muted-foreground: #9a9ab0;
   --card: #111118;
-  --card-foreground: #F0F0F5;
-  --border: #1E1E2E;
+  --card-foreground: #f0f0f5;
+  --border: #1e1e2e;
   --input: #141420;
-  --ring: #FF4500;
+  --ring: #ff4500;
   --font-sans: Arial, 'DM Sans', system-ui, sans-serif;
   --font-display: 'Fredoka', system-ui, sans-serif;
   --font-mono: 'Space Mono', monospace;
@@ -71,27 +71,75 @@
     scroll-behavior: smooth;
   }
 
-  h1, h2, h3, h4, h5, h6, p {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
     margin: 0;
   }
 
   /* Only h1 (main page headings) use Fredoka */
-  h1 { font-family: var(--font-display); font-size: 2rem; font-weight: 700; line-height: 1.2; }
+  h1 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
 
   /* h2–h6 use Arial (font-sans) */
-  h2 { font-family: var(--font-sans); font-size: 1.5rem; font-weight: 600; line-height: 1.3; }
-  h3 { font-family: var(--font-sans); font-size: 1.25rem; font-weight: 600; line-height: 1.4; }
-  h4 { font-family: var(--font-sans); font-size: 1.125rem; font-weight: 600; line-height: 1.4; }
-  h5 { font-family: var(--font-sans); font-size: 1rem; font-weight: 600; line-height: 1.5; }
-  h6 { font-family: var(--font-sans); font-size: 0.9375rem; font-weight: 600; line-height: 1.5; }
+  h2 {
+    font-family: var(--font-sans);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  h3 {
+    font-family: var(--font-sans);
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  h4 {
+    font-family: var(--font-sans);
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  h5 {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  h6 {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
 
   /* Ensure all non-heading text defaults to Arial */
-  p, span, a, li, label, input, textarea, select, button, td, th, div {
+  p,
+  span,
+  a,
+  li,
+  label,
+  input,
+  textarea,
+  select,
+  button,
+  td,
+  th,
+  div {
     font-family: inherit;
   }
 
   /* Navigation bar uses font-sans (Arial) by default; nav labels get Fredoka via .font-display class */
-  nav, header {
+  nav,
+  header {
     font-family: var(--font-sans);
   }
 }
@@ -145,22 +193,22 @@
 
   .status-hot {
     background-color: rgba(255, 69, 0, 0.12);
-    color: #CC3700;
+    color: #cc3700;
     border: 1px solid rgba(255, 69, 0, 0.25);
     font-weight: 700;
   }
 
   .status-rising {
     background-color: rgba(255, 184, 0, 0.12);
-    color: #8B6200;
+    color: #8b6200;
     border: 1px solid rgba(255, 184, 0, 0.25);
     font-weight: 700;
   }
 
   .status-fading {
-    background-color: rgba(90, 95, 110, 0.10);
-    color: #3A3F4E;
-    border: 1px solid rgba(90, 95, 110, 0.20);
+    background-color: rgba(90, 95, 110, 0.1);
+    color: #3a3f4e;
+    border: 1px solid rgba(90, 95, 110, 0.2);
     font-weight: 600;
   }
 
@@ -171,7 +219,10 @@
   }
 
   .sidebar-transition {
-    transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1), transform 300ms cubic-bezier(0.4, 0, 0.2, 1), margin 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+      width 300ms cubic-bezier(0.4, 0, 0.2, 1),
+      transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
+      margin 300ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .live-pulse {
@@ -179,12 +230,14 @@
   }
 
   .trend-card-hover {
-    transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease;
+    transition:
+      transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 200ms ease;
   }
 
   .trend-card-hover:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
   }
 
   .btn-flame {
@@ -194,7 +247,10 @@
     font-weight: 600;
     font-size: 1rem;
     border-radius: 999px;
-    transition: opacity 150ms ease, transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 150ms ease;
+    transition:
+      opacity 150ms ease,
+      transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 150ms ease;
     box-shadow: 0 4px 16px rgba(255, 69, 0, 0.35);
   }
 
@@ -274,7 +330,10 @@
     background: var(--card);
     border: 1.5px solid var(--border);
     border-radius: calc(var(--radius) + 4px);
-    transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease,
+      transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
     cursor: pointer;
   }
 
@@ -286,38 +345,71 @@
 
   /* Nav active glow */
   .nav-active-glow {
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3), 0 4px 16px rgba(0,0,0,0.2);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+      0 4px 16px rgba(0, 0, 0, 0.2);
   }
 }
 
 @keyframes livePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 @keyframes skeletonPulse {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .animate-fade-in {

@@ -12,7 +12,10 @@ const SOCIAL_PLATFORMS = [
   { id: 'twitter', label: 'Twitter / X', icon: '𝕏', description: 'Real-time topic signals' },
 ];
 
-type ConnectionRow = { platform: string; metadata?: { connected_at?: string; token_status?: string } };
+type ConnectionRow = {
+  platform: string;
+  metadata?: { connected_at?: string; token_status?: string };
+};
 
 export default function SocialConnectTab() {
   const searchParams = useSearchParams();
@@ -71,7 +74,9 @@ export default function SocialConnectTab() {
     <div className="space-y-4">
       <div className="card-surface p-4 border-primary/20 bg-primary/5">
         <p className="text-xs font-sans text-foreground leading-relaxed">
-          <span className="font-bold">Social Connect</span> links your creator accounts so NEMO can personalize trends and track your content performance. OAuth tokens are stored server-side only.
+          <span className="font-bold">Social Connect</span> links your creator accounts so NEMO can
+          personalize trends and track your content performance. OAuth tokens are stored server-side
+          only.
         </p>
       </div>
 
@@ -88,8 +93,12 @@ export default function SocialConnectTab() {
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{platform.icon}</span>
                     <div>
-                      <p className="text-sm font-sans font-semibold text-foreground">{platform.label}</p>
-                      <p className="text-xs text-muted-foreground font-sans">{platform.description}</p>
+                      <p className="text-sm font-sans font-semibold text-foreground">
+                        {platform.label}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-sans">
+                        {platform.description}
+                      </p>
                       {connected && meta?.connected_at && (
                         <p className="text-xs text-accent font-mono-custom mt-1">
                           Connected {new Date(meta.connected_at).toLocaleDateString()}

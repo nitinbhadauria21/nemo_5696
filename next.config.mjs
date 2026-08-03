@@ -16,7 +16,8 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    // Fail production builds on lint errors (was ignoreDuringBuilds: true — hid ship blockers)
+    ignoreDuringBuilds: false,
   },
   images: {
     remotePatterns: imageHosts,

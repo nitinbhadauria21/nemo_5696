@@ -33,7 +33,8 @@ type Signup = {
 
 function planPill(plan?: string | null) {
   const p = (plan || 'free').toLowerCase();
-  const cls = p === 'agency' ? 'admin-pill-agency' : p === 'pro' ? 'admin-pill-pro' : 'admin-pill-free';
+  const cls =
+    p === 'agency' ? 'admin-pill-agency' : p === 'pro' ? 'admin-pill-pro' : 'admin-pill-free';
   return <span className={`admin-pill ${cls}`}>{p}</span>;
 }
 
@@ -103,7 +104,8 @@ export default function AdminOverviewContent() {
           </div>
         ))}
         <div className="ml-auto text-xs text-[var(--admin-mute)]">
-          Events 24h: {stats?.events24h ?? '—'} · Pro {stats?.proUsers ?? 0} · Agency {stats?.agencyUsers ?? 0}
+          Events 24h: {stats?.events24h ?? '—'} · Pro {stats?.proUsers ?? 0} · Agency{' '}
+          {stats?.agencyUsers ?? 0}
         </div>
       </div>
 
@@ -112,7 +114,9 @@ export default function AdminOverviewContent() {
           <div className="admin-card p-4">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-display text-sm font-bold">Usage · 14 days</h2>
-              <span className="font-mono text-[10px] uppercase text-[var(--admin-mute)]">Events / AI</span>
+              <span className="font-mono text-[10px] uppercase text-[var(--admin-mute)]">
+                Events / AI
+              </span>
             </div>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
@@ -124,8 +128,18 @@ export default function AdminOverviewContent() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fill: '#8a8076', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: '#8a8076', fontSize: 11 }} axisLine={false} tickLine={false} width={32} />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fill: '#8a8076', fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: '#8a8076', fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={32}
+                  />
                   <Tooltip
                     contentStyle={{
                       background: '#1c1916',
@@ -134,8 +148,20 @@ export default function AdminOverviewContent() {
                       fontSize: 12,
                     }}
                   />
-                  <Area type="monotone" dataKey="events" stroke="#FF5A1F" fill="url(#evFill)" strokeWidth={2} />
-                  <Area type="monotone" dataKey="ai" stroke="#3DD68C" fill="transparent" strokeWidth={2} />
+                  <Area
+                    type="monotone"
+                    dataKey="events"
+                    stroke="#FF5A1F"
+                    fill="url(#evFill)"
+                    strokeWidth={2}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="ai"
+                    stroke="#3DD68C"
+                    fill="transparent"
+                    strokeWidth={2}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -161,7 +187,9 @@ export default function AdminOverviewContent() {
                 {signups.map((u) => (
                   <tr key={u.id}>
                     <td>
-                      <div className="font-medium text-[var(--admin-text)]">{u.full_name || '—'}</div>
+                      <div className="font-medium text-[var(--admin-text)]">
+                        {u.full_name || '—'}
+                      </div>
                       <div className="text-xs text-[var(--admin-mute)]">{u.email}</div>
                     </td>
                     <td>{planPill(u.plan)}</td>
@@ -195,7 +223,10 @@ export default function AdminOverviewContent() {
                 <li className="text-sm text-[var(--admin-mute)]">All clear</li>
               )}
               {attention.map((a, i) => (
-                <li key={i} className="rounded-xl border border-[var(--admin-line)] bg-[var(--admin-surface-2)] px-3 py-2 text-sm">
+                <li
+                  key={i}
+                  className="rounded-xl border border-[var(--admin-line)] bg-[var(--admin-surface-2)] px-3 py-2 text-sm"
+                >
                   {a.href ? (
                     <Link href={a.href} className="text-[var(--admin-soft)] hover:text-[#FF6B2B]">
                       {a.label}

@@ -31,9 +31,24 @@ const PLATFORM_COLORS: Record<TrendPlatform, string> = {
 };
 
 const STATUS_CONFIG = {
-  hot: { label: 'HOT 🔥', dot: 'bg-primary', text: 'text-primary', bg: 'bg-primary/10 border-primary/25' },
-  rising: { label: 'RISING 📈', dot: 'bg-secondary', text: 'text-secondary', bg: 'bg-secondary/10 border-secondary/25' },
-  fading: { label: 'FADING', dot: 'bg-muted-foreground', text: 'text-muted-foreground', bg: 'bg-muted border-border' },
+  hot: {
+    label: 'HOT 🔥',
+    dot: 'bg-primary',
+    text: 'text-primary',
+    bg: 'bg-primary/10 border-primary/25',
+  },
+  rising: {
+    label: 'RISING 📈',
+    dot: 'bg-secondary',
+    text: 'text-secondary',
+    bg: 'bg-secondary/10 border-secondary/25',
+  },
+  fading: {
+    label: 'FADING',
+    dot: 'bg-muted-foreground',
+    text: 'text-muted-foreground',
+    bg: 'bg-muted border-border',
+  },
 };
 
 const CONTENT_TYPE_COLORS: Record<TrendContentType, string> = {
@@ -68,13 +83,19 @@ export default function TrendCard({ trend, onBookmarkToggle }: TrendCardProps) {
       {/* Card Header */}
       <div className="px-4 pt-3.5 pb-3 border-b border-border flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-          <span className={`text-sm font-bold font-mono-custom uppercase tracking-wide truncate ${PLATFORM_COLORS[primaryPlatform]}`}>
+          <span
+            className={`text-sm font-bold font-mono-custom uppercase tracking-wide truncate ${PLATFORM_COLORS[primaryPlatform]}`}
+          >
             {PLATFORM_LABELS[primaryPlatform]}
           </span>
           <span className="text-foreground/40 text-sm">·</span>
-          <span className="text-sm font-sans text-foreground/60 flex-shrink-0">{trend.timeAgo}</span>
+          <span className="text-sm font-sans text-foreground/60 flex-shrink-0">
+            {trend.timeAgo}
+          </span>
         </div>
-        <span className={`text-sm font-mono-custom font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border flex-shrink-0 ${statusConfig.bg} ${statusConfig.text}`}>
+        <span
+          className={`text-sm font-mono-custom font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border flex-shrink-0 ${statusConfig.bg} ${statusConfig.text}`}
+        >
           {statusConfig.label}
         </span>
       </div>
@@ -83,12 +104,12 @@ export default function TrendCard({ trend, onBookmarkToggle }: TrendCardProps) {
       <div className="px-4 py-3.5 flex-1 flex flex-col gap-2.5">
         {/* Content Type + Category */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={`text-sm font-mono-custom font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg ${CONTENT_TYPE_COLORS[trend.contentType]}`}>
+          <span
+            className={`text-sm font-mono-custom font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg ${CONTENT_TYPE_COLORS[trend.contentType]}`}
+          >
             {trend.contentType}
           </span>
-          <span className="text-sm font-sans text-foreground/65 font-medium">
-            {trend.category}
-          </span>
+          <span className="text-sm font-sans text-foreground/65 font-medium">{trend.category}</span>
         </div>
 
         {/* Title */}
@@ -108,20 +129,31 @@ export default function TrendCard({ trend, onBookmarkToggle }: TrendCardProps) {
       {/* Metrics Row */}
       <div className="px-4 py-3 bg-muted/50 border-t border-border grid grid-cols-3 gap-2">
         <div className="flex flex-col gap-0.5">
-          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">Velocity</span>
+          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">
+            Velocity
+          </span>
           <span className="text-base font-mono-custom font-bold text-foreground tabular-nums">
             {trend.velocity.toFixed(2)}x
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">Spike</span>
-          <span className={`text-base font-mono-custom font-bold tabular-nums ${spikePositive ? 'text-accent' : 'text-red-500'}`}>
-            {spikePositive ? '+' : ''}{trend.spike}%
+          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">
+            Spike
+          </span>
+          <span
+            className={`text-base font-mono-custom font-bold tabular-nums ${spikePositive ? 'text-accent' : 'text-red-500'}`}
+          >
+            {spikePositive ? '+' : ''}
+            {trend.spike}%
           </span>
         </div>
         <div className="flex flex-col gap-0.5 items-end">
-          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">Score</span>
-          <span className={`text-lg font-mono-custom font-extrabold tabular-nums ${getScoreColor(trend.nemoScore)}`}>
+          <span className="font-mono-custom text-sm uppercase tracking-wider text-foreground/55 font-semibold">
+            Score
+          </span>
+          <span
+            className={`text-lg font-mono-custom font-extrabold tabular-nums ${getScoreColor(trend.nemoScore)}`}
+          >
             {trend.nemoScore}
           </span>
         </div>

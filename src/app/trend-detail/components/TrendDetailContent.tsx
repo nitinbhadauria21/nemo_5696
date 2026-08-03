@@ -156,7 +156,9 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
             </Link>
             <div className="w-px h-5 bg-border" />
             <StatusBadge status={TREND.status} size="sm" />
-            <span className="text-base text-foreground/65 font-sans font-medium hidden sm:block">{TREND.category}</span>
+            <span className="text-base text-foreground/65 font-sans font-medium hidden sm:block">
+              {TREND.category}
+            </span>
             <h1 className="font-display text-xl font-bold text-foreground truncate hidden md:block">
               {TREND.title}
             </h1>
@@ -174,7 +176,11 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
               }}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-2 border-border bg-card text-base font-bold font-sans hover:bg-muted transition-all"
             >
-              {bookmarked ? <BookmarkCheck size={15} className="text-primary" /> : <Bookmark size={15} />}
+              {bookmarked ? (
+                <BookmarkCheck size={15} className="text-primary" />
+              ) : (
+                <Bookmark size={15} />
+              )}
               {bookmarked ? 'Saved' : 'Save'}
             </button>
             <button
@@ -216,8 +222,12 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
             <div className="bg-card border-2 border-border rounded-2xl p-5">
               <div className="flex items-start gap-4">
                 <div className="flex-1 min-w-0">
-                  <h2 className="font-display text-2xl font-extrabold text-foreground mb-2">{TREND.title}</h2>
-                  <p className="text-base font-sans text-muted-foreground leading-relaxed mb-4">{TREND.description}</p>
+                  <h2 className="font-display text-2xl font-extrabold text-foreground mb-2">
+                    {TREND.title}
+                  </h2>
+                  <p className="text-base font-sans text-muted-foreground leading-relaxed mb-4">
+                    {TREND.description}
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {TREND.platforms.map((p) => (
                       <PlatformBadge key={`detail-plat-${p}`} platform={p} size="md" />
@@ -235,7 +245,9 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
                 </div>
                 <div className="flex-shrink-0 flex flex-col items-center gap-2">
                   <TrendSparkline data={TREND.sparklineData} width={100} height={40} trend="up" />
-                  <span className="text-xs font-mono-custom font-semibold text-muted-foreground">7-day signal</span>
+                  <span className="text-xs font-mono-custom font-semibold text-muted-foreground">
+                    7-day signal
+                  </span>
                 </div>
               </div>
             </div>
@@ -280,21 +292,51 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
                 Top Performing Content
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {(remoteTrend?.topContent ?? [
-                  { id: '1', title: 'Viral hook breakdown', views: '1.2M', platform: TREND.platforms[0] },
-                  { id: '2', title: 'Creator reaction clip', views: '840K', platform: TREND.platforms[1] ?? TREND.platforms[0] },
-                  { id: '3', title: 'Trend explainer short', views: '520K', platform: TREND.platforms[0] },
-                ]).slice(0, 3).map((item: { id: string; title: string; views: string; platform?: string }) => (
-                  <div key={item.id} className="rounded-xl border border-border bg-card overflow-hidden">
-                    <div className="aspect-video bg-muted flex items-center justify-center text-2xl">
-                      {item.platform === 'youtube' ? '▶️' : item.platform === 'instagram' ? '📸' : '🔥'}
+                {(
+                  remoteTrend?.topContent ?? [
+                    {
+                      id: '1',
+                      title: 'Viral hook breakdown',
+                      views: '1.2M',
+                      platform: TREND.platforms[0],
+                    },
+                    {
+                      id: '2',
+                      title: 'Creator reaction clip',
+                      views: '840K',
+                      platform: TREND.platforms[1] ?? TREND.platforms[0],
+                    },
+                    {
+                      id: '3',
+                      title: 'Trend explainer short',
+                      views: '520K',
+                      platform: TREND.platforms[0],
+                    },
+                  ]
+                )
+                  .slice(0, 3)
+                  .map((item: { id: string; title: string; views: string; platform?: string }) => (
+                    <div
+                      key={item.id}
+                      className="rounded-xl border border-border bg-card overflow-hidden"
+                    >
+                      <div className="aspect-video bg-muted flex items-center justify-center text-2xl">
+                        {item.platform === 'youtube'
+                          ? '▶️'
+                          : item.platform === 'instagram'
+                            ? '📸'
+                            : '🔥'}
+                      </div>
+                      <div className="p-3">
+                        <p className="text-xs font-sans font-semibold text-foreground line-clamp-2">
+                          {item.title}
+                        </p>
+                        <p className="text-xs font-mono-custom text-muted-foreground mt-1">
+                          {item.views} views
+                        </p>
+                      </div>
                     </div>
-                    <div className="p-3">
-                      <p className="text-xs font-sans font-semibold text-foreground line-clamp-2">{item.title}</p>
-                      <p className="text-xs font-mono-custom text-muted-foreground mt-1">{item.views} views</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
 
@@ -321,13 +363,20 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
                     <PlatformBadge platform={sig.platform} size="sm" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-mono-custom font-bold text-foreground tabular-nums">{sig.score}</span>
+                        <span className="text-sm font-mono-custom font-bold text-foreground tabular-nums">
+                          {sig.score}
+                        </span>
                         <span className="text-sm font-bold font-sans text-accent">{sig.delta}</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full">
-                        <div className="h-full bg-primary rounded-full" style={{ width: `${sig.score}%` }} />
+                        <div
+                          className="h-full bg-primary rounded-full"
+                          style={{ width: `${sig.score}%` }}
+                        />
                       </div>
-                      <p className="text-xs text-muted-foreground font-sans mt-1 font-medium">{sig.volume}</p>
+                      <p className="text-xs text-muted-foreground font-sans mt-1 font-medium">
+                        {sig.volume}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -336,7 +385,9 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
 
             <div className="bg-card border-2 border-border rounded-2xl p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">Hashtags</h3>
+                <h3 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">
+                  Hashtags
+                </h3>
                 <button
                   onClick={copyAllHashtags}
                   className="flex items-center gap-1 text-xs text-primary hover:underline font-sans"
@@ -363,7 +414,12 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
               </h3>
               <div className="space-y-2.5">
                 {[
-                  { id: 'km-cvs', label: 'Creator Velocity', value: String(TREND.cvs), unit: 'CVS' },
+                  {
+                    id: 'km-cvs',
+                    label: 'Creator Velocity',
+                    value: String(TREND.cvs),
+                    unit: 'CVS',
+                  },
                   { id: 'km-ss', label: 'Spike Score', value: String(TREND.ss), unit: 'SS' },
                   { id: 'km-cps', label: 'Cross-Platform', value: String(TREND.cps), unit: 'CPS' },
                   {
@@ -382,7 +438,8 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
                   <div key={m.id} className="flex items-center justify-between">
                     <span className="text-xs font-sans text-muted-foreground">{m.label}</span>
                     <span className="text-xs font-mono-custom font-bold text-foreground tabular-nums">
-                      {m.value} {m.unit && <span className="text-muted-foreground text-xs">{m.unit}</span>}
+                      {m.value}{' '}
+                      {m.unit && <span className="text-muted-foreground text-xs">{m.unit}</span>}
                     </span>
                   </div>
                 ))}

@@ -10,12 +10,15 @@ interface AIAnalysisSectionProps {
   trendTitle: string;
 }
 
-const SECTION_CONFIG: Record<AnalysisType, {
-  icon: React.ElementType;
-  label: string;
-  description: string;
-  accentClass: string;
-}> = {
+const SECTION_CONFIG: Record<
+  AnalysisType,
+  {
+    icon: React.ElementType;
+    label: string;
+    description: string;
+    accentClass: string;
+  }
+> = {
   analysis: {
     icon: Sparkles,
     label: 'Trend Analysis',
@@ -40,17 +43,30 @@ const MOCK_ANALYSIS: Record<AnalysisType, React.ReactNode> = {
   analysis: (
     <div className="space-y-3 text-sm font-sans text-foreground leading-relaxed">
       <p>
-        <strong>Why it&apos;s trending:</strong> Claude AI tool integrations have hit a critical mass inflection point. The release of Claude Sonnet 4.5 with native tool use capabilities has unlocked a wave of developer and creator tutorials showing real workflows — from automated content pipelines to research agents.
+        <strong>Why it&apos;s trending:</strong> Claude AI tool integrations have hit a critical
+        mass inflection point. The release of Claude Sonnet 4.5 with native tool use capabilities
+        has unlocked a wave of developer and creator tutorials showing real workflows — from
+        automated content pipelines to research agents.
       </p>
       <p>
-        <strong>Creator pattern:</strong> Tech YouTubers are leading with &quot;I replaced my entire content workflow with Claude&quot; style videos. LinkedIn influencers are publishing step-by-step MCP integration guides targeting non-technical marketers.
+        <strong>Creator pattern:</strong> Tech YouTubers are leading with &quot;I replaced my entire
+        content workflow with Claude&quot; style videos. LinkedIn influencers are publishing
+        step-by-step MCP integration guides targeting non-technical marketers.
       </p>
       <p>
-        <strong>Momentum signal:</strong> CVS of 0.88 means 88% of creators who covered this topic 72h ago are still posting — indicating sustained interest rather than a flash spike. Cross-platform presence on Google, YouTube, and LinkedIn confirms mainstream adoption beyond early tech adopters.
+        <strong>Momentum signal:</strong> CVS of 0.88 means 88% of creators who covered this topic
+        72h ago are still posting — indicating sustained interest rather than a flash spike.
+        Cross-platform presence on Google, YouTube, and LinkedIn confirms mainstream adoption beyond
+        early tech adopters.
       </p>
       <div className="p-3 bg-primary/5 border border-primary/20 rounded-xl">
-        <p className="text-xs font-mono-custom text-primary font-bold uppercase tracking-wide mb-1">⚡ Trend Window</p>
-        <p className="text-xs text-muted-foreground">This trend is in its growth phase. Optimal posting window: next 18–36 hours before saturation.</p>
+        <p className="text-xs font-mono-custom text-primary font-bold uppercase tracking-wide mb-1">
+          ⚡ Trend Window
+        </p>
+        <p className="text-xs text-muted-foreground">
+          This trend is in its growth phase. Optimal posting window: next 18–36 hours before
+          saturation.
+        </p>
       </div>
     </div>
   ),
@@ -58,38 +74,94 @@ const MOCK_ANALYSIS: Record<AnalysisType, React.ReactNode> = {
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-3">
         {[
-          { id: 'sent-overall', label: 'Sentiment', value: '87%', sub: 'Positive', color: 'text-accent' },
-          { id: 'sent-safety', label: 'Brand Safe', value: '94/100', sub: 'High safety', color: 'text-accent' },
-          { id: 'sent-controversy', label: 'Controversy', value: 'Low', sub: 'Minimal risk', color: 'text-secondary' },
+          {
+            id: 'sent-overall',
+            label: 'Sentiment',
+            value: '87%',
+            sub: 'Positive',
+            color: 'text-accent',
+          },
+          {
+            id: 'sent-safety',
+            label: 'Brand Safe',
+            value: '94/100',
+            sub: 'High safety',
+            color: 'text-accent',
+          },
+          {
+            id: 'sent-controversy',
+            label: 'Controversy',
+            value: 'Low',
+            sub: 'Minimal risk',
+            color: 'text-secondary',
+          },
         ].map((metric) => (
           <div key={metric.id} className="card-surface p-3 text-center">
-            <p className="text-xs font-mono-custom uppercase tracking-wide text-muted-foreground mb-1">{metric.label}</p>
-            <p className={`text-xl font-mono-custom font-bold tabular-nums ${metric.color}`}>{metric.value}</p>
+            <p className="text-xs font-mono-custom uppercase tracking-wide text-muted-foreground mb-1">
+              {metric.label}
+            </p>
+            <p className={`text-xl font-mono-custom font-bold tabular-nums ${metric.color}`}>
+              {metric.value}
+            </p>
             <p className="text-xs text-muted-foreground font-sans">{metric.sub}</p>
           </div>
         ))}
       </div>
       <p className="text-sm font-sans text-foreground leading-relaxed">
-        Audience sentiment around Claude AI integrations is overwhelmingly positive. The dominant narrative is productivity empowerment rather than job displacement — making this safe for brands across B2B and creator verticals. No significant controversy detected.
+        Audience sentiment around Claude AI integrations is overwhelmingly positive. The dominant
+        narrative is productivity empowerment rather than job displacement — making this safe for
+        brands across B2B and creator verticals. No significant controversy detected.
       </p>
       <div className="p-3 bg-accent/5 border border-accent/20 rounded-xl">
-        <p className="text-xs font-mono-custom text-accent font-bold uppercase tracking-wide mb-1">✅ Brand Safety Verdict</p>
-        <p className="text-xs text-muted-foreground">Safe for all brand categories. Particularly well-suited for SaaS, productivity tools, and creator economy brands.</p>
+        <p className="text-xs font-mono-custom text-accent font-bold uppercase tracking-wide mb-1">
+          ✅ Brand Safety Verdict
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Safe for all brand categories. Particularly well-suited for SaaS, productivity tools, and
+          creator economy brands.
+        </p>
       </div>
     </div>
   ),
   ideas: (
     <div className="space-y-3">
       {[
-        { id: 'idea-001', hook: 'I automated my entire content calendar using Claude AI', angle: 'Step-by-step tutorial showing the exact MCP configuration', viral: 92 },
-        { id: 'idea-002', hook: 'Stop spending 4 hours on content research — let Claude do it', angle: 'Productivity transformation story with before/after time comparison', viral: 88 },
-        { id: 'idea-003', hook: 'The Claude tool nobody in your niche is using yet', angle: 'First-mover advantage angle for early adopters in non-tech niches', viral: 84 },
-        { id: 'idea-004', hook: 'I asked Claude to be my trend strategist for 7 days', angle: 'Experiment-style content with real results and metrics', viral: 79 },
-        { id: 'idea-005', hook: 'Claude vs ChatGPT for content creation — honest breakdown', angle: 'Comparison content capitalizing on existing platform debate', viral: 76 },
+        {
+          id: 'idea-001',
+          hook: 'I automated my entire content calendar using Claude AI',
+          angle: 'Step-by-step tutorial showing the exact MCP configuration',
+          viral: 92,
+        },
+        {
+          id: 'idea-002',
+          hook: 'Stop spending 4 hours on content research — let Claude do it',
+          angle: 'Productivity transformation story with before/after time comparison',
+          viral: 88,
+        },
+        {
+          id: 'idea-003',
+          hook: 'The Claude tool nobody in your niche is using yet',
+          angle: 'First-mover advantage angle for early adopters in non-tech niches',
+          viral: 84,
+        },
+        {
+          id: 'idea-004',
+          hook: 'I asked Claude to be my trend strategist for 7 days',
+          angle: 'Experiment-style content with real results and metrics',
+          viral: 79,
+        },
+        {
+          id: 'idea-005',
+          hook: 'Claude vs ChatGPT for content creation — honest breakdown',
+          angle: 'Comparison content capitalizing on existing platform debate',
+          viral: 76,
+        },
       ].map((idea) => (
         <div key={idea.id} className="p-3 bg-muted rounded-xl border border-border">
           <div className="flex items-start justify-between gap-2 mb-1.5">
-            <p className="text-sm font-sans font-semibold text-foreground leading-snug">&quot;{idea.hook}&quot;</p>
+            <p className="text-sm font-sans font-semibold text-foreground leading-snug">
+              &quot;{idea.hook}&quot;
+            </p>
             <span className="flex-shrink-0 text-xs font-mono-custom font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full tabular-nums">
               {idea.viral}% viral
             </span>
@@ -125,7 +197,8 @@ export default function AIAnalysisSection({ type, trendTitle }: AIAnalysisSectio
         body: JSON.stringify({ trendTitle }),
       });
       const data = await res.json();
-      const text = data.analysis || data.sentiment || data.ideas || data.error || 'Analysis unavailable';
+      const text =
+        data.analysis || data.sentiment || data.ideas || data.error || 'Analysis unavailable';
       setLiveContent(typeof text === 'string' ? text : JSON.stringify(text, null, 2));
       setIsLoaded(true);
       setIsExpanded(true);
@@ -148,7 +221,9 @@ export default function AIAnalysisSection({ type, trendTitle }: AIAnalysisSectio
         }}
       >
         <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config.accentClass}`}>
+          <div
+            className={`w-8 h-8 rounded-lg flex items-center justify-center ${config.accentClass}`}
+          >
             <IconComponent size={16} />
           </div>
           <div className="text-left">
@@ -165,13 +240,29 @@ export default function AIAnalysisSection({ type, trendTitle }: AIAnalysisSectio
           {isLoading && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
               </svg>
               Analyzing…
             </div>
           )}
-          {isLoaded && (isExpanded ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />)}
+          {isLoaded &&
+            (isExpanded ? (
+              <ChevronUp size={16} className="text-muted-foreground" />
+            ) : (
+              <ChevronDown size={16} className="text-muted-foreground" />
+            ))}
         </div>
       </button>
 
@@ -179,7 +270,9 @@ export default function AIAnalysisSection({ type, trendTitle }: AIAnalysisSectio
         <div className="px-4 pb-4 animate-fade-in">
           <div className="pt-3 border-t border-border">
             {liveContent ? (
-              <pre className="text-sm font-sans whitespace-pre-wrap text-foreground leading-relaxed">{liveContent}</pre>
+              <pre className="text-sm font-sans whitespace-pre-wrap text-foreground leading-relaxed">
+                {liveContent}
+              </pre>
             ) : (
               <p className="text-sm text-muted-foreground">No analysis returned.</p>
             )}

@@ -87,7 +87,12 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    if (user.email_confirmed_at && !onAuthFlow && !path.startsWith('/api/') && !path.startsWith('/admin')) {
+    if (
+      user.email_confirmed_at &&
+      !onAuthFlow &&
+      !path.startsWith('/api/') &&
+      !path.startsWith('/admin')
+    ) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('onboarding_complete')
@@ -108,7 +113,10 @@ export async function updateSession(request: NextRequest) {
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profile?.onboarding_complete && (path === '/login' || path === '/signup' || path === '/sign-up-login-screen')) {
+      if (
+        profile?.onboarding_complete &&
+        (path === '/login' || path === '/signup' || path === '/sign-up-login-screen')
+      ) {
         const url = request.nextUrl.clone();
         url.pathname = '/dashboard';
         return NextResponse.redirect(url);

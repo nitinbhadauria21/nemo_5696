@@ -55,14 +55,18 @@ export default function AdminKPICards() {
               <span className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">
                 {kpi?.label}
               </span>
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${kpi?.accentBg}`}>
+              <div
+                className={`w-8 h-8 rounded-lg flex items-center justify-center ${kpi?.accentBg}`}
+              >
                 <IconComponent size={16} className={kpi?.accentIcon} />
               </div>
             </div>
             <span className="font-mono-custom font-bold text-2xl xl:text-3xl text-foreground tabular-nums">
               {kpi?.value}
             </span>
-            <span className={`text-xs font-sans ${kpi?.deltaPositive ? 'text-accent' : 'text-red-400'}`}>
+            <span
+              className={`text-xs font-sans ${kpi?.deltaPositive ? 'text-accent' : 'text-red-400'}`}
+            >
               {kpi?.delta}
             </span>
           </div>

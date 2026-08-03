@@ -22,7 +22,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const email = String(body.email ?? '').trim().toLowerCase();
+    const email = String(body.email ?? '')
+      .trim()
+      .toLowerCase();
     const password = String(body.password ?? '');
     const name = String(body.name ?? '').trim();
 
@@ -30,7 +32,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
     if (password.length < 6) {
-      return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Password must be at least 6 characters' },
+        { status: 400 }
+      );
     }
 
     const autoConfirm = process.env.SUPABASE_AUTO_CONFIRM !== 'false';

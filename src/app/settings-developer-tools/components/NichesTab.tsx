@@ -51,7 +51,12 @@ export default function NichesTab() {
           </button>
         ))}
       </div>
-      <button type="button" onClick={save} disabled={saving} className="btn-flame px-4 py-2 rounded-xl text-sm">
+      <button
+        type="button"
+        onClick={save}
+        disabled={saving}
+        className="btn-flame px-4 py-2 rounded-xl text-sm"
+      >
         {saving ? 'Saving…' : 'Save niches'}
       </button>
     </div>

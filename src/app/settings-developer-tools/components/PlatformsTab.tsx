@@ -42,7 +42,9 @@ export default function PlatformsTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Choose which platforms appear in your dashboard filters and alerts.</p>
+      <p className="text-sm text-muted-foreground">
+        Choose which platforms appear in your dashboard filters and alerts.
+      </p>
       <div className="grid sm:grid-cols-2 gap-2">
         {PLATFORMS.map((p) => (
           <button
@@ -59,7 +61,12 @@ export default function PlatformsTab() {
           </button>
         ))}
       </div>
-      <button type="button" onClick={save} disabled={saving} className="btn-flame px-4 py-2 rounded-xl text-sm">
+      <button
+        type="button"
+        onClick={save}
+        disabled={saving}
+        className="btn-flame px-4 py-2 rounded-xl text-sm"
+      >
         {saving ? 'Saving…' : 'Save platforms'}
       </button>
     </div>

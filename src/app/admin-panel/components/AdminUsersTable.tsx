@@ -25,7 +25,10 @@ export default function AdminUsersTable() {
 
   const handleSort = (key: string) => {
     if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    else { setSortKey(key); setSortDir('asc'); }
+    else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -43,7 +46,11 @@ export default function AdminUsersTable() {
 
   const SortIcon = ({ col }: { col: string }) =>
     sortKey === col ? (
-      sortDir === 'asc' ? <ChevronUp size={12} className="text-primary" /> : <ChevronDown size={12} className="text-primary" />
+      sortDir === 'asc' ? (
+        <ChevronUp size={12} className="text-primary" />
+      ) : (
+        <ChevronDown size={12} className="text-primary" />
+      )
     ) : (
       <ChevronDown size={12} className="text-muted-foreground opacity-40" />
     );
@@ -55,7 +62,10 @@ export default function AdminUsersTable() {
           Recent Signups
         </h3>
         <div className="relative">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search
+            size={13}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          />
           <input
             type="text"
             placeholder="Search users…"
@@ -114,12 +124,16 @@ export default function AdminUsersTable() {
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs font-mono-custom font-bold px-2 py-0.5 rounded-full ${PLAN_BADGE[user.plan]}`}>
+                  <span
+                    className={`text-xs font-mono-custom font-bold px-2 py-0.5 rounded-full ${PLAN_BADGE[user.plan]}`}
+                  >
                     {user.plan}
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs font-mono-custom font-bold px-2 py-0.5 rounded-full ${STATUS_BADGE[user.status]}`}>
+                  <span
+                    className={`text-xs font-mono-custom font-bold px-2 py-0.5 rounded-full ${STATUS_BADGE[user.status]}`}
+                  >
                     {user.status}
                   </span>
                 </td>
@@ -163,7 +177,9 @@ export default function AdminUsersTable() {
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-10 text-center">
-                  <p className="text-sm text-muted-foreground font-sans">No users matching &quot;{search}&quot;</p>
+                  <p className="text-sm text-muted-foreground font-sans">
+                    No users matching &quot;{search}&quot;
+                  </p>
                 </td>
               </tr>
             )}

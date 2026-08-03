@@ -46,7 +46,8 @@ function initials(name?: string | null, email?: string | null) {
 
 function planPill(plan?: string | null) {
   const p = (plan || 'free').toLowerCase();
-  const cls = p === 'agency' ? 'admin-pill-agency' : p === 'pro' ? 'admin-pill-pro' : 'admin-pill-free';
+  const cls =
+    p === 'agency' ? 'admin-pill-agency' : p === 'pro' ? 'admin-pill-pro' : 'admin-pill-free';
   return <span className={`admin-pill ${cls}`}>{p}</span>;
 }
 
@@ -56,9 +57,11 @@ export default function AdminUserDetailPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [events, setEvents] = useState<UserEvent[]>([]);
-  const [meta, setMeta] = useState<{ eventCount: number; activityStatus: string; lastEventAt: string | null } | null>(
-    null
-  );
+  const [meta, setMeta] = useState<{
+    eventCount: number;
+    activityStatus: string;
+    lastEventAt: string | null;
+  } | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -99,7 +102,10 @@ export default function AdminUserDetailPage() {
   if (error) {
     return (
       <div className="space-y-4">
-        <Link href="/admin/users" className="inline-flex items-center gap-1 text-sm text-[var(--admin-mute)] hover:text-[var(--admin-text)]">
+        <Link
+          href="/admin/users"
+          className="inline-flex items-center gap-1 text-sm text-[var(--admin-mute)] hover:text-[var(--admin-text)]"
+        >
           <ArrowLeft size={14} /> Users
         </Link>
         <p className="text-[var(--admin-bad)]">{error}</p>
@@ -113,7 +119,10 @@ export default function AdminUserDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/admin/users" className="inline-flex items-center gap-1 text-sm text-[var(--admin-mute)] hover:text-[var(--admin-text)]">
+      <Link
+        href="/admin/users"
+        className="inline-flex items-center gap-1 text-sm text-[var(--admin-mute)] hover:text-[var(--admin-text)]"
+      >
         <ArrowLeft size={14} /> Users
       </Link>
 
@@ -133,7 +142,10 @@ export default function AdminUserDetailPage() {
               {meta?.activityStatus === 'active' ? 'Active' : 'Idle'}
             </span>
             {profile.status === 'suspended' && (
-              <span className="admin-pill" style={{ background: 'rgba(240,68,56,0.15)', color: '#f04438' }}>
+              <span
+                className="admin-pill"
+                style={{ background: 'rgba(240,68,56,0.15)', color: '#f04438' }}
+              >
                 Suspended
               </span>
             )}
@@ -182,7 +194,9 @@ export default function AdminUserDetailPage() {
             <dt className="text-[var(--admin-mute)]">Subscription</dt>
             <dd className="font-mono text-xs">{profile.razorpay_subscription_id || '—'}</dd>
           </dl>
-          <p className="text-xs text-[var(--admin-mute)]">No card/PCI data stored. Est. list prices only.</p>
+          <p className="text-xs text-[var(--admin-mute)]">
+            No card/PCI data stored. Est. list prices only.
+          </p>
         </div>
 
         <div className="admin-card p-4 space-y-3">
@@ -194,7 +208,10 @@ export default function AdminUserDetailPage() {
           )}
           <ul className="space-y-2">
             {connections.map((c) => (
-              <li key={c.id} className="flex items-center justify-between rounded-xl border border-[var(--admin-line)] px-3 py-2 text-sm">
+              <li
+                key={c.id}
+                className="flex items-center justify-between rounded-xl border border-[var(--admin-line)] px-3 py-2 text-sm"
+              >
                 <span className="capitalize">{c.platform}</span>
                 <span className="font-mono text-xs text-[var(--admin-mute)]">
                   {new Date(c.connected_at).toLocaleDateString()}
@@ -207,18 +224,26 @@ export default function AdminUserDetailPage() {
         <div className="admin-card p-4 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-sm font-bold">Activity</h3>
-            <span className="font-mono text-[10px] text-[var(--admin-mute)]">{meta?.eventCount ?? 0} events</span>
+            <span className="font-mono text-[10px] text-[var(--admin-mute)]">
+              {meta?.eventCount ?? 0} events
+            </span>
           </div>
           <ul className="max-h-72 space-y-2 overflow-auto">
             {events.map((e) => (
-              <li key={e.id} className="border-b border-[var(--admin-line)] pb-2 text-sm last:border-0">
+              <li
+                key={e.id}
+                className="border-b border-[var(--admin-line)] pb-2 text-sm last:border-0"
+              >
                 <div className="font-medium text-[var(--admin-text)]">{e.event_name}</div>
                 <div className="font-mono text-[10px] text-[var(--admin-mute)]">
-                  {e.event_category || '—'} · {e.page_path || '—'} · {new Date(e.created_at).toLocaleString()}
+                  {e.event_category || '—'} · {e.page_path || '—'} ·{' '}
+                  {new Date(e.created_at).toLocaleString()}
                 </div>
               </li>
             ))}
-            {events.length === 0 && <li className="text-sm text-[var(--admin-mute)]">No events yet</li>}
+            {events.length === 0 && (
+              <li className="text-sm text-[var(--admin-mute)]">No events yet</li>
+            )}
           </ul>
         </div>
       </div>

@@ -36,7 +36,15 @@ export default function BestTimeHeatmap() {
               <div
                 key={`legend-heat-${i}`}
                 className="w-3 h-3 rounded-sm"
-                style={{ opacity: v, backgroundColor: v >= 0.7 ? 'var(--primary)' : v >= 0.4 ? 'var(--secondary)' : 'var(--muted-foreground)' }}
+                style={{
+                  opacity: v,
+                  backgroundColor:
+                    v >= 0.7
+                      ? 'var(--primary)'
+                      : v >= 0.4
+                        ? 'var(--secondary)'
+                        : 'var(--muted-foreground)',
+                }}
               />
             ))}
           </div>
@@ -49,7 +57,10 @@ export default function BestTimeHeatmap() {
           {/* Hour labels */}
           <div className="flex mb-1.5 pl-10">
             {HOURS.map((h) => (
-              <div key={`hour-${h}`} className="flex-1 text-center text-xs font-mono-custom text-muted-foreground">
+              <div
+                key={`hour-${h}`}
+                className="flex-1 text-center text-xs font-mono-custom text-muted-foreground"
+              >
                 {h}
               </div>
             ))}
@@ -58,7 +69,9 @@ export default function BestTimeHeatmap() {
           {/* Grid */}
           {DAYS.map((day, di) => (
             <div key={`day-row-${day}`} className="flex items-center gap-1 mb-1">
-              <span className="w-8 text-xs font-mono-custom text-muted-foreground flex-shrink-0">{day}</span>
+              <span className="w-8 text-xs font-mono-custom text-muted-foreground flex-shrink-0">
+                {day}
+              </span>
               {HOURS.map((hour, hi) => {
                 const intensity = HEATMAP_DATA[di][hi];
                 const isPeak = intensity >= 0.95;
@@ -67,7 +80,12 @@ export default function BestTimeHeatmap() {
                     key={`cell-${day}-${hour}`}
                     className="flex-1 h-8 rounded heatmap-cell relative group cursor-default"
                     style={{
-                      backgroundColor: intensity >= 0.7 ? 'var(--primary)' : intensity >= 0.4 ? 'var(--secondary)' : 'var(--muted)',
+                      backgroundColor:
+                        intensity >= 0.7
+                          ? 'var(--primary)'
+                          : intensity >= 0.4
+                            ? 'var(--secondary)'
+                            : 'var(--muted)',
                       opacity: intensity,
                     }}
                   >
@@ -89,7 +107,8 @@ export default function BestTimeHeatmap() {
 
       <div className="mt-4 p-3 bg-primary/5 border border-primary/20 rounded-xl">
         <p className="text-xs font-sans text-foreground">
-          <span className="font-bold text-primary">Peak window: Thursday 12PM</span> — highest engagement across all tracked platforms. Second best: Wednesday 12–3PM.
+          <span className="font-bold text-primary">Peak window: Thursday 12PM</span> — highest
+          engagement across all tracked platforms. Second best: Wednesday 12–3PM.
         </p>
       </div>
     </div>

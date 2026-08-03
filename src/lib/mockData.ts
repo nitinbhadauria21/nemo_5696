@@ -5,7 +5,8 @@ export type TrendStatus = 'hot' | 'rising' | 'fading';
  * Platform weights (Cross-Platform Score): TikTok 22%, Instagram 20%, YouTube 20%,
  * Google Trends 18%, Twitter/X 12%, Reddit 5%, LinkedIn 3%.
  */
-export type TrendPlatform = 'google' | 'youtube' | 'instagram' | 'linkedin' | 'tiktok' | 'twitter' | 'reddit';
+export type TrendPlatform =
+  'google' | 'youtube' | 'instagram' | 'linkedin' | 'tiktok' | 'twitter' | 'reddit';
 
 export type TrendContentType = 'TOPIC' | 'HOOK' | 'CONCEPT' | 'KEYWORD';
 
@@ -20,22 +21,22 @@ export interface TrendItem {
    * Sub-scores aligned with Nemo Backend Data Signals & Trend Scoring Review v1.0
    * Formula: (cvs×0.25 + ss×0.30 + cps×0.25 + freshness×0.20) × freshnessMultiplier
    */
-  cvs: number;           // Creator Velocity Score 0–100 (was 0–1 range — corrected)
-  ss: number;            // Spike Score 0–100 log-normalized (was raw ratio — corrected)
-  cps: number;           // Cross-Platform Score 0–100 (was missing — now required)
-  freshness: number;     // Freshness Score 0–100 (was 0–1 range — corrected)
+  cvs: number; // Creator Velocity Score 0–100 (was 0–1 range — corrected)
+  ss: number; // Spike Score 0–100 log-normalized (was raw ratio — corrected)
+  cps: number; // Cross-Platform Score 0–100 (was missing — now required)
+  freshness: number; // Freshness Score 0–100 (was 0–1 range — corrected)
   freshnessMultiplier: number; // 0.1–1.0 final multiplier applied to composite score
 
   platforms: TrendPlatform[];
   creatorsCount: number;
   mentions24h: number;
-  mentionsPrev24h: number;    // required for Spike Score formula
-  creatorsLast6h: number;     // required for Creator Velocity Score (corrected formula)
-  creatorsLast24h: number;    // required for Creator Velocity Score
-  creatorsLast72h: number;    // required for Creator Velocity Score (denominator)
+  mentionsPrev24h: number; // required for Spike Score formula
+  creatorsLast6h: number; // required for Creator Velocity Score (corrected formula)
+  creatorsLast24h: number; // required for Creator Velocity Score
+  creatorsLast72h: number; // required for Creator Velocity Score (denominator)
   sparklineData: number[];
   timeAgo: string;
-  firstDetectedAt: string;    // ISO timestamp — required for Freshness Multiplier
+  firstDetectedAt: string; // ISO timestamp — required for Freshness Multiplier
   hashtags: string[];
   description: string;
   isBookmarked: boolean;
@@ -76,7 +77,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '2h ago',
     firstDetectedAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
     hashtags: ['#ClaudeAI', '#AITools', '#MCP', '#Automation', '#LLM'],
-    description: 'Claude AI tool integrations and MCP server configurations are exploding across developer and creator communities.',
+    description:
+      'Claude AI tool integrations and MCP server configurations are exploding across developer and creator communities.',
     isBookmarked: true,
     velocity: 2.4,
     spike: 312,
@@ -106,7 +108,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '1h ago',
     firstDetectedAt: new Date(Date.now() - 1 * 3600 * 1000).toISOString(),
     hashtags: ['#InstagramBroadcast', '#Creators', '#ContentStrategy', '#IG2026'],
-    description: 'Instagram Broadcast Channels are becoming the go-to for direct creator-fan communication replacing newsletters.',
+    description:
+      'Instagram Broadcast Channels are becoming the go-to for direct creator-fan communication replacing newsletters.',
     isBookmarked: false,
     velocity: 1.9,
     spike: 248,
@@ -137,7 +140,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '4h ago',
     firstDetectedAt: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
     hashtags: ['#AgenticAI', '#AIAgents', '#Automation', '#AIWorkflow', '#Productivity'],
-    description: 'Multi-agent AI systems and agentic workflows are taking over enterprise and creator productivity conversations.',
+    description:
+      'Multi-agent AI systems and agentic workflows are taking over enterprise and creator productivity conversations.',
     isBookmarked: true,
     velocity: 2.1,
     spike: 287,
@@ -168,7 +172,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '3h ago',
     firstDetectedAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
     hashtags: ['#YouTubeShorts', '#Monetization', '#Creators', '#YTPartner'],
-    description: 'YouTube announced expanded Shorts monetization options giving creators new revenue streams from short-form content.',
+    description:
+      'YouTube announced expanded Shorts monetization options giving creators new revenue streams from short-form content.',
     isBookmarked: false,
     velocity: 1.4,
     spike: 172,
@@ -198,7 +203,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '30m ago',
     firstDetectedAt: new Date(Date.now() - 0.5 * 3600 * 1000).toISOString(),
     hashtags: ['#IPL2026', '#FantasyLeague', '#Cricket', '#IPLFantasy', '#Dream11'],
-    description: 'IPL 2026 fantasy league discussions dominate social media with massive creator engagement around team picks.',
+    description:
+      'IPL 2026 fantasy league discussions dominate social media with massive creator engagement around team picks.',
     isBookmarked: false,
     velocity: 1.8,
     spike: 224,
@@ -228,7 +234,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '6h ago',
     firstDetectedAt: new Date(Date.now() - 6 * 3600 * 1000).toISOString(),
     hashtags: ['#LinkedInPods', '#ThoughtLeadership', '#B2B', '#LinkedInGrowth'],
-    description: 'LinkedIn engagement pods and thought leadership strategies are seeing renewed interest as organic reach declines.',
+    description:
+      'LinkedIn engagement pods and thought leadership strategies are seeing renewed interest as organic reach declines.',
     isBookmarked: false,
     velocity: 0.9,
     spike: 89,
@@ -258,7 +265,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '1h ago',
     firstDetectedAt: new Date(Date.now() - 1 * 3600 * 1000).toISOString(),
     hashtags: ['#MinecraftLegends', '#Gaming', '#Minecraft', '#Season3'],
-    description: 'Minecraft Legends Season 3 launch is driving massive content creation across YouTube and Instagram gaming channels.',
+    description:
+      'Minecraft Legends Season 3 launch is driving massive content creation across YouTube and Instagram gaming channels.',
     isBookmarked: true,
     velocity: 1.3,
     spike: 156,
@@ -288,7 +296,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '2d ago',
     firstDetectedAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
     hashtags: ['#AIMusic', '#MusicIndustry', '#AIArt', '#Copyright'],
-    description: 'Debate around AI-generated music rights and copyright is cooling after peak controversy last week.',
+    description:
+      'Debate around AI-generated music rights and copyright is cooling after peak controversy last week.',
     isBookmarked: false,
     velocity: 0.4,
     spike: -28,
@@ -318,7 +327,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '5h ago',
     firstDetectedAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
     hashtags: ['#NotionAI', '#Productivity', '#PKM', '#NotionUpdate'],
-    description: 'Notion AI 3.0 launch with new database intelligence features is driving tutorials and workflow breakdowns.',
+    description:
+      'Notion AI 3.0 launch with new database intelligence features is driving tutorials and workflow breakdowns.',
     isBookmarked: false,
     velocity: 1.2,
     spike: 143,
@@ -348,7 +358,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '8h ago',
     firstDetectedAt: new Date(Date.now() - 8 * 3600 * 1000).toISOString(),
     hashtags: ['#FinanceContent', '#PersonalFinance', '#Investing', '#FinTok'],
-    description: 'Personal finance creators are seeing explosive growth as Gen Z seeks financial literacy content across platforms.',
+    description:
+      'Personal finance creators are seeing explosive growth as Gen Z seeks financial literacy content across platforms.',
     isBookmarked: false,
     velocity: 1.1,
     spike: 118,
@@ -378,7 +389,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '4h ago',
     firstDetectedAt: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
     hashtags: ['#ReelHooks', '#ContentPsychology', '#Hooks', '#InstagramReels', '#ContentCreator'],
-    description: 'Psychology-based hook frameworks for Reels are going viral among marketing educators and content strategy creators.',
+    description:
+      'Psychology-based hook frameworks for Reels are going viral among marketing educators and content strategy creators.',
     isBookmarked: false,
     velocity: 1.5,
     spike: 189,
@@ -409,7 +421,8 @@ export const MOCK_TRENDS: TrendItem[] = [
     timeAgo: '7h ago',
     firstDetectedAt: new Date(Date.now() - 7 * 3600 * 1000).toISOString(),
     hashtags: ['#EVIndia', '#ElectricVehicles', '#EVCharging', '#GreenIndia'],
-    description: 'India EV charging infrastructure expansion is driving B2B content and investment discussion on LinkedIn.',
+    description:
+      'India EV charging infrastructure expansion is driving B2B content and investment discussion on LinkedIn.',
     isBookmarked: false,
     velocity: 0.8,
     spike: 76,
@@ -435,23 +448,124 @@ export const CATEGORIES = [
   'Education',
 ];
 
-export const PLATFORMS: TrendPlatform[] = ['google', 'youtube', 'instagram', 'linkedin', 'tiktok', 'twitter', 'reddit'];
+export const PLATFORMS: TrendPlatform[] = [
+  'google',
+  'youtube',
+  'instagram',
+  'linkedin',
+  'tiktok',
+  'twitter',
+  'reddit',
+];
 
 export const MOCK_ADMIN_USERS = [
-  { id: 'user-001', name: 'Priya Mehta', email: 'priya.mehta@studio.in', plan: 'Pro', status: 'active', joined: '2026-01-14', bookmarks: 24, apiKeys: 2 },
-  { id: 'user-002', name: 'Arjun Kapoor', email: 'arjun.kapoor@creator.com', plan: 'Free', status: 'active', joined: '2026-02-03', bookmarks: 7, apiKeys: 0 },
-  { id: 'user-003', name: 'Sneha Iyer', email: 'sneha.iyer@brandco.io', plan: 'Agency', status: 'active', joined: '2026-01-28', bookmarks: 51, apiKeys: 5 },
-  { id: 'user-004', name: 'Rahul Verma', email: 'rahul.v@growthx.in', plan: 'Pro', status: 'active', joined: '2026-03-11', bookmarks: 18, apiKeys: 1 },
-  { id: 'user-005', name: 'Divya Nair', email: 'divya.nair@contentlab.com', plan: 'Free', status: 'inactive', joined: '2026-04-05', bookmarks: 2, apiKeys: 0 },
-  { id: 'user-006', name: 'Karan Singh', email: 'karan.singh@agency.co', plan: 'Agency', status: 'active', joined: '2026-02-19', bookmarks: 88, apiKeys: 8 },
-  { id: 'user-007', name: 'Ananya Sharma', email: 'ananya.s@vibevault.in', plan: 'Pro', status: 'active', joined: '2026-05-01', bookmarks: 33, apiKeys: 3 },
-  { id: 'user-008', name: 'Vikram Patel', email: 'vikram.patel@trendhq.com', plan: 'Free', status: 'active', joined: '2026-06-10', bookmarks: 9, apiKeys: 0 },
+  {
+    id: 'user-001',
+    name: 'Priya Mehta',
+    email: 'priya.mehta@studio.in',
+    plan: 'Pro',
+    status: 'active',
+    joined: '2026-01-14',
+    bookmarks: 24,
+    apiKeys: 2,
+  },
+  {
+    id: 'user-002',
+    name: 'Arjun Kapoor',
+    email: 'arjun.kapoor@creator.com',
+    plan: 'Free',
+    status: 'active',
+    joined: '2026-02-03',
+    bookmarks: 7,
+    apiKeys: 0,
+  },
+  {
+    id: 'user-003',
+    name: 'Sneha Iyer',
+    email: 'sneha.iyer@brandco.io',
+    plan: 'Agency',
+    status: 'active',
+    joined: '2026-01-28',
+    bookmarks: 51,
+    apiKeys: 5,
+  },
+  {
+    id: 'user-004',
+    name: 'Rahul Verma',
+    email: 'rahul.v@growthx.in',
+    plan: 'Pro',
+    status: 'active',
+    joined: '2026-03-11',
+    bookmarks: 18,
+    apiKeys: 1,
+  },
+  {
+    id: 'user-005',
+    name: 'Divya Nair',
+    email: 'divya.nair@contentlab.com',
+    plan: 'Free',
+    status: 'inactive',
+    joined: '2026-04-05',
+    bookmarks: 2,
+    apiKeys: 0,
+  },
+  {
+    id: 'user-006',
+    name: 'Karan Singh',
+    email: 'karan.singh@agency.co',
+    plan: 'Agency',
+    status: 'active',
+    joined: '2026-02-19',
+    bookmarks: 88,
+    apiKeys: 8,
+  },
+  {
+    id: 'user-007',
+    name: 'Ananya Sharma',
+    email: 'ananya.s@vibevault.in',
+    plan: 'Pro',
+    status: 'active',
+    joined: '2026-05-01',
+    bookmarks: 33,
+    apiKeys: 3,
+  },
+  {
+    id: 'user-008',
+    name: 'Vikram Patel',
+    email: 'vikram.patel@trendhq.com',
+    plan: 'Free',
+    status: 'active',
+    joined: '2026-06-10',
+    bookmarks: 9,
+    apiKeys: 0,
+  },
 ];
 
 export const MOCK_API_KEYS = [
-  { id: 'key-001', name: 'Production Dashboard', prefix: 'NT_prod_8f2a', lastUsed: '2026-07-12', created: '2026-06-01', requests: 4821 },
-  { id: 'key-002', name: 'Content Automation Bot', prefix: 'NT_bot_3c9d', lastUsed: '2026-07-11', created: '2026-06-15', requests: 1204 },
-  { id: 'key-003', name: 'Analytics Pipeline', prefix: 'NT_anl_7e1b', lastUsed: '2026-07-10', created: '2026-07-01', requests: 387 },
+  {
+    id: 'key-001',
+    name: 'Production Dashboard',
+    prefix: 'NT_prod_8f2a',
+    lastUsed: '2026-07-12',
+    created: '2026-06-01',
+    requests: 4821,
+  },
+  {
+    id: 'key-002',
+    name: 'Content Automation Bot',
+    prefix: 'NT_bot_3c9d',
+    lastUsed: '2026-07-11',
+    created: '2026-06-15',
+    requests: 1204,
+  },
+  {
+    id: 'key-003',
+    name: 'Analytics Pipeline',
+    prefix: 'NT_anl_7e1b',
+    lastUsed: '2026-07-10',
+    created: '2026-07-01',
+    requests: 387,
+  },
 ];
 
 export const ANALYTICS_DAILY_DATA = [

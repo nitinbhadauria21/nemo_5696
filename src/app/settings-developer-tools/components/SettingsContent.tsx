@@ -13,8 +13,16 @@ import NichesTab from './NichesTab';
 import PlatformsTab from './PlatformsTab';
 import MCPConfigTab from './MCPConfigTab';
 
-
-type TabId = 'profile' | 'niches' | 'platforms' | 'social' | 'accounts' | 'subscription' | 'style' | 'notifications' | 'api';
+type TabId =
+  | 'profile'
+  | 'niches'
+  | 'platforms'
+  | 'social'
+  | 'accounts'
+  | 'subscription'
+  | 'style'
+  | 'notifications'
+  | 'api';
 
 interface Tab {
   id: TabId;
@@ -41,14 +49,22 @@ export default function SettingsContent() {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'profile': return <ProfileTab />;
-      case 'niches': return <NichesTab />;
-      case 'platforms': return <PlatformsTab />;
-      case 'social': return <SocialConnectTabWrapper />;
-      case 'accounts': return <ConnectedAccountsTab />;
-      case 'subscription': return <SubscriptionTab />;
-      case 'style': return <StyleDefaultsTab />;
-      case 'notifications': return <NotificationsTab />;
+      case 'profile':
+        return <ProfileTab />;
+      case 'niches':
+        return <NichesTab />;
+      case 'platforms':
+        return <PlatformsTab />;
+      case 'social':
+        return <SocialConnectTabWrapper />;
+      case 'accounts':
+        return <ConnectedAccountsTab />;
+      case 'subscription':
+        return <SubscriptionTab />;
+      case 'style':
+        return <StyleDefaultsTab />;
+      case 'notifications':
+        return <NotificationsTab />;
       case 'api':
         return (
           <div className="space-y-5">
@@ -56,7 +72,9 @@ export default function SettingsContent() {
               <button
                 onClick={() => setApiSection('keys')}
                 className={`px-5 py-2.5 rounded-xl text-sm font-bold font-sans transition-all ${
-                  apiSection === 'keys' ? 'bg-primary text-white shadow-flame-sm' : 'bg-muted text-muted-foreground hover:text-foreground border-2 border-border'
+                  apiSection === 'keys'
+                    ? 'bg-primary text-white shadow-flame-sm'
+                    : 'bg-muted text-muted-foreground hover:text-foreground border-2 border-border'
                 }`}
               >
                 API Keys
@@ -64,7 +82,9 @@ export default function SettingsContent() {
               <button
                 onClick={() => setApiSection('mcp')}
                 className={`px-5 py-2.5 rounded-xl text-sm font-bold font-sans transition-all ${
-                  apiSection === 'mcp' ? 'bg-primary text-white shadow-flame-sm' : 'bg-muted text-muted-foreground hover:text-foreground border-2 border-border'
+                  apiSection === 'mcp'
+                    ? 'bg-primary text-white shadow-flame-sm'
+                    : 'bg-muted text-muted-foreground hover:text-foreground border-2 border-border'
                 }`}
               >
                 MCP & Docs
@@ -73,7 +93,8 @@ export default function SettingsContent() {
             {apiSection === 'keys' ? <APIKeyTab /> : <MCPConfigTab />}
           </div>
         );
-      default: return null;
+      default:
+        return null;
     }
   };
 
@@ -86,8 +107,12 @@ export default function SettingsContent() {
             <User size={20} className="text-white" />
           </div>
           <div>
-            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">Settings</h1>
-            <p className="text-sm text-muted-foreground font-sans mt-0.5">Manage your account, integrations, and developer tools</p>
+            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">
+              Settings
+            </h1>
+            <p className="text-sm text-muted-foreground font-sans mt-0.5">
+              Manage your account, integrations, and developer tools
+            </p>
           </div>
         </div>
       </div>
@@ -106,10 +131,14 @@ export default function SettingsContent() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
                       isActive
-                        ? 'bg-primary/10 text-primary border-2 border-primary/20' :'text-muted-foreground hover:text-foreground hover:bg-muted border-2 border-transparent'
+                        ? 'bg-primary/10 text-primary border-2 border-primary/20'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted border-2 border-transparent'
                     }`}
                   >
-                    <Icon size={18} className={isActive ? 'text-primary' : 'text-muted-foreground'} />
+                    <Icon
+                      size={18}
+                      className={isActive ? 'text-primary' : 'text-muted-foreground'}
+                    />
                     <span className="text-sm font-bold font-sans truncate">{tab.label}</span>
                     {tab.badge && (
                       <span className="ml-auto text-[10px] font-mono-custom font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
@@ -133,7 +162,9 @@ export default function SettingsContent() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold font-sans whitespace-nowrap flex-shrink-0 transition-all ${
-                      isActive ? 'bg-primary text-white' : 'bg-card border-2 border-border text-muted-foreground hover:text-foreground'
+                      isActive
+                        ? 'bg-primary text-white'
+                        : 'bg-card border-2 border-border text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     <Icon size={15} />

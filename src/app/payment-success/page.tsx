@@ -77,9 +77,12 @@ function PaymentSuccessInner() {
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center text-3xl">
             ✓
           </div>
-          <h1 className="font-display text-3xl font-bold text-foreground mb-2">Payment successful</h1>
+          <h1 className="font-display text-3xl font-bold text-foreground mb-2">
+            Payment successful
+          </h1>
           <p className="text-sm text-muted-foreground font-sans mb-6">
-            Your <span className="font-semibold text-foreground uppercase">{plan}</span> plan is now active.
+            Your <span className="font-semibold text-foreground uppercase">{plan}</span> plan is now
+            active.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 text-left">
@@ -94,7 +97,10 @@ function PaymentSuccessInner() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link href="/dashboard" className="btn-flame flex-1 py-3 rounded-xl text-sm font-bold text-center">
+            <Link
+              href="/dashboard"
+              className="btn-flame flex-1 py-3 rounded-xl text-sm font-bold text-center"
+            >
               Go to Dashboard
             </Link>
             <Link
@@ -114,7 +120,9 @@ export default function PaymentSuccessPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">Loading…</div>
+        <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
+          Loading…
+        </div>
       }
     >
       <PaymentSuccessInner />

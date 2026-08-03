@@ -130,7 +130,9 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
               <span className="text-white text-sm font-bold font-display">N</span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground font-sans leading-tight">Nemo AI</p>
+              <p className="text-sm font-semibold text-foreground font-sans leading-tight">
+                Nemo AI
+              </p>
               <p className="text-[10px] text-muted-foreground font-mono-custom uppercase tracking-widest leading-tight">
                 Trend Strategy Assistant
               </p>
@@ -172,7 +174,8 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
                   Ask Nemo AI anything
                 </p>
                 <p className="text-xs text-muted-foreground font-sans max-w-[260px]">
-                  Explore trends, get content ideas, and build your strategy with AI-powered insights.
+                  Explore trends, get content ideas, and build your strategy with AI-powered
+                  insights.
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-2 w-full mt-2">
@@ -201,7 +204,9 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
               )}
               <div
                 className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-sm font-sans leading-relaxed whitespace-pre-wrap ${
-                  msg.role === 'user' ?'bg-primary text-white rounded-br-sm' :'bg-muted text-foreground rounded-bl-sm'
+                  msg.role === 'user'
+                    ? 'bg-primary text-white rounded-br-sm'
+                    : 'bg-muted text-foreground rounded-bl-sm'
                 }`}
               >
                 {msg.content}

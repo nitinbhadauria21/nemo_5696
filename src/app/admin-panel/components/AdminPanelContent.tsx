@@ -18,7 +18,12 @@ export default function AdminPanelContent() {
   const [showCode, setShowCode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors }, setError } = useForm<AdminLoginForm>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm<AdminLoginForm>();
 
   const handleAdminLogin = async (data: AdminLoginForm) => {
     setIsLoading(true);
@@ -52,13 +57,16 @@ export default function AdminPanelContent() {
               </div>
               <div>
                 <h1 className="font-display text-xl font-bold text-foreground">Admin Access</h1>
-                <p className="text-xs text-muted-foreground font-sans">Restricted area · NEMO Platform</p>
+                <p className="text-xs text-muted-foreground font-sans">
+                  Restricted area · NEMO Platform
+                </p>
               </div>
             </div>
 
             <div className="p-3 bg-red-500/5 border border-red-500/20 rounded-xl mb-6">
               <p className="text-xs font-sans text-red-400 leading-relaxed">
-                This area is restricted to authorized administrators only. Unauthorized access attempts are logged.
+                This area is restricted to authorized administrators only. Unauthorized access
+                attempts are logged.
               </p>
             </div>
 
@@ -100,9 +108,7 @@ export default function AdminPanelContent() {
                     {showCode ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
-                {errors.code && (
-                  <p className="mt-1 text-xs text-red-400">{errors.code.message}</p>
-                )}
+                {errors.code && <p className="mt-1 text-xs text-red-400">{errors.code.message}</p>}
               </div>
 
               <button
@@ -112,29 +118,25 @@ export default function AdminPanelContent() {
               >
                 {isLoading ? (
                   <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
                   </svg>
                 ) : (
                   'Enter Admin Panel →'
                 )}
               </button>
             </form>
-
-            {/* Demo credentials */}
-            <div className="mt-5 p-3 bg-muted rounded-xl border border-border">
-              <p className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-2">
-                Demo Admin Credentials
-              </p>
-              <div className="space-y-1">
-                <p className="text-xs font-sans text-muted-foreground">
-                  Email: <span className="font-mono-custom text-foreground">admin@nemo.app</span>
-                </p>
-                <p className="text-xs font-sans text-muted-foreground">
-                  Code: <span className="font-mono-custom text-foreground">NEMO_MASTER_2026_NITIN</span>
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -189,21 +191,48 @@ export default function AdminPanelContent() {
           </h3>
           <div className="space-y-2">
             {[
-              { id: 'mod-001', type: 'Reported Trend', subject: 'Misleading health claims — "Miracle Weight Loss 2026"', priority: 'high', time: '14m ago' },
-              { id: 'mod-002', type: 'Spam Report', subject: 'Repeated keyword stuffing in bookmark labels', priority: 'medium', time: '1h ago' },
-              { id: 'mod-003', type: 'API Abuse', subject: 'Rate limit exceeded 40× in 10 min — key NT_test_2f9c', priority: 'high', time: '2h ago' },
+              {
+                id: 'mod-001',
+                type: 'Reported Trend',
+                subject: 'Misleading health claims — "Miracle Weight Loss 2026"',
+                priority: 'high',
+                time: '14m ago',
+              },
+              {
+                id: 'mod-002',
+                type: 'Spam Report',
+                subject: 'Repeated keyword stuffing in bookmark labels',
+                priority: 'medium',
+                time: '1h ago',
+              },
+              {
+                id: 'mod-003',
+                type: 'API Abuse',
+                subject: 'Rate limit exceeded 40× in 10 min — key NT_test_2f9c',
+                priority: 'high',
+                time: '2h ago',
+              },
             ].map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-3 bg-muted rounded-xl border border-border">
+              <div
+                key={item.id}
+                className="flex items-center justify-between p-3 bg-muted rounded-xl border border-border"
+              >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className={`flex-shrink-0 w-2 h-2 rounded-full ${item.priority === 'high' ? 'bg-red-400' : 'bg-secondary'}`} />
+                  <span
+                    className={`flex-shrink-0 w-2 h-2 rounded-full ${item.priority === 'high' ? 'bg-red-400' : 'bg-secondary'}`}
+                  />
                   <div className="min-w-0">
-                    <p className="text-xs font-mono-custom text-muted-foreground uppercase tracking-wide">{item.type}</p>
+                    <p className="text-xs font-mono-custom text-muted-foreground uppercase tracking-wide">
+                      {item.type}
+                    </p>
                     <p className="text-sm font-sans text-foreground truncate">{item.subject}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className="text-xs font-sans text-muted-foreground">{item.time}</span>
-                  <button className="text-xs font-sans font-semibold text-primary hover:underline">Review</button>
+                  <button className="text-xs font-sans font-semibold text-primary hover:underline">
+                    Review
+                  </button>
                 </div>
               </div>
             ))}

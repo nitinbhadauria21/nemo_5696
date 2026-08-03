@@ -17,18 +17,26 @@ export async function GET(_request: NextRequest, context: Ctx) {
   if (isSupabaseConfigured()) {
     const admin = createAdminClient();
     if (admin) {
-      const [{ data: profile, error }, { data: connections }, { data: events }, { count: eventCount }] =
-        await Promise.all([
-          admin.from('profiles').select('*').eq('id', id).maybeSingle(),
-          admin.from('user_connections').select('*').eq('user_id', id).order('connected_at', { ascending: false }),
-          admin
-            .from('user_events')
-            .select('id, event_name, event_category, page_path, properties, created_at, session_id')
-            .eq('user_id', id)
-            .order('created_at', { ascending: false })
-            .limit(40),
-          admin.from('user_events').select('*', { count: 'exact', head: true }).eq('user_id', id),
-        ]);
+      const [
+        { data: profile, error },
+        { data: connections },
+        { data: events },
+        { count: eventCount },
+      ] = await Promise.all([
+        admin.from('profiles').select('*').eq('id', id).maybeSingle(),
+        admin
+          .from('user_connections')
+          .select('*')
+          .eq('user_id', id)
+          .order('connected_at', { ascending: false }),
+        admin
+          .from('user_events')
+          .select('id, event_name, event_category, page_path, properties, created_at, session_id')
+          .eq('user_id', id)
+          .order('created_at', { ascending: false })
+          .limit(40),
+        admin.from('user_events').select('*', { count: 'exact', head: true }).eq('user_id', id),
+      ]);
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       if (!profile) return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -82,7 +90,8 @@ export async function PATCH(request: NextRequest, context: Ctx) {
 
   const { id } = await context.params;
   const body = await request.json().catch(() => ({}));
-  const status = body.status === 'suspended' ? 'suspended' : body.status === 'active' ? 'active' : null;
+  const status =
+    body.status === 'suspended' ? 'suspended' : body.status === 'active' ? 'active' : null;
   if (!status) {
     return NextResponse.json({ error: 'status must be active or suspended' }, { status: 400 });
   }

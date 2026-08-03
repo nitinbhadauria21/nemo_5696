@@ -4,8 +4,18 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 
 const NICHES = [
-  'AI & Tech', 'Marketing', 'Gaming', 'Sports', 'Finance',
-  'Business', 'Productivity', 'Health', 'Entertainment', 'Education', 'Travel', 'Food',
+  'AI & Tech',
+  'Marketing',
+  'Gaming',
+  'Sports',
+  'Finance',
+  'Business',
+  'Productivity',
+  'Health',
+  'Entertainment',
+  'Education',
+  'Travel',
+  'Food',
 ];
 
 const TONES = ['Educational', 'Entertaining', 'Inspirational', 'Controversial', 'Authentic'];
@@ -20,8 +30,8 @@ export default function StyleDefaultsTab() {
       prev.includes(niche)
         ? prev.filter((n) => n !== niche)
         : prev.length < 3
-        ? [...prev, niche]
-        : prev
+          ? [...prev, niche]
+          : prev
     );
   };
 
@@ -40,7 +50,9 @@ export default function StyleDefaultsTab() {
         <h3 className="text-sm font-sans font-semibold text-foreground mb-1">Content Niches</h3>
         <p className="text-xs text-muted-foreground font-sans mb-4">
           Select up to 3 niches — NEMO will prioritize these in your dashboard and AI analysis.
-          <span className="ml-1 text-primary font-semibold">{selectedNiches.length}/3 selected</span>
+          <span className="ml-1 text-primary font-semibold">
+            {selectedNiches.length}/3 selected
+          </span>
         </p>
         <div className="flex flex-wrap gap-2">
           {NICHES.map((niche) => {
@@ -55,8 +67,8 @@ export default function StyleDefaultsTab() {
                   active
                     ? 'bg-primary text-white shadow-flame-sm'
                     : atMax
-                    ? 'bg-muted text-muted-foreground/40 cursor-not-allowed border border-border'
-                    : 'bg-muted text-muted-foreground hover:text-foreground border border-border'
+                      ? 'bg-muted text-muted-foreground/40 cursor-not-allowed border border-border'
+                      : 'bg-muted text-muted-foreground hover:text-foreground border border-border'
                 }`}
               >
                 {niche}
@@ -78,7 +90,8 @@ export default function StyleDefaultsTab() {
               onClick={() => setSelectedTone(tone)}
               className={`px-4 py-2 rounded-full text-sm font-sans font-medium transition-all duration-150 border ${
                 selectedTone === tone
-                  ? 'bg-secondary/10 text-secondary border-secondary/30' :'bg-muted text-muted-foreground border-border hover:text-foreground'
+                  ? 'bg-secondary/10 text-secondary border-secondary/30'
+                  : 'bg-muted text-muted-foreground border-border hover:text-foreground'
               }`}
             >
               {tone}
@@ -95,8 +108,19 @@ export default function StyleDefaultsTab() {
         >
           {isSaving ? (
             <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
             </svg>
           ) : null}
           {isSaving ? 'Saving…' : 'Save Style Defaults'}

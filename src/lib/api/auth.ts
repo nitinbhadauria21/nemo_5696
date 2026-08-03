@@ -6,7 +6,9 @@ export async function getAuthUserId(): Promise<string | null> {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   if (!supabase) return null;
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   return user?.id ?? null;
 }
 

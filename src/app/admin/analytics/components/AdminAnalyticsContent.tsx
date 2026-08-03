@@ -91,7 +91,9 @@ export default function AdminAnalyticsContent() {
             {r}
           </button>
         ))}
-        <span className="ml-auto text-xs text-[var(--admin-mute)]">Source: {metrics?.source ?? '…'}</span>
+        <span className="ml-auto text-xs text-[var(--admin-mute)]">
+          Source: {metrics?.source ?? '…'}
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -121,8 +123,18 @@ export default function AdminAnalyticsContent() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                <XAxis dataKey="date" tick={{ fill: '#8a8076', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#8a8076', fontSize: 10 }} axisLine={false} tickLine={false} width={28} />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: '#8a8076', fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: '#8a8076', fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={28}
+                />
                 <Tooltip
                   contentStyle={{
                     background: '#1c1916',
@@ -131,7 +143,13 @@ export default function AdminAnalyticsContent() {
                     fontSize: 12,
                   }}
                 />
-                <Area type="monotone" dataKey="signups" stroke="#FF5A1F" fill="url(#gFill)" strokeWidth={2} />
+                <Area
+                  type="monotone"
+                  dataKey="signups"
+                  stroke="#FF5A1F"
+                  fill="url(#gFill)"
+                  strokeWidth={2}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -143,7 +161,12 @@ export default function AdminAnalyticsContent() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={metrics?.funnel ?? []} layout="vertical" margin={{ left: 20 }}>
                 <CartesianGrid stroke="rgba(255,255,255,0.06)" horizontal={false} />
-                <XAxis type="number" tick={{ fill: '#8a8076', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <XAxis
+                  type="number"
+                  tick={{ fill: '#8a8076', fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <YAxis
                   type="category"
                   dataKey="step"
@@ -171,8 +194,13 @@ export default function AdminAnalyticsContent() {
         <h2 className="mb-3 font-display text-sm font-bold">Platform volume · linked socials</h2>
         <div className="flex flex-wrap gap-3">
           {(metrics?.platformVolume ?? []).map((p) => (
-            <div key={p.name} className="rounded-xl border border-[var(--admin-line)] bg-[var(--admin-surface-2)] px-4 py-3">
-              <div className="font-mono text-[10px] uppercase text-[var(--admin-mute)]">{p.name}</div>
+            <div
+              key={p.name}
+              className="rounded-xl border border-[var(--admin-line)] bg-[var(--admin-surface-2)] px-4 py-3"
+            >
+              <div className="font-mono text-[10px] uppercase text-[var(--admin-mute)]">
+                {p.name}
+              </div>
               <div className="font-display text-xl font-bold">{p.count}</div>
             </div>
           ))}
@@ -198,7 +226,9 @@ export default function AdminAnalyticsContent() {
                 }`}
               >
                 <span>
-                  <span className="block font-medium text-[var(--admin-text)]">{u.full_name || '—'}</span>
+                  <span className="block font-medium text-[var(--admin-text)]">
+                    {u.full_name || '—'}
+                  </span>
                   <span className="text-xs text-[var(--admin-mute)]">{u.email}</span>
                 </span>
                 <span className="admin-pill admin-pill-free">{u.plan || 'free'}</span>
@@ -212,7 +242,10 @@ export default function AdminAnalyticsContent() {
             )}
             {!loadingEvents &&
               events.map((e) => (
-                <div key={e.id} className="mb-3 border-b border-[var(--admin-line)] pb-2 text-sm last:border-0">
+                <div
+                  key={e.id}
+                  className="mb-3 border-b border-[var(--admin-line)] pb-2 text-sm last:border-0"
+                >
                   <div className="font-medium">{e.event_name}</div>
                   <div className="font-mono text-[10px] text-[var(--admin-mute)]">
                     {e.event_category} · {new Date(e.created_at).toLocaleString()}

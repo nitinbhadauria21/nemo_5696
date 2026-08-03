@@ -117,7 +117,8 @@ export default function TopNavbar() {
     const handler = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setUserMenuOpen(false);
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node))
+        setUserMenuOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -225,7 +226,9 @@ export default function TopNavbar() {
                           <Icon name="FireIcon" size={15} className="text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-base font-bold text-foreground truncate font-sans">{trend.title}</p>
+                          <p className="text-base font-bold text-foreground truncate font-sans">
+                            {trend.title}
+                          </p>
                           <p className="text-sm text-foreground/60 font-mono-custom">
                             {trend.category} · Score {trend.nemoScore}
                           </p>
@@ -256,8 +259,14 @@ export default function TopNavbar() {
               </>
             ) : (
               <div className="px-4 py-8 text-center">
-                <Icon name="MagnifyingGlassIcon" size={28} className="text-foreground/40 mx-auto mb-3" />
-                <p className="text-base font-semibold text-foreground font-sans mb-1">No results found</p>
+                <Icon
+                  name="MagnifyingGlassIcon"
+                  size={28}
+                  className="text-foreground/40 mx-auto mb-3"
+                />
+                <p className="text-base font-semibold text-foreground font-sans mb-1">
+                  No results found
+                </p>
                 <p className="text-base text-foreground/60 font-sans">Try different keywords</p>
               </div>
             )}
@@ -287,7 +296,9 @@ export default function TopNavbar() {
             <div className="absolute top-full right-0 mt-2 w-[360px] bg-card border-2 border-border rounded-2xl shadow-nav overflow-hidden z-50 animate-scale-in">
               <div className="flex items-center justify-between px-4 py-3.5 border-b border-border">
                 <div className="flex items-center gap-2.5">
-                  <h3 className="text-base font-bold text-foreground font-display">Notifications</h3>
+                  <h3 className="text-base font-bold text-foreground font-display">
+                    Notifications
+                  </h3>
                   {unreadCount > 0 && (
                     <span className="text-sm bg-red-500/15 text-red-600 px-2 py-0.5 rounded-full font-bold font-mono-custom">
                       {unreadCount} new
@@ -295,7 +306,10 @@ export default function TopNavbar() {
                   )}
                 </div>
                 {unreadCount > 0 && (
-                  <button onClick={markAllRead} className="text-sm font-semibold text-primary hover:underline font-sans">
+                  <button
+                    onClick={markAllRead}
+                    className="text-sm font-semibold text-primary hover:underline font-sans"
+                  >
                     Mark all read
                   </button>
                 )}
@@ -318,7 +332,11 @@ export default function TopNavbar() {
                               : 'bg-blue-500/15'
                         }`}
                       >
-                        <Icon name={notifIcon(notif.type) as any} size={16} className={notifColor(notif.type)} />
+                        <Icon
+                          name={notifIcon(notif.type) as any}
+                          size={16}
+                          className={notifColor(notif.type)}
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
@@ -329,10 +347,16 @@ export default function TopNavbar() {
                           >
                             {notif.title}
                           </p>
-                          {!notif.read && <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />}
+                          {!notif.read && (
+                            <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                          )}
                         </div>
-                        <p className="text-sm text-foreground/65 font-sans mt-0.5 line-clamp-2">{notif.message}</p>
-                        <p className="text-sm text-foreground/50 font-mono-custom mt-1">{notif.time}</p>
+                        <p className="text-sm text-foreground/65 font-sans mt-0.5 line-clamp-2">
+                          {notif.message}
+                        </p>
+                        <p className="text-sm text-foreground/50 font-mono-custom mt-1">
+                          {notif.time}
+                        </p>
                       </div>
                     </div>
                   </li>
@@ -368,7 +392,9 @@ export default function TopNavbar() {
               <p className="text-base font-bold text-foreground font-sans leading-tight max-w-[140px] truncate">
                 {displayName}
               </p>
-              <p className="text-sm text-foreground/60 font-mono-custom leading-tight">{planLabel} Plan</p>
+              <p className="text-sm text-foreground/60 font-mono-custom leading-tight">
+                {planLabel} Plan
+              </p>
             </div>
             <Icon
               name="ChevronDownIcon"
@@ -382,14 +408,20 @@ export default function TopNavbar() {
               <div className="px-4 py-3.5 border-b border-border">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full flame-gradient flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-base font-display font-bold">{avatarLetter}</span>
+                    <span className="text-white text-base font-display font-bold">
+                      {avatarLetter}
+                    </span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-base font-bold text-foreground font-sans truncate">{displayName}</p>
+                    <p className="text-base font-bold text-foreground font-sans truncate">
+                      {displayName}
+                    </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span
                         className={`text-sm px-1.5 py-0.5 rounded-full font-bold leading-none ${
-                          plan === 'free' ? 'bg-muted text-foreground/70' : 'bg-amber-400 text-amber-900'
+                          plan === 'free'
+                            ? 'bg-muted text-foreground/70'
+                            : 'bg-amber-400 text-amber-900'
                         }`}
                       >
                         {planLabel}
@@ -406,24 +438,28 @@ export default function TopNavbar() {
               </div>
 
               <ul className="py-1.5">
-                {USER_MENU_ITEMS.filter((item) => !(item.highlight && plan !== 'free')).map((item) => (
-                  <li key={item.label}>
-                    <Link
-                      href={item.href}
-                      onClick={() => setUserMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-2.5 text-base font-semibold font-sans transition-colors ${
-                        item.highlight ? 'text-amber-600 hover:bg-amber-500/10' : 'text-foreground hover:bg-muted/60'
-                      }`}
-                    >
-                      <Icon
-                        name={item.icon as any}
-                        size={17}
-                        className={item.highlight ? 'text-amber-600' : 'text-foreground/60'}
-                      />
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
+                {USER_MENU_ITEMS.filter((item) => !(item.highlight && plan !== 'free')).map(
+                  (item) => (
+                    <li key={item.label}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setUserMenuOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-2.5 text-base font-semibold font-sans transition-colors ${
+                          item.highlight
+                            ? 'text-amber-600 hover:bg-amber-500/10'
+                            : 'text-foreground hover:bg-muted/60'
+                        }`}
+                      >
+                        <Icon
+                          name={item.icon as any}
+                          size={17}
+                          className={item.highlight ? 'text-amber-600' : 'text-foreground/60'}
+                        />
+                        {item.label}
+                      </Link>
+                    </li>
+                  )
+                )}
                 {plan === 'free' && (
                   <li>
                     <Link

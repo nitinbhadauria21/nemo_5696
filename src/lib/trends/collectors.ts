@@ -123,7 +123,10 @@ export async function collectRedditTrends(): Promise<TrendItem[]> {
         comment_velocity: Math.max(1, Math.round(comments / 8)),
         cross_subreddit_count: 1,
         sort_positions: ['hot', 'rising'],
-        post_age_hours: Math.max(0.5, (Date.now() / 1000 - (p.created_utc || Date.now() / 1000)) / 3600),
+        post_age_hours: Math.max(
+          0.5,
+          (Date.now() / 1000 - (p.created_utc || Date.now() / 1000)) / 3600
+        ),
         subreddit_subscriber_count: 100000,
         upvote_ratio: p.upvote_ratio ?? 0.9,
         nsfw_flag: Boolean(p.over_18),
@@ -225,7 +228,7 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
       const res = await fetch(proxy, { next: { revalidate: 300 } });
       if (res.ok) {
         const data = await res.json();
-        const items = Array.isArray(data) ? data : data.trends ?? [];
+        const items = Array.isArray(data) ? data : (data.trends ?? []);
         return items.slice(0, 8).map((item: any, idx: number) => {
           const title = String(item.title || item.query || `Trend ${idx}`);
           const growth = Number(item.growth ?? 120 + idx * 15);
@@ -244,10 +247,10 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
             geo_regions: ['IN'],
             collected_at: new Date().toISOString(),
           });
-            scoreGoogleTrendsSignals(signals, {
-              max_normalized_growth_pct: 500,
-              max_geo_spread_score: 50,
-            });
+          scoreGoogleTrendsSignals(signals, {
+            max_normalized_growth_pct: 500,
+            max_geo_spread_score: 50,
+          });
           return toTrendItem({
             topic: title,
             niche: String(item.niche || 'other'),
@@ -370,9 +373,12 @@ export async function collectLinkedInTrends(): Promise<TrendItem[]> {
   }
 
   try {
-    const res = await fetch('https://api.linkedin.com/v2/shares?q=owners&owners=urn:li:organization:0', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(
+      'https://api.linkedin.com/v2/shares?q=owners&owners=urn:li:organization:0',
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     if (!res.ok) throw new Error('LinkedIn API error');
     const data = await res.json();
     const elements = (data.elements ?? []).slice(0, 6);

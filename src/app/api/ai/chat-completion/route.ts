@@ -6,9 +6,10 @@ import { trackEvent } from '@/lib/analytics/track';
 import { logAiGeneration } from '@/lib/ai/logGeneration';
 
 function formatErrorResponse(error: unknown, provider?: string) {
-  const statusCode = (error as { statusCode?: number; status?: number })?.statusCode
-    || (error as { status?: number })?.status
-    || 500;
+  const statusCode =
+    (error as { statusCode?: number; status?: number })?.statusCode ||
+    (error as { status?: number })?.status ||
+    500;
   const providerName = (error as { llmProvider?: string })?.llmProvider || provider || 'Unknown';
 
   return {
@@ -33,7 +34,10 @@ export async function POST(request: NextRequest) {
 
     if (!provider || !model || !messages?.length) {
       return NextResponse.json(
-        { error: 'Missing required fields: provider, model, messages', details: 'Request validation failed' },
+        {
+          error: 'Missing required fields: provider, model, messages',
+          details: 'Request validation failed',
+        },
         { status: 400 }
       );
     }
@@ -82,14 +86,19 @@ export async function POST(request: NextRequest) {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'start' })}\n\n`));
 
             for await (const chunk of result as AsyncIterable<unknown>) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'chunk', chunk })}\n\n`));
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ type: 'chunk', chunk })}\n\n`)
+              );
             }
 
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`));
             controller.close();
           } catch (error) {
             const formatted = formatErrorResponse(error, provider);
-            console.error('API Route Error:', { error: formatted.error, details: formatted.details });
+            console.error('API Route Error:', {
+              error: formatted.error,
+              details: formatted.details,
+            });
             controller.enqueue(
               encoder.encode(
                 `data: ${JSON.stringify({ type: 'error', error: formatted.error, details: formatted.details })}\n\n`

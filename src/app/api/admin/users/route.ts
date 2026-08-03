@@ -44,8 +44,14 @@ export async function GET(request: NextRequest) {
         admin.from('profiles').select('*', { count: 'exact', head: true }).eq('plan', 'pro'),
         admin.from('profiles').select('*', { count: 'exact', head: true }).eq('plan', 'agency'),
         admin.from('profiles').select('*', { count: 'exact', head: true }).eq('plan', 'free'),
-        admin.from('profiles').select('*', { count: 'exact', head: true }).eq('onboarding_complete', false),
-        admin.from('user_events').select('*', { count: 'exact', head: true }).gte('created_at', since24h),
+        admin
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('onboarding_complete', false),
+        admin
+          .from('user_events')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', since24h),
       ]);
 
       if (error) {
@@ -106,7 +112,8 @@ export async function GET(request: NextRequest) {
           freeUsers: freeUsers ?? Math.max(0, total - paying),
           incompleteOnboarding: incompleteOnboarding ?? 0,
           events24h: events24h ?? 0,
-          onboardingRate: total > 0 ? Math.round(((total - (incompleteOnboarding ?? 0)) / total) * 100) : 0,
+          onboardingRate:
+            total > 0 ? Math.round(((total - (incompleteOnboarding ?? 0)) / total) * 100) : 0,
           onboardedUsers: total - (incompleteOnboarding ?? 0),
         },
         users: enriched,

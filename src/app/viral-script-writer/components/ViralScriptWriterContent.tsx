@@ -239,13 +239,15 @@ function parseMarkdownToBlocks(markdown: string): ParsedBlock[] {
       continue;
     }
 
-    const visualMatch = line.match(/^\[Visual Cue\]:\s*(.+)/i) || line.match(/^Visual Cue:\s*(.+)/i);
+    const visualMatch =
+      line.match(/^\[Visual Cue\]:\s*(.+)/i) || line.match(/^Visual Cue:\s*(.+)/i);
     if (visualMatch) {
       blocks.push({ type: 'visual-cue', text: visualMatch[1].trim() });
       continue;
     }
 
-    const audioMatch = line.match(/^\[Audio Script\]:\s*(.+)/i) || line.match(/^Audio Script:\s*(.+)/i);
+    const audioMatch =
+      line.match(/^\[Audio Script\]:\s*(.+)/i) || line.match(/^Audio Script:\s*(.+)/i);
     if (audioMatch) {
       blocks.push({ type: 'audio-script', text: audioMatch[1].trim() });
       continue;
@@ -319,7 +321,9 @@ function VisualCueCard({ text }: { text: string }) {
         <Icon name="VideoCameraIcon" size={15} className="text-[#FF3D00]" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-1">Visual Direction</p>
+        <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-1">
+          Visual Direction
+        </p>
         <p className="text-sm text-gray-800 leading-relaxed font-sans">{text}</p>
       </div>
     </div>
@@ -335,8 +339,12 @@ function AudioScriptCard({ text }: { text: string }) {
         <Icon name="MicrophoneIcon" size={15} className="text-gray-700" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 font-bold mb-1">Audio / Voiceover</p>
-        <p className="text-base italic font-medium text-gray-900 leading-relaxed font-sans">&ldquo;{text}&rdquo;</p>
+        <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 font-bold mb-1">
+          Audio / Voiceover
+        </p>
+        <p className="text-base italic font-medium text-gray-900 leading-relaxed font-sans">
+          &ldquo;{text}&rdquo;
+        </p>
       </div>
     </div>
   );
@@ -348,10 +356,14 @@ function SceneHeaderCard({ block }: { block: Extract<ParsedBlock, { type: 'scene
   return (
     <div className="flex items-center gap-3 pt-4 pb-1">
       <div className="flex-shrink-0 px-2.5 py-1 rounded-full bg-[#FF3D00]/15 border border-[#FF3D00]/30">
-        <span className="text-[10px] font-mono tracking-widest uppercase text-[#FF3D00] font-bold">{block.sceneLabel}</span>
+        <span className="text-[10px] font-mono tracking-widest uppercase text-[#FF3D00] font-bold">
+          {block.sceneLabel}
+        </span>
       </div>
       <div className="h-px flex-1 bg-gradient-to-r from-[#FF3D00]/30 to-transparent" />
-      <span className="text-sm font-bold text-foreground font-display truncate max-w-[200px]">{block.sceneTitle}</span>
+      <span className="text-sm font-bold text-foreground font-display truncate max-w-[200px]">
+        {block.sceneTitle}
+      </span>
     </div>
   );
 }
@@ -361,7 +373,9 @@ function SceneHeaderCard({ block }: { block: Extract<ParsedBlock, { type: 'scene
 function CTACard({ text }: { text: string }) {
   return (
     <div className="p-6 rounded-3xl text-center flame-gradient mt-2">
-      <p className="text-[10px] font-mono uppercase tracking-widest text-white/80 font-bold mb-2">🔥 Final Call to Action</p>
+      <p className="text-[10px] font-mono uppercase tracking-widest text-white/80 font-bold mb-2">
+        🔥 Final Call to Action
+      </p>
       <p className="text-xl font-bold text-white font-display leading-snug">{text}</p>
     </div>
   );
@@ -376,7 +390,9 @@ function ParsedScriptViewer({ script }: { script: GeneratedScript }) {
     return (
       <div className="space-y-3 pt-2">
         <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
-          <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line font-sans">{script.hook}</p>
+          <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line font-sans">
+            {script.hook}
+          </p>
         </div>
       </div>
     );
@@ -410,8 +426,12 @@ function ViralScoreDisplay({ score }: { score: number }) {
           <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="8" />
             <circle
-              cx="50" cy="50" r="40" fill="none"
-              stroke={color} strokeWidth="8"
+              cx="50"
+              cy="50"
+              r="40"
+              fill="none"
+              stroke={color}
+              strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -419,19 +439,28 @@ function ViralScoreDisplay({ score }: { score: number }) {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={`text-2xl font-mono font-bold tabular-nums ${getScoreColor(score)}`}>{score}</span>
-            <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wide">/ 100</span>
+            <span className={`text-2xl font-mono font-bold tabular-nums ${getScoreColor(score)}`}>
+              {score}
+            </span>
+            <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wide">
+              / 100
+            </span>
           </div>
         </div>
         {/* Score details */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <Icon name="FireIcon" size={16} className={getScoreColor(score)} variant="solid" />
-            <p className="text-xs font-mono uppercase tracking-widest text-gray-500 font-bold">Viral Score</p>
+            <p className="text-xs font-mono uppercase tracking-widest text-gray-500 font-bold">
+              Viral Score
+            </p>
           </div>
-          <p className={`text-lg font-bold font-display ${getScoreColor(score)} mb-1`}>{getScoreLabel(score)}</p>
+          <p className={`text-lg font-bold font-display ${getScoreColor(score)} mb-1`}>
+            {getScoreLabel(score)}
+          </p>
           <p className="text-xs text-gray-600 font-sans leading-relaxed">
-            Calculated from hook strength, psychological principle application, framework fit, dual-coding sync, and CTA effectiveness.
+            Calculated from hook strength, psychological principle application, framework fit,
+            dual-coding sync, and CTA effectiveness.
           </p>
         </div>
       </div>
@@ -445,14 +474,18 @@ function ViralScoreDisplay({ score }: { score: number }) {
           { label: 'CTA Effectiveness', max: 15, value: Math.round(score * 0.13) },
         ].map((item) => (
           <div key={item.label} className="flex items-center gap-2">
-            <span className="text-[10px] font-sans text-gray-600 w-36 flex-shrink-0">{item.label}</span>
+            <span className="text-[10px] font-sans text-gray-600 w-36 flex-shrink-0">
+              {item.label}
+            </span>
             <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{ width: `${(item.value / item.max) * 100}%`, backgroundColor: color }}
               />
             </div>
-            <span className="text-[10px] font-mono text-gray-500 w-10 text-right">{item.value}/{item.max}</span>
+            <span className="text-[10px] font-mono text-gray-500 w-10 text-right">
+              {item.value}/{item.max}
+            </span>
           </div>
         ))}
       </div>
@@ -462,30 +495,50 @@ function ViralScoreDisplay({ score }: { score: number }) {
 
 // ─── Retention Strategy Panel ─────────────────────────────────────────────────
 
-function RetentionStrategyPanel({ audienceType, language, duration }: { audienceType: string; language: string; duration: string }) {
+function RetentionStrategyPanel({
+  audienceType,
+  language,
+  duration,
+}: {
+  audienceType: string;
+  language: string;
+  duration: string;
+}) {
   const hookStrategy: Record<string, string> = {
-    Relatable: 'addresses a direct pain point using Loss Aversion (Kahneman & Tversky) — people are 2× more motivated to avoid loss than to pursue gain. Start with a high-impact pattern interrupt that mirrors the viewer\'s daily frustration.',
-    Informative: 'deploys Information Gap Theory (George Loewenstein, 1994) for Informative audiences. Open with a surprising fact or counterintuitive claim that creates a knowledge gap the viewer must resolve by watching to completion.',
-    Science: 'leverages cognitive dissonance for Science audiences. Lead with a data-backed contradiction that forces the brain to seek resolution — triggering the Curiosity Gap mechanism.',
-    Motivational: 'triggers emotional urgency using the Friction → Agitation → Relief arc for Motivational audiences. Begin with a high-stakes consequence (Agitation Spike) that creates immediate psychological tension before delivering the Relief Beat.',
-    Other: 'uses a curiosity gap tailored to your niche. Open mid-sentence with an unresolved statement that demands the viewer keep watching — activating the Information Gap Theory loop.',
+    Relatable:
+      "addresses a direct pain point using Loss Aversion (Kahneman & Tversky) — people are 2× more motivated to avoid loss than to pursue gain. Start with a high-impact pattern interrupt that mirrors the viewer's daily frustration.",
+    Informative:
+      'deploys Information Gap Theory (George Loewenstein, 1994) for Informative audiences. Open with a surprising fact or counterintuitive claim that creates a knowledge gap the viewer must resolve by watching to completion.',
+    Science:
+      'leverages cognitive dissonance for Science audiences. Lead with a data-backed contradiction that forces the brain to seek resolution — triggering the Curiosity Gap mechanism.',
+    Motivational:
+      'triggers emotional urgency using the Friction → Agitation → Relief arc for Motivational audiences. Begin with a high-stakes consequence (Agitation Spike) that creates immediate psychological tension before delivering the Relief Beat.',
+    Other:
+      'uses a curiosity gap tailored to your niche. Open mid-sentence with an unresolved statement that demands the viewer keep watching — activating the Information Gap Theory loop.',
   };
 
   const langPacing: Record<string, string> = {
-    English: 'High-velocity pacing — punchy declarative sentences, active high-velocity verbs, no filler words ("However," "Furthermore" banned), momentum-driven delivery calibrated to ~130–150 words per minute.',
-    Hindi: 'Emotion-first delivery — highly expressive regional hooks and metaphors, warm conversational vernacular, dramatic high-retention pauses for maximum emotional resonance.',
-    Hinglish: 'Youth-centric, frictionless tone — blend native Hindi expressions with modern English nouns, casual friend-to-friend delivery. Target tone: "a voice note sent from a friend."',
+    English:
+      'High-velocity pacing — punchy declarative sentences, active high-velocity verbs, no filler words ("However," "Furthermore" banned), momentum-driven delivery calibrated to ~130–150 words per minute.',
+    Hindi:
+      'Emotion-first delivery — highly expressive regional hooks and metaphors, warm conversational vernacular, dramatic high-retention pauses for maximum emotional resonance.',
+    Hinglish:
+      'Youth-centric, frictionless tone — blend native Hindi expressions with modern English nouns, casual friend-to-friend delivery. Target tone: "a voice note sent from a friend."',
   };
 
   const durationPacing: Record<string, string> = {
-    '15s': 'Hyper-dense single clauses. Hook + single value drop + CTA only. Maximum 1–2 words per visual cue.',
-    '30s': 'Punchy 2-beat structure. Hook + agitation + solution + CTA. Each audio line max 15 words.',
+    '15s':
+      'Hyper-dense single clauses. Hook + single value drop + CTA only. Maximum 1–2 words per visual cue.',
+    '30s':
+      'Punchy 2-beat structure. Hook + agitation + solution + CTA. Each audio line max 15 words.',
     '1m': 'Full HEARS or PAW arc. 5–7 scenes. Each audio line 15–25 words. One metaphor or analogy allowed.',
     '2m': 'Deep multi-step value breakdown. 8–10 scenes. Full emotional journey with multiple proof points and storytelling.',
   };
 
   const strategy = hookStrategy[audienceType] || hookStrategy['Relatable'];
-  const pacing = langPacing[language] || 'Adapt pacing to regional content consumption patterns and cultural nuance.';
+  const pacing =
+    langPacing[language] ||
+    'Adapt pacing to regional content consumption patterns and cultural nuance.';
   const durationNote = durationPacing[duration] || '';
 
   return (
@@ -495,22 +548,32 @@ function RetentionStrategyPanel({ audienceType, language, duration }: { audience
           <Icon name="ChartBarIcon" size={14} className="text-amber-600" />
         </div>
         <div>
-          <p className="text-xs font-mono uppercase tracking-widest text-amber-600 font-bold">Retention Strategy Panel</p>
-          <p className="text-[10px] text-gray-500 font-sans">Hook delivery psychology · 6-principle framework</p>
+          <p className="text-xs font-mono uppercase tracking-widest text-amber-600 font-bold">
+            Retention Strategy Panel
+          </p>
+          <p className="text-[10px] text-gray-500 font-sans">
+            Hook delivery psychology · 6-principle framework
+          </p>
         </div>
       </div>
       <div className="p-4 space-y-3">
         <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-bold mb-1.5">Hook Psychology — {audienceType} Audience</p>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-bold mb-1.5">
+            Hook Psychology — {audienceType} Audience
+          </p>
           <p className="text-sm font-sans text-gray-800 leading-relaxed">The hook {strategy}</p>
         </div>
         <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-gray-600 font-bold mb-1.5">Language Pacing — {language}</p>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-gray-600 font-bold mb-1.5">
+            Language Pacing — {language}
+          </p>
           <p className="text-sm font-sans text-gray-700 leading-relaxed">{pacing}</p>
         </div>
         {durationNote && (
           <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-1.5">Duration Calibration — {duration}</p>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-1.5">
+              Duration Calibration — {duration}
+            </p>
             <p className="text-sm font-sans text-gray-700 leading-relaxed">{durationNote}</p>
           </div>
         )}
@@ -525,7 +588,15 @@ function RetentionStrategyPanel({ audienceType, language, duration }: { audience
 
 // ─── Viral Trigger Panel ──────────────────────────────────────────────────────
 
-function ViralTriggerPanel({ scenesCount, viralScore, language }: { scenesCount: number; viralScore: number; language: string }) {
+function ViralTriggerPanel({
+  scenesCount,
+  viralScore,
+  language,
+}: {
+  scenesCount: number;
+  viralScore: number;
+  language: string;
+}) {
   const triggers = [
     {
       label: 'Information Gap Theory',
@@ -554,9 +625,12 @@ function ViralTriggerPanel({ scenesCount, viralScore, language }: { scenesCount:
   ];
 
   const recordingTips: Record<string, string> = {
-    English: 'Record in 9:16 vertical. Use a lavalier mic for crisp audio. Shoot in natural light or a ring light setup. Add bold text overlays in the first frame.',
-    Hindi: 'Record in 9:16 vertical. Use a directional mic for warm audio. Dramatic pauses are your retention tool — let silence work. Add Hindi text overlays.',
-    Hinglish: 'Record in 9:16 vertical. Casual, handheld feel works best. Mix Hindi and English text overlays. Keep energy high and conversational throughout.',
+    English:
+      'Record in 9:16 vertical. Use a lavalier mic for crisp audio. Shoot in natural light or a ring light setup. Add bold text overlays in the first frame.',
+    Hindi:
+      'Record in 9:16 vertical. Use a directional mic for warm audio. Dramatic pauses are your retention tool — let silence work. Add Hindi text overlays.',
+    Hinglish:
+      'Record in 9:16 vertical. Casual, handheld feel works best. Mix Hindi and English text overlays. Keep energy high and conversational throughout.',
   };
 
   const tip = recordingTips[language] || recordingTips['English'];
@@ -568,10 +642,16 @@ function ViralTriggerPanel({ scenesCount, viralScore, language }: { scenesCount:
           <Icon name="RocketLaunchIcon" size={14} className="text-[#FF3D00]" />
         </div>
         <div>
-          <p className="text-xs font-mono uppercase tracking-widest text-[#FF3D00] font-bold">Viral Trigger Panel</p>
-          <p className="text-[10px] text-gray-500 font-sans">Engagement techniques applied · {scenesCount} scenes</p>
+          <p className="text-xs font-mono uppercase tracking-widest text-[#FF3D00] font-bold">
+            Viral Trigger Panel
+          </p>
+          <p className="text-[10px] text-gray-500 font-sans">
+            Engagement techniques applied · {scenesCount} scenes
+          </p>
         </div>
-        <div className={`ml-auto flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-mono font-bold ${getScoreBg(viralScore)} ${getScoreColor(viralScore)}`}>
+        <div
+          className={`ml-auto flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-mono font-bold ${getScoreBg(viralScore)} ${getScoreColor(viralScore)}`}
+        >
           <Icon name="FireIcon" size={11} variant="solid" />
           {viralScore}%
         </div>
@@ -589,7 +669,9 @@ function ViralTriggerPanel({ scenesCount, viralScore, language }: { scenesCount:
           </div>
         ))}
         <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-xl">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-1">📹 Recording Tip — {language}</p>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-1">
+            📹 Recording Tip — {language}
+          </p>
           <p className="text-xs font-sans text-gray-700 leading-relaxed">{tip}</p>
         </div>
       </div>
@@ -610,9 +692,12 @@ function LoadingAnimation({ currentStep }: { currentStep: number }) {
         </div>
       </div>
 
-      <h3 className="font-display text-xl font-bold text-foreground mb-1">Engineering your viral script…</h3>
+      <h3 className="font-display text-xl font-bold text-foreground mb-1">
+        Engineering your viral script…
+      </h3>
       <p className="text-sm font-sans text-muted-foreground max-w-xs leading-relaxed mb-8">
-        Selecting the best framework and applying all 6 psychological principles to craft your highest-potential script.
+        Selecting the best framework and applying all 6 psychological principles to craft your
+        highest-potential script.
       </p>
 
       <div className="space-y-2.5 w-full max-w-xs mb-8">
@@ -623,19 +708,36 @@ function LoadingAnimation({ currentStep }: { currentStep: number }) {
               i <= currentStep ? 'text-foreground' : 'text-muted-foreground'
             }`}
           >
-            <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-              i < currentStep
-                ? 'bg-green-100 border border-green-300'
-                : i === currentStep
-                ? 'bg-[#FF3D00]/15 border border-[#FF3D00]/40'
-                : 'bg-gray-100 border border-gray-200'
-            }`}>
+            <div
+              className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                i < currentStep
+                  ? 'bg-green-100 border border-green-300'
+                  : i === currentStep
+                    ? 'bg-[#FF3D00]/15 border border-[#FF3D00]/40'
+                    : 'bg-gray-100 border border-gray-200'
+              }`}
+            >
               {i < currentStep ? (
                 <Icon name="CheckIcon" size={11} className="text-green-600" />
               ) : i === currentStep ? (
-                <svg className="animate-spin w-3 h-3 text-[#FF3D00]" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                <svg
+                  className="animate-spin w-3 h-3 text-[#FF3D00]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
                 </svg>
               ) : (
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
@@ -682,7 +784,11 @@ export default function ViralScriptWriterContent() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { response, isLoading, error, sendMessage } = useChat('ANTHROPIC', 'claude-sonnet-4-6', false);
+  const { response, isLoading, error, sendMessage } = useChat(
+    'ANTHROPIC',
+    'claude-sonnet-4-6',
+    false
+  );
 
   useEffect(() => {
     if (error) toast.error(error.message);
@@ -801,16 +907,24 @@ export default function ViralScriptWriterContent() {
       return;
     }
 
-    const effectiveAudience = audienceType === 'Other' && customAudience.trim() ? customAudience.trim() : audienceType;
+    const effectiveAudience =
+      audienceType === 'Other' && customAudience.trim() ? customAudience.trim() : audienceType;
 
     const ctaToneGuide =
-      selectedLanguage === 'Hindi' ?'Use emotion-first, dramatic high-retention pauses, warm conversational vernacular for the CTA. Hindi text is preferred.'
-        : selectedLanguage === 'Hinglish' ?'Use casual friend-to-friend tone, blend Hindi expressions with English nouns, frictionless and colloquial CTA. Mix Hindi and English naturally.' :'Use punchy, direct, momentum-driven CTA with active high-velocity verbs and short declarative sentences.';
+      selectedLanguage === 'Hindi'
+        ? 'Use emotion-first, dramatic high-retention pauses, warm conversational vernacular for the CTA. Hindi text is preferred.'
+        : selectedLanguage === 'Hinglish'
+          ? 'Use casual friend-to-friend tone, blend Hindi expressions with English nouns, frictionless and colloquial CTA. Mix Hindi and English naturally.'
+          : 'Use punchy, direct, momentum-driven CTA with active high-velocity verbs and short declarative sentences.';
 
     const wordCountGuide =
-      selectedDuration === '15s' ? 'Maximum 30–40 total spoken words across all scenes. Hyper-dense single clauses only.'
-      : selectedDuration === '30s' ? 'Maximum 70–90 total spoken words. Each audio line max 15 words.'
-      : selectedDuration === '1m'? 'Maximum 140–160 total spoken words. Each audio line 15–25 words. One metaphor allowed.' :'Maximum 280–320 total spoken words. Full storytelling arc with multiple proof points.';
+      selectedDuration === '15s'
+        ? 'Maximum 30–40 total spoken words across all scenes. Hyper-dense single clauses only.'
+        : selectedDuration === '30s'
+          ? 'Maximum 70–90 total spoken words. Each audio line max 15 words.'
+          : selectedDuration === '1m'
+            ? 'Maximum 140–160 total spoken words. Each audio line 15–25 words. One metaphor allowed.'
+            : 'Maximum 280–320 total spoken words. Full storytelling arc with multiple proof points.';
 
     const createPrompt = `Apply the complete NemoScript Perfect Viral Script Formula to generate ONE single best viral video script.
 
@@ -901,8 +1015,12 @@ Calculate an honest viralScore (0–100).`;
             <Icon name="PencilSquareIcon" size={20} className="text-white" />
           </div>
           <div>
-            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">Viral Script Writer</h1>
-            <p className="text-sm text-muted-foreground font-sans mt-0.5">NemoScript — Perfect Viral Script Formula</p>
+            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">
+              Viral Script Writer
+            </h1>
+            <p className="text-sm text-muted-foreground font-sans mt-0.5">
+              NemoScript — Perfect Viral Script Formula
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -915,16 +1033,16 @@ Calculate an honest viralScore (0–100).`;
 
       <div className="px-5 sm:px-6 py-6 max-w-screen-xl mx-auto">
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-
           {/* ── Left: Input Panel ── */}
           <div className="xl:col-span-2 space-y-5">
-
             {/* Mode Toggle */}
             <div className="bg-card border-2 border-border rounded-2xl p-1.5 flex gap-1">
               <button
                 onClick={() => setMode('create')}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold font-sans transition-all duration-200 ${
-                  mode === 'create' ? 'flame-gradient text-white shadow-flame-sm' : 'text-muted-foreground hover:text-foreground'
+                  mode === 'create'
+                    ? 'flame-gradient text-white shadow-flame-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Icon name="PlusCircleIcon" size={16} />
@@ -933,7 +1051,9 @@ Calculate an honest viralScore (0–100).`;
               <button
                 onClick={() => setMode('refine')}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold font-sans transition-all duration-200 ${
-                  mode === 'refine' ? 'flame-gradient text-white shadow-flame-sm' : 'text-muted-foreground hover:text-foreground'
+                  mode === 'refine'
+                    ? 'flame-gradient text-white shadow-flame-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Icon name="WrenchScrewdriverIcon" size={16} />
@@ -945,8 +1065,12 @@ Calculate an honest viralScore (0–100).`;
             {mode === 'create' && (
               <div className="bg-card border-2 border-border rounded-2xl p-5 space-y-4">
                 <div>
-                  <h2 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-primary mb-1">INPUT A — Core Reel Topic / Title</h2>
-                  <p className="text-sm text-muted-foreground font-sans">The Spark — a singular, high-tension concept that creates a curiosity gap</p>
+                  <h2 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-primary mb-1">
+                    INPUT A — Core Reel Topic / Title
+                  </h2>
+                  <p className="text-sm text-muted-foreground font-sans">
+                    The Spark — a singular, high-tension concept that creates a curiosity gap
+                  </p>
                 </div>
                 <textarea
                   value={topic}
@@ -957,13 +1081,16 @@ Calculate an honest viralScore (0–100).`;
                 />
                 <div className="p-2.5 bg-[#FF3D00]/5 border border-[#FF3D00]/10 rounded-lg">
                   <p className="text-[10px] font-mono text-[#FF3D00]/70 leading-relaxed">
-                    ✅ Good: "My $10k routine that saves 3 hours" &nbsp;·&nbsp; ❌ Vague: "My morning routine"
+                    ✅ Good: "My $10k routine that saves 3 hours" &nbsp;·&nbsp; ❌ Vague: "My
+                    morning routine"
                   </p>
                 </div>
 
                 {/* ── INPUT B: Target Audience ── */}
                 <div>
-                  <label className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground font-bold mb-2 block">INPUT B — Target Audience (The Who)</label>
+                  <label className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground font-bold mb-2 block">
+                    INPUT B — Target Audience (The Who)
+                  </label>
                   <div className="flex flex-wrap gap-1.5">
                     {AUDIENCE_TYPES.map((a) => (
                       <button
@@ -971,7 +1098,8 @@ Calculate an honest viralScore (0–100).`;
                         onClick={() => setAudienceType(a)}
                         className={`px-3 py-1.5 rounded-full text-xs font-sans font-medium border transition-all duration-150 ${
                           audienceType === a
-                            ? 'bg-primary text-white border-primary' :'bg-muted text-muted-foreground border-border hover:text-foreground hover:border-primary/40'
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-muted text-muted-foreground border-border hover:text-foreground hover:border-primary/40'
                         }`}
                       >
                         {a}
@@ -995,8 +1123,12 @@ Calculate an honest viralScore (0–100).`;
             {mode === 'refine' && (
               <div className="card-surface border border-border rounded-2xl p-5 space-y-4">
                 <div>
-                  <h2 className="text-xs font-mono-custom uppercase tracking-widest text-[#FF3D00] font-bold mb-0.5">Raw Script Ideas</h2>
-                  <p className="text-xs text-muted-foreground font-sans">Paste your rough draft, bullet points, or unstructured ideas here</p>
+                  <h2 className="text-xs font-mono-custom uppercase tracking-widest text-[#FF3D00] font-bold mb-0.5">
+                    Raw Script Ideas
+                  </h2>
+                  <p className="text-xs text-muted-foreground font-sans">
+                    Paste your rough draft, bullet points, or unstructured ideas here
+                  </p>
                 </div>
                 <textarea
                   value={refineDraft}
@@ -1006,7 +1138,9 @@ Calculate an honest viralScore (0–100).`;
                   className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm font-sans text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                 />
                 <div>
-                  <label className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground font-bold mb-2 block">INPUT B — Target Audience</label>
+                  <label className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground font-bold mb-2 block">
+                    INPUT B — Target Audience
+                  </label>
                   <div className="flex flex-wrap gap-1.5">
                     {AUDIENCE_TYPES.map((a) => (
                       <button
@@ -1014,7 +1148,8 @@ Calculate an honest viralScore (0–100).`;
                         onClick={() => setAudienceType(a)}
                         className={`px-3 py-1.5 rounded-full text-xs font-sans font-medium border transition-all duration-150 ${
                           audienceType === a
-                            ? 'bg-primary text-white border-primary' :'bg-muted text-muted-foreground border-border hover:text-foreground hover:border-primary/40'
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-muted text-muted-foreground border-border hover:text-foreground hover:border-primary/40'
                         }`}
                       >
                         {a}
@@ -1037,8 +1172,12 @@ Calculate an honest viralScore (0–100).`;
             {/* ── INPUT C: Video Duration ── */}
             <div className="card-surface border border-border rounded-2xl p-5 space-y-3">
               <div>
-                <h2 className="text-xs font-mono-custom uppercase tracking-widest text-[#FF3D00] font-bold mb-0.5">INPUT C — Video Duration (The Pacing Window)</h2>
-                <p className="text-xs text-muted-foreground font-sans">Controls sentence length and verbal velocity</p>
+                <h2 className="text-xs font-mono-custom uppercase tracking-widest text-[#FF3D00] font-bold mb-0.5">
+                  INPUT C — Video Duration (The Pacing Window)
+                </h2>
+                <p className="text-xs text-muted-foreground font-sans">
+                  Controls sentence length and verbal velocity
+                </p>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {VIDEO_DURATIONS.map((d) => (
@@ -1047,11 +1186,18 @@ Calculate an honest viralScore (0–100).`;
                     onClick={() => setSelectedDuration(d.value)}
                     className={`flex flex-col items-start px-3 py-2.5 rounded-xl border text-left transition-all duration-150 ${
                       selectedDuration === d.value
-                        ? 'border-primary bg-primary/10' :'border-border bg-muted/50 hover:border-primary/40'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border bg-muted/50 hover:border-primary/40'
                     }`}
                   >
-                    <span className={`text-sm font-mono font-bold ${selectedDuration === d.value ? 'text-primary' : 'text-foreground'}`}>{d.label}</span>
-                    <span className="text-[10px] text-muted-foreground font-sans leading-tight mt-0.5">{d.desc}</span>
+                    <span
+                      className={`text-sm font-mono font-bold ${selectedDuration === d.value ? 'text-primary' : 'text-foreground'}`}
+                    >
+                      {d.label}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-sans leading-tight mt-0.5">
+                      {d.desc}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -1060,8 +1206,12 @@ Calculate an honest viralScore (0–100).`;
             {/* ── INPUT D: Scenes Count ── */}
             <div className="card-surface border border-border rounded-2xl p-5 space-y-3">
               <div>
-                <h2 className="text-xs font-mono-custom uppercase tracking-widest text-[#FF3D00] font-bold mb-0.5">INPUT D — Scenes Count (The Cut Density)</h2>
-                <p className="text-xs text-muted-foreground font-sans">Controls visual cut density — 8–10 forces b-roll shifts every 2–3 seconds</p>
+                <h2 className="text-xs font-mono-custom uppercase tracking-widest text-[#FF3D00] font-bold mb-0.5">
+                  INPUT D — Scenes Count (The Cut Density)
+                </h2>
+                <p className="text-xs text-muted-foreground font-sans">
+                  Controls visual cut density — 8–10 forces b-roll shifts every 2–3 seconds
+                </p>
               </div>
               <div className="flex gap-2 flex-wrap">
                 {SCENES_OPTIONS.map((n) => (
@@ -1070,7 +1220,8 @@ Calculate an honest viralScore (0–100).`;
                     onClick={() => setScenesCount(n)}
                     className={`w-10 h-10 rounded-xl border text-sm font-mono font-bold transition-all duration-150 ${
                       scenesCount === n
-                        ? 'border-primary bg-primary/10 text-primary' :'border-border bg-muted text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-muted text-muted-foreground hover:border-primary/40 hover:text-foreground'
                     }`}
                   >
                     {n}
@@ -1078,16 +1229,25 @@ Calculate an honest viralScore (0–100).`;
                 ))}
               </div>
               <p className="text-[10px] text-muted-foreground font-sans">
-                Selected: <span className="text-foreground font-mono font-bold">{scenesCount} scenes</span>
-                {scenesCount >= 8 ? ' — High cut density, maximum engagement' : scenesCount <= 5 ? ' — Focused narrative, clear story arc' : ' — Balanced pacing'}
+                Selected:{' '}
+                <span className="text-foreground font-mono font-bold">{scenesCount} scenes</span>
+                {scenesCount >= 8
+                  ? ' — High cut density, maximum engagement'
+                  : scenesCount <= 5
+                    ? ' — Focused narrative, clear story arc'
+                    : ' — Balanced pacing'}
               </p>
             </div>
 
             {/* ── INPUT E: Language ── */}
             <div className="card-surface border border-border rounded-2xl p-5 space-y-3">
               <div>
-                <h2 className="text-xs font-mono-custom uppercase tracking-widest text-[#FF3D00] font-bold mb-0.5">INPUT E — Script Language (The Voice)</h2>
-                <p className="text-xs text-muted-foreground font-sans">Adjusts cultural conversational flow and pacing rules</p>
+                <h2 className="text-xs font-mono-custom uppercase tracking-widest text-[#FF3D00] font-bold mb-0.5">
+                  INPUT E — Script Language (The Voice)
+                </h2>
+                <p className="text-xs text-muted-foreground font-sans">
+                  Adjusts cultural conversational flow and pacing rules
+                </p>
               </div>
               <div className="flex gap-2">
                 {LANGUAGES.map((l) => (
@@ -1096,7 +1256,8 @@ Calculate an honest viralScore (0–100).`;
                     onClick={() => setSelectedLanguage(l)}
                     className={`flex-1 py-2.5 rounded-xl border text-sm font-sans font-medium transition-all duration-150 ${
                       selectedLanguage === l
-                        ? 'border-primary bg-primary/10 text-primary' :'border-border bg-muted text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-muted text-muted-foreground hover:border-primary/40 hover:text-foreground'
                     }`}
                   >
                     {l}
@@ -1105,9 +1266,12 @@ Calculate an honest viralScore (0–100).`;
               </div>
               <div className="p-2.5 bg-muted rounded-lg">
                 <p className="text-[10px] font-sans text-muted-foreground leading-relaxed">
-                  {selectedLanguage === 'English' && 'Punchy, direct, momentum-driven — active verbs, short declarative sentences'}
-                  {selectedLanguage === 'Hindi' && 'Emotion-first, storytelling — warm vernacular, dramatic pauses, regional metaphors'}
-                  {selectedLanguage === 'Hinglish' && 'Youth-centric, frictionless — blend Hindi expressions with English nouns, casual friend-to-friend tone'}
+                  {selectedLanguage === 'English' &&
+                    'Punchy, direct, momentum-driven — active verbs, short declarative sentences'}
+                  {selectedLanguage === 'Hindi' &&
+                    'Emotion-first, storytelling — warm vernacular, dramatic pauses, regional metaphors'}
+                  {selectedLanguage === 'Hinglish' &&
+                    'Youth-centric, frictionless — blend Hindi expressions with English nouns, casual friend-to-friend tone'}
                 </p>
               </div>
             </div>
@@ -1121,8 +1285,19 @@ Calculate an honest viralScore (0–100).`;
               {isLoading ? (
                 <>
                   <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
                   </svg>
                   {mode === 'refine' ? 'Refining Draft…' : 'Generating Script…'}
                 </>
@@ -1137,14 +1312,29 @@ Calculate an honest viralScore (0–100).`;
             {/* Stats row */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Scripts Generated', value: history.length.toString(), icon: 'DocumentTextIcon' },
-                { label: 'Scenes / Script', value: scenesCount.toString(), icon: 'RectangleStackIcon' },
+                {
+                  label: 'Scripts Generated',
+                  value: history.length.toString(),
+                  icon: 'DocumentTextIcon',
+                },
+                {
+                  label: 'Scenes / Script',
+                  value: scenesCount.toString(),
+                  icon: 'RectangleStackIcon',
+                },
                 { label: 'Language', value: selectedLanguage, icon: 'LanguageIcon' },
               ].map((stat) => (
-                <div key={stat.label} className="card-surface border border-border rounded-xl p-3 text-center">
+                <div
+                  key={stat.label}
+                  className="card-surface border border-border rounded-xl p-3 text-center"
+                >
                   <Icon name={stat.icon as any} size={16} className="text-primary mx-auto mb-1" />
-                  <p className="text-sm font-mono-custom font-bold text-foreground tabular-nums truncate">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground font-sans leading-tight mt-0.5">{stat.label}</p>
+                  <p className="text-sm font-mono-custom font-bold text-foreground tabular-nums truncate">
+                    {stat.value}
+                  </p>
+                  <p className="text-xs text-muted-foreground font-sans leading-tight mt-0.5">
+                    {stat.label}
+                  </p>
                 </div>
               ))}
             </div>
@@ -1152,15 +1342,18 @@ Calculate an honest viralScore (0–100).`;
 
           {/* ── Right: Results Panel ── */}
           <div className="xl:col-span-3 space-y-5" ref={resultsRef}>
-
             {!generatedScript && !isLoading && (
               <div className="card-surface border border-border rounded-2xl p-10 flex flex-col items-center justify-center text-center min-h-[400px]">
                 <div className="w-16 h-16 rounded-2xl flame-gradient flex items-center justify-center mb-4 opacity-80">
                   <Icon name="PencilSquareIcon" size={32} className="text-white" />
                 </div>
-                <h3 className="font-display text-lg font-bold text-foreground mb-2">Ready to go viral?</h3>
+                <h3 className="font-display text-lg font-bold text-foreground mb-2">
+                  Ready to go viral?
+                </h3>
                 <p className="text-sm font-sans text-muted-foreground max-w-xs leading-relaxed">
-                  Enter your topic, set your duration and scene count, choose your language — and let NemoScript select the best framework and apply 6 psychological principles to craft your single highest-potential viral script.
+                  Enter your topic, set your duration and scene count, choose your language — and
+                  let NemoScript select the best framework and apply 6 psychological principles to
+                  craft your single highest-potential viral script.
                 </p>
                 <div className="mt-6 grid grid-cols-3 gap-3 w-full max-w-sm">
                   {[
@@ -1169,8 +1362,14 @@ Calculate an honest viralScore (0–100).`;
                     { label: 'Viral Score Calculated', icon: 'FireIcon' },
                   ].map((f) => (
                     <div key={f.label} className="p-3 bg-muted rounded-xl text-center">
-                      <Icon name={f.icon as any} size={18} className="text-primary mx-auto mb-1.5" />
-                      <p className="text-xs font-sans text-muted-foreground leading-tight">{f.label}</p>
+                      <Icon
+                        name={f.icon as any}
+                        size={18}
+                        className="text-primary mx-auto mb-1.5"
+                      />
+                      <p className="text-xs font-sans text-muted-foreground leading-tight">
+                        {f.label}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -1204,7 +1403,10 @@ Calculate an honest viralScore (0–100).`;
                         &ldquo;{generatedScript.topic}&rdquo;
                       </h2>
                       <p className="text-xs text-muted-foreground font-sans mt-1">
-                        Framework: <span className="font-semibold text-foreground">{generatedScript.frameworkLabel}</span>
+                        Framework:{' '}
+                        <span className="font-semibold text-foreground">
+                          {generatedScript.frameworkLabel}
+                        </span>
                       </p>
                     </div>
                     <button
@@ -1223,8 +1425,12 @@ Calculate an honest viralScore (0–100).`;
 
                 {/* Hook Preview */}
                 <div className="card-surface border border-border rounded-2xl p-5">
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-2">⚡ Pattern Interrupt Hook</p>
-                  <p className="text-base font-sans text-gray-900 leading-relaxed italic font-medium">&ldquo;{generatedScript.hook}&rdquo;</p>
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-[#FF3D00] font-bold mb-2">
+                    ⚡ Pattern Interrupt Hook
+                  </p>
+                  <p className="text-base font-sans text-gray-900 leading-relaxed italic font-medium">
+                    &ldquo;{generatedScript.hook}&rdquo;
+                  </p>
                 </div>
 
                 {/* Full Script Card */}
@@ -1233,7 +1439,9 @@ Calculate an honest viralScore (0–100).`;
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 rounded-full bg-[#FF3D00]" />
                       <div>
-                        <p className="text-sm font-semibold text-gray-900 font-sans">{generatedScript.frameworkLabel}</p>
+                        <p className="text-sm font-semibold text-gray-900 font-sans">
+                          {generatedScript.frameworkLabel}
+                        </p>
                         <p className="text-xs text-gray-500 font-mono">Scene-by-scene breakdown</p>
                       </div>
                     </div>
@@ -1271,10 +1479,15 @@ Calculate an honest viralScore (0–100).`;
                       {/* Timestamps */}
                       {generatedScript.timestamps?.length > 0 && (
                         <div className="pt-2">
-                          <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 font-bold mb-2">Timestamps</p>
+                          <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 font-bold mb-2">
+                            Timestamps
+                          </p>
                           <div className="space-y-1">
                             {generatedScript.timestamps.map((ts, i) => (
-                              <div key={`ts-${i}`} className="flex items-center gap-2 text-xs font-sans text-gray-600">
+                              <div
+                                key={`ts-${i}`}
+                                className="flex items-center gap-2 text-xs font-sans text-gray-600"
+                              >
                                 <span className="w-1.5 h-1.5 rounded-full bg-[#FF3D00]/50 flex-shrink-0" />
                                 {ts}
                               </div>
@@ -1286,8 +1499,12 @@ Calculate an honest viralScore (0–100).`;
                       {/* Delivery notes */}
                       {generatedScript.deliveryNotes && (
                         <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                          <p className="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-bold mb-1">🎬 Delivery Notes</p>
-                          <p className="text-xs font-sans text-gray-700 leading-relaxed">{generatedScript.deliveryNotes}</p>
+                          <p className="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-bold mb-1">
+                            🎬 Delivery Notes
+                          </p>
+                          <p className="text-xs font-sans text-gray-700 leading-relaxed">
+                            {generatedScript.deliveryNotes}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1319,15 +1536,26 @@ Calculate an honest viralScore (0–100).`;
                   {history.slice(1).map((h, i) => (
                     <button
                       key={`hist-${i}`}
-                      onClick={() => { setGeneratedScript(h); setExpanded(true); }}
+                      onClick={() => {
+                        setGeneratedScript(h);
+                        setExpanded(true);
+                      }}
                       className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-muted hover:bg-muted/80 border border-border hover:border-primary/30 transition-all text-left"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-sans font-medium text-foreground truncate">{h.topic}</p>
-                        <p className="text-xs text-muted-foreground font-sans">{h.duration} · {h.scenesCount} scenes · {h.language}</p>
+                        <p className="text-sm font-sans font-medium text-foreground truncate">
+                          {h.topic}
+                        </p>
+                        <p className="text-xs text-muted-foreground font-sans">
+                          {h.duration} · {h.scenesCount} scenes · {h.language}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`text-xs font-mono font-bold ${getScoreColor(h.viralScore)}`}>{h.viralScore}%</span>
+                        <span
+                          className={`text-xs font-mono font-bold ${getScoreColor(h.viralScore)}`}
+                        >
+                          {h.viralScore}%
+                        </span>
                         <Icon name="ChevronRightIcon" size={14} className="text-muted-foreground" />
                       </div>
                     </button>

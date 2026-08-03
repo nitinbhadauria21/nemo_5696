@@ -5,7 +5,10 @@ import { createHash, randomBytes } from 'crypto';
 import { trackEvent } from '@/lib/analytics/track';
 import { resolveUserId } from '@/lib/api/requireUser';
 
-const memoryKeys = new Map<string, Array<{ id: string; name: string; key_prefix: string; created_at: string }>>();
+const memoryKeys = new Map<
+  string,
+  Array<{ id: string; name: string; key_prefix: string; created_at: string }>
+>();
 
 export async function GET() {
   const resolved = await resolveUserId();

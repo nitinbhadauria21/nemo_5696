@@ -65,7 +65,9 @@ export default function AdminApiKeysPage() {
               <tr key={k.id}>
                 <td>
                   <div className="text-[var(--admin-text)]">{k.user_label || '—'}</div>
-                  <div className="font-mono text-[10px] text-[var(--admin-mute)]">{k.user_id.slice(0, 8)}…</div>
+                  <div className="font-mono text-[10px] text-[var(--admin-mute)]">
+                    {k.user_id.slice(0, 8)}…
+                  </div>
                 </td>
                 <td>{k.name}</td>
                 <td className="font-mono text-xs">{k.key_prefix}…</td>

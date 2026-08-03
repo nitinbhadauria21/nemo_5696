@@ -11,7 +11,13 @@ function OnboardingTracked() {
 
 export default function OnboardingPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+          Loading…
+        </div>
+      }
+    >
       <OnboardingTracked />
     </Suspense>
   );

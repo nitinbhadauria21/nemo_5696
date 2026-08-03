@@ -96,13 +96,25 @@ function VerifyEmailInner() {
 
         <div className="bg-card border border-border rounded-2xl p-8 text-center shadow-sm">
           <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <svg className="w-10 h-10 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            <svg
+              className="w-10 h-10 text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+              />
             </svg>
           </div>
 
           <h1 className="font-display text-2xl font-bold text-foreground mb-2">Check your email</h1>
-          <p className="text-sm text-muted-foreground font-sans mb-1">We sent a verification link to</p>
+          <p className="text-sm text-muted-foreground font-sans mb-1">
+            We sent a verification link to
+          </p>
           <p className="text-sm font-semibold text-foreground font-sans mb-6">{email}</p>
 
           {expiry > 0 ? (
@@ -121,7 +133,9 @@ function VerifyEmailInner() {
 
           {resent && (
             <div className="mb-4 px-4 py-2 rounded-xl bg-green-50 border border-green-200">
-              <p className="text-xs text-green-700 font-sans font-semibold">New verification email sent!</p>
+              <p className="text-xs text-green-700 font-sans font-semibold">
+                New verification email sent!
+              </p>
             </div>
           )}
 
@@ -155,7 +169,13 @@ function VerifyEmailInner() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">Loading…</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
+          Loading…
+        </div>
+      }
+    >
       <VerifyEmailInner />
     </Suspense>
   );

@@ -13,13 +13,18 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
   const raw = row.raw_platform_data as TrendItem | null;
   if (raw?.id) return raw;
   const statusRaw = String(row.status || 'RISING');
+  const mentions24h = Number(row.mentions_last_24h) || 0;
+  const creators72 = Number(row.creators_last_72h) || 0;
+  const creators24 = Number(row.creators_last_24h) || creators72;
+  const creators6 = Number(row.creators_last_6h) || Math.max(1, Math.round(creators24 / 4));
+  const firstDetectedAt = String(row.first_detected_at || new Date().toISOString());
   return {
     id: String(row.trend_id),
     title: String(row.topic_text || 'Untitled'),
     description: '',
-    category: 'other',
+    category: String(row.niche || 'other'),
     platforms: ['google'],
-    contentType: 'search',
+    contentType: 'KEYWORD',
     nemoScore: Number(row.nemo_score) || 0,
     cvs: Number(row.creator_velocity_score) || 0,
     ss: Number(row.spike_score) || 0,
@@ -27,15 +32,21 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
     freshness: Number(row.freshness_score) || 0,
     freshnessMultiplier: Number(row.freshness_multiplier) || 1,
     velocity: Number(row.spike_score) || 0,
+    spike: Number(row.spike_score) || 0,
     status: statusRaw === 'PEAKING' ? 'hot' : statusRaw === 'RISING' ? 'rising' : 'fading',
-    mentions24h: Number(row.mentions_last_24h) || 0,
-    creatorsCount: Number(row.creators_last_72h) || 0,
+    mentions24h,
+    mentionsPrev24h: Number(row.mentions_prev_24h) || Math.max(1, Math.round(mentions24h * 0.6)),
+    creatorsCount: creators72,
+    creatorsLast6h: creators6,
+    creatorsLast24h: creators24,
+    creatorsLast72h: creators72,
     hashtags: [],
-    firstDetectedAt: String(row.first_detected_at || new Date().toISOString()),
-    sparkline: [],
+    firstDetectedAt,
+    sparklineData: [],
+    timeAgo: '',
     isBookmarked: false,
     geoRegions: (row.geo_regions as string[]) || [],
-  } as TrendItem;
+  };
 }
 
 export async function runTrendIngestion(options?: { useServiceRole?: boolean }): Promise<{

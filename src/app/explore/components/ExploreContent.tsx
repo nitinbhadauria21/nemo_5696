@@ -25,9 +25,12 @@ interface NicheHeatTile {
 
 function getHeatStyle(heat: number): { bg: string; text: string; border: string } {
   if (heat >= 85) return { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30' };
-  if (heat >= 70) return { bg: 'bg-orange-500/20', text: 'text-orange-400', border: 'border-orange-500/30' };
-  if (heat >= 55) return { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30' };
-  if (heat >= 40) return { bg: 'bg-yellow-500/20', text: 'text-yellow-500', border: 'border-yellow-500/30' };
+  if (heat >= 70)
+    return { bg: 'bg-orange-500/20', text: 'text-orange-400', border: 'border-orange-500/30' };
+  if (heat >= 55)
+    return { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30' };
+  if (heat >= 40)
+    return { bg: 'bg-yellow-500/20', text: 'text-yellow-500', border: 'border-yellow-500/30' };
   return { bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border' };
 }
 
@@ -49,7 +52,9 @@ function ExploreTrendCard({ trend }: { trend: TrendItem }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <StatusBadge status={trend.status} />
-            <span className="text-sm text-foreground/65 font-mono-custom font-semibold">{trend.category}</span>
+            <span className="text-sm text-foreground/65 font-mono-custom font-semibold">
+              {trend.category}
+            </span>
           </div>
           <h3 className="text-base font-bold text-foreground leading-snug line-clamp-2 font-display group-hover:text-primary transition-colors">
             {trend.title}
@@ -58,20 +63,33 @@ function ExploreTrendCard({ trend }: { trend: TrendItem }) {
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
           <NemoScoreBadge score={trend.nemoScore} size="sm" />
           <button
-            onClick={(e) => { e.stopPropagation(); setBookmarked(v => !v); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setBookmarked((v) => !v);
+            }}
             className="text-foreground/50 hover:text-primary transition-colors p-1"
           >
-            <Icon name={bookmarked ? 'BookmarkIcon' : 'BookmarkIcon'} size={16} variant={bookmarked ? 'solid' : 'outline'} className={bookmarked ? 'text-primary' : ''} />
+            <Icon
+              name={bookmarked ? 'BookmarkIcon' : 'BookmarkIcon'}
+              size={16}
+              variant={bookmarked ? 'solid' : 'outline'}
+              className={bookmarked ? 'text-primary' : ''}
+            />
           </button>
         </div>
       </div>
 
       {/* Sparkline */}
-      <TrendSparkline data={trend.sparklineData} trend={trend.status === 'fading' ? 'down' : 'up'} height={36} width={160} />
+      <TrendSparkline
+        data={trend.sparklineData}
+        trend={trend.status === 'fading' ? 'down' : 'up'}
+        height={36}
+        width={160}
+      />
 
       {/* Platforms */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        {trend.platforms.slice(0, 4).map(p => (
+        {trend.platforms.slice(0, 4).map((p) => (
           <PlatformBadge key={p} platform={p} size="xs" />
         ))}
       </div>
@@ -79,8 +97,8 @@ function ExploreTrendCard({ trend }: { trend: TrendItem }) {
       {/* Stats row */}
       <div className="flex items-center justify-between text-sm text-foreground/60 font-mono-custom border-t border-border pt-2.5">
         <span className="flex items-center gap-1 font-semibold">
-          <Icon name="ArrowTrendingUpIcon" size={14} className="text-primary" />
-          +{trend.velocity.toFixed(1)}x
+          <Icon name="ArrowTrendingUpIcon" size={14} className="text-primary" />+
+          {trend.velocity.toFixed(1)}x
         </span>
         <span className="font-semibold">{(trend.mentions24h / 1000).toFixed(0)}k mentions</span>
         <span>{trend.timeAgo}</span>
@@ -101,15 +119,19 @@ function RisingCard({ trend }: { trend: TrendItem }) {
       <p className="text-base font-bold text-foreground leading-snug line-clamp-2 font-sans mb-2.5 group-hover:text-primary transition-colors">
         {trend.title}
       </p>
-      <TrendSparkline data={trend.sparklineData} trend={trend.status === 'fading' ? 'down' : 'up'} height={28} width={160} />
+      <TrendSparkline
+        data={trend.sparklineData}
+        trend={trend.status === 'fading' ? 'down' : 'up'}
+        height={28}
+        width={160}
+      />
       <div className="flex items-center gap-1.5 mt-2.5 flex-wrap">
-        {trend.platforms.slice(0, 3).map(p => (
+        {trend.platforms.slice(0, 3).map((p) => (
           <PlatformBadge key={p} platform={p} size="xs" />
         ))}
       </div>
       <p className="text-sm font-mono-custom font-bold text-primary mt-2.5 flex items-center gap-1">
-        <Icon name="BoltIcon" size={12} variant="solid" />
-        +{trend.velocity.toFixed(1)}x velocity
+        <Icon name="BoltIcon" size={12} variant="solid" />+{trend.velocity.toFixed(1)}x velocity
       </p>
     </div>
   );
@@ -158,11 +180,36 @@ export default function ExploreContent() {
 
   const platformTabs = [
     { id: 'all' as PlatformTab, label: 'All', icon: 'Squares2X2Icon', count: trends.length },
-    { id: 'youtube' as PlatformTab, label: 'YouTube', icon: 'PlayCircleIcon', count: trends.filter((t) => t.platforms.includes('youtube')).length },
-    { id: 'instagram' as PlatformTab, label: 'Instagram', icon: 'CameraIcon', count: trends.filter((t) => t.platforms.includes('instagram')).length },
-    { id: 'tiktok' as PlatformTab, label: 'TikTok', icon: 'MusicalNoteIcon', count: trends.filter((t) => t.platforms.includes('tiktok')).length },
-    { id: 'linkedin' as PlatformTab, label: 'LinkedIn', icon: 'BriefcaseIcon', count: trends.filter((t) => t.platforms.includes('linkedin')).length },
-    { id: 'google' as PlatformTab, label: 'Google Trends', icon: 'MagnifyingGlassIcon', count: trends.filter((t) => t.platforms.includes('google')).length },
+    {
+      id: 'youtube' as PlatformTab,
+      label: 'YouTube',
+      icon: 'PlayCircleIcon',
+      count: trends.filter((t) => t.platforms.includes('youtube')).length,
+    },
+    {
+      id: 'instagram' as PlatformTab,
+      label: 'Instagram',
+      icon: 'CameraIcon',
+      count: trends.filter((t) => t.platforms.includes('instagram')).length,
+    },
+    {
+      id: 'tiktok' as PlatformTab,
+      label: 'TikTok',
+      icon: 'MusicalNoteIcon',
+      count: trends.filter((t) => t.platforms.includes('tiktok')).length,
+    },
+    {
+      id: 'linkedin' as PlatformTab,
+      label: 'LinkedIn',
+      icon: 'BriefcaseIcon',
+      count: trends.filter((t) => t.platforms.includes('linkedin')).length,
+    },
+    {
+      id: 'google' as PlatformTab,
+      label: 'Google Trends',
+      icon: 'MagnifyingGlassIcon',
+      count: trends.filter((t) => t.platforms.includes('google')).length,
+    },
   ];
 
   // Filter trends by platform tab
@@ -173,15 +220,16 @@ export default function ExploreContent() {
 
   // Filter by niche
   const filteredByNiche = activeNiche
-    ? filteredByPlatform.filter(t => t.category.toLowerCase().includes(activeNiche.toLowerCase()))
+    ? filteredByPlatform.filter((t) => t.category.toLowerCase().includes(activeNiche.toLowerCase()))
     : filteredByPlatform;
 
   // Filter by search
   const filteredTrends = searchQuery.trim()
-    ? filteredByNiche.filter(t =>
-        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.hashtags.some(h => h.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? filteredByNiche.filter(
+        (t) =>
+          t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          t.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          t.hashtags.some((h) => h.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : filteredByNiche;
 
@@ -194,9 +242,7 @@ export default function ExploreContent() {
   });
 
   // Rising fastest (sorted by velocity, top 10)
-  const risingFastest = [...trends]
-    .sort((a, b) => b.velocity - a.velocity)
-    .slice(0, 10);
+  const risingFastest = [...trends].sort((a, b) => b.velocity - a.velocity).slice(0, 10);
 
   const handleSearch = (q: string) => {
     setSearchQuery(q);
@@ -204,7 +250,7 @@ export default function ExploreContent() {
 
   const handleSearchSubmit = (q: string) => {
     if (q.trim() && !recentSearches.includes(q.trim())) {
-      setRecentSearches(prev => [q.trim(), ...prev.slice(0, 4)]);
+      setRecentSearches((prev) => [q.trim(), ...prev.slice(0, 4)]);
     }
     setShowRecentSearches(false);
   };
@@ -212,7 +258,10 @@ export default function ExploreContent() {
   // Close recent searches on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.closest('.search-wrapper')?.contains(e.target as Node)) {
+      if (
+        searchRef.current &&
+        !searchRef.current.closest('.search-wrapper')?.contains(e.target as Node)
+      ) {
         setShowRecentSearches(false);
       }
     };
@@ -228,30 +277,42 @@ export default function ExploreContent() {
           <Icon name="MagnifyingGlassIcon" size={20} className="text-white" />
         </div>
         <div>
-          <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">Explore</h1>
-          <p className="text-sm text-muted-foreground font-sans mt-0.5">Discover trending topics across all platforms</p>
+          <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">
+            Explore
+          </h1>
+          <p className="text-sm text-muted-foreground font-sans mt-0.5">
+            Discover trending topics across all platforms
+          </p>
         </div>
       </div>
 
       <div className="px-5 sm:px-6 py-6 max-w-screen-xl mx-auto space-y-8">
-
         {/* ── Full-Width Search Bar ── */}
         <div className="search-wrapper relative">
           <div className="relative">
-            <Icon name="MagnifyingGlassIcon" size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <Icon
+              name="MagnifyingGlassIcon"
+              size={20}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+            />
             <input
               ref={searchRef}
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               onFocus={() => setShowRecentSearches(true)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(searchQuery); }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSearchSubmit(searchQuery);
+              }}
               placeholder="Search trends, niches, hashtags…"
               className="w-full pl-12 pr-14 py-4 rounded-2xl bg-card border-2 border-border text-foreground placeholder:text-muted-foreground text-base font-sans font-medium focus:outline-none focus:border-primary/50 transition-all"
             />
             {searchQuery && (
               <button
-                onClick={() => { setSearchQuery(''); setShowRecentSearches(false); }}
+                onClick={() => {
+                  setSearchQuery('');
+                  setShowRecentSearches(false);
+                }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Icon name="XMarkIcon" size={18} />
@@ -263,15 +324,24 @@ export default function ExploreContent() {
           {showRecentSearches && !searchQuery && recentSearches.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-card border-2 border-border rounded-2xl shadow-nav overflow-hidden z-50 animate-scale-in">
               <div className="px-4 py-3 border-b border-border bg-muted/30">
-                <p className="font-mono-custom text-xs font-bold text-muted-foreground uppercase tracking-wider">Recent Searches</p>
+                <p className="font-mono-custom text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Recent Searches
+                </p>
               </div>
               {recentSearches.map((s, i) => (
                 <button
                   key={i}
-                  onClick={() => { setSearchQuery(s); handleSearchSubmit(s); }}
+                  onClick={() => {
+                    setSearchQuery(s);
+                    handleSearchSubmit(s);
+                  }}
                   className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted transition-colors text-left border-b border-border/50 last:border-0"
                 >
-                  <Icon name="ClockIcon" size={15} className="text-muted-foreground flex-shrink-0" />
+                  <Icon
+                    name="ClockIcon"
+                    size={15}
+                    className="text-muted-foreground flex-shrink-0"
+                  />
                   <span className="text-base font-sans font-medium text-foreground">{s}</span>
                 </button>
               ))}
@@ -284,7 +354,9 @@ export default function ExploreContent() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-xl font-display font-bold text-foreground">Niche Heatmap</h2>
-              <p className="text-sm text-muted-foreground font-sans mt-0.5">Tile size = trend volume · Color = heat intensity</p>
+              <p className="text-sm text-muted-foreground font-sans mt-0.5">
+                Tile size = trend volume · Color = heat intensity
+              </p>
             </div>
             {activeNiche && (
               <button
@@ -310,8 +382,14 @@ export default function ExploreContent() {
                     isActive ? 'ring-2 ring-primary scale-[1.04] shadow-flame-sm' : ''
                   }`}
                 >
-                  <span className={`text-xs font-bold font-sans leading-tight text-center px-1 ${text}`}>{tile.niche}</span>
-                  <span className={`text-[11px] font-mono-custom font-semibold ${text} opacity-80`}>{tile.count}</span>
+                  <span
+                    className={`text-xs font-bold font-sans leading-tight text-center px-1 ${text}`}
+                  >
+                    {tile.niche}
+                  </span>
+                  <span className={`text-[11px] font-mono-custom font-semibold ${text} opacity-80`}>
+                    {tile.count}
+                  </span>
                 </button>
               );
             })}
@@ -332,9 +410,11 @@ export default function ExploreContent() {
             >
               <Icon name={tab.icon as any} size={16} />
               {tab.label}
-              <span className={`text-xs font-mono-custom font-bold px-1.5 py-0.5 rounded-full ${
-                activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
-              }`}>
+              <span
+                className={`text-xs font-mono-custom font-bold px-1.5 py-0.5 rounded-full ${
+                  activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
+                }`}
+              >
                 {tab.count}
               </span>
             </button>
@@ -349,7 +429,9 @@ export default function ExploreContent() {
             </div>
             <div>
               <h2 className="text-xl font-display font-bold text-foreground">⚡ Rising Fastest</h2>
-              <p className="text-sm text-muted-foreground font-sans">Highest velocity in the last 6 hours</p>
+              <p className="text-sm text-muted-foreground font-sans">
+                Highest velocity in the last 6 hours
+              </p>
             </div>
           </div>
           <div className="flex gap-3 overflow-x-auto scrollbar-thin pb-2">
@@ -381,7 +463,9 @@ export default function ExploreContent() {
                 key={t}
                 onClick={() => setTimeFilter(t)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-mono-custom font-bold transition-all ${
-                  timeFilter === t ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'
+                  timeFilter === t
+                    ? 'bg-primary text-white'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {t}
@@ -425,7 +509,11 @@ export default function ExploreContent() {
               Try changing your filters or search query to discover more trends.
             </p>
             <button
-              onClick={() => { setSearchQuery(''); setActiveNiche(null); setActiveTab('all'); }}
+              onClick={() => {
+                setSearchQuery('');
+                setActiveNiche(null);
+                setActiveTab('all');
+              }}
               className="mt-5 btn-flame px-5 py-2.5 text-sm rounded-xl"
             >
               Reset Filters

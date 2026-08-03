@@ -17,7 +17,8 @@ export default function TrendSparkline({
 }: TrendSparklineProps) {
   if (!data || data.length < 2) return null;
 
-  const strokeColor = color || (trend === 'up' ? '#FF5A1F' : trend === 'down' ? '#8B5346' : '#FFB820');
+  const strokeColor =
+    color || (trend === 'up' ? '#FF5A1F' : trend === 'down' ? '#8B5346' : '#FFB820');
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;

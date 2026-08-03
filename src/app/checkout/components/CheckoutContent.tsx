@@ -2,9 +2,25 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Shield, CheckCircle, Zap, Users, BarChart3, FileText, Globe, Lock, ChevronDown, ChevronUp, CreditCard, Smartphone, Building2, Tag, Info } from 'lucide-react';
+import {
+  ArrowLeft,
+  Shield,
+  CheckCircle,
+  Zap,
+  Users,
+  BarChart3,
+  FileText,
+  Globe,
+  Lock,
+  ChevronDown,
+  ChevronUp,
+  CreditCard,
+  Smartphone,
+  Building2,
+  Tag,
+  Info,
+} from 'lucide-react';
 import Icon from '@/components/ui/AppIcon';
-
 
 type BillingCycle = 'monthly' | 'annual';
 type PaymentMethod = 'upi' | 'card' | 'netbanking';
@@ -125,7 +141,11 @@ export default function CheckoutContent() {
         const script = document.createElement('script');
         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
         script.onload = () => {
-          const RazorpayCtor = (window as unknown as { Razorpay: new (opts: Record<string, unknown>) => { open: () => void } }).Razorpay;
+          const RazorpayCtor = (
+            window as unknown as {
+              Razorpay: new (opts: Record<string, unknown>) => { open: () => void };
+            }
+          ).Razorpay;
           const rzp = new RazorpayCtor({
             key: data.keyId,
             amount: data.amount,
@@ -133,7 +153,11 @@ export default function CheckoutContent() {
             name: 'NEMO',
             description: `${selectedPlan.toUpperCase()} subscription`,
             order_id: data.orderId,
-            handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+            handler: async (response: {
+              razorpay_order_id: string;
+              razorpay_payment_id: string;
+              razorpay_signature: string;
+            }) => {
               const verifyRes = await fetch('/api/billing/verify-payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -205,23 +229,30 @@ export default function CheckoutContent() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {/* Page title */}
         <div className="mb-8">
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-foreground mb-2">Complete Your Purchase</h1>
-          <p className="text-base text-muted-foreground font-sans font-medium">You&apos;re one step away from unlocking the full power of NEMO.</p>
+          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-foreground mb-2">
+            Complete Your Purchase
+          </h1>
+          <p className="text-base text-muted-foreground font-sans font-medium">
+            You&apos;re one step away from unlocking the full power of NEMO.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* LEFT: Payment form */}
           <div className="lg:col-span-3 space-y-5">
-
             {/* Billing Toggle */}
             <div className="bg-card border-2 border-border rounded-2xl p-5">
-              <h2 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Billing Cycle</h2>
+              <h2 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
+                Billing Cycle
+              </h2>
               <div className="flex items-center gap-3">
                 <div className="flex bg-muted rounded-xl p-1 gap-1 flex-1 border border-border">
                   <button
                     onClick={() => setBilling('monthly')}
                     className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold font-sans transition-all duration-200 ${
-                      billing === 'monthly' ?'bg-card text-foreground shadow-card border border-border' :'text-muted-foreground hover:text-foreground'
+                      billing === 'monthly'
+                        ? 'bg-card text-foreground shadow-card border border-border'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     Monthly
@@ -229,7 +260,9 @@ export default function CheckoutContent() {
                   <button
                     onClick={() => setBilling('annual')}
                     className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold font-sans transition-all duration-200 relative ${
-                      billing === 'annual' ?'bg-card text-foreground shadow-card border border-border' :'text-muted-foreground hover:text-foreground'
+                      billing === 'annual'
+                        ? 'bg-card text-foreground shadow-card border border-border'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     Annual
@@ -243,7 +276,8 @@ export default function CheckoutContent() {
                 <div className="mt-3 flex items-center gap-2 px-4 py-3 rounded-xl bg-accent/8 border border-accent/20">
                   <Zap size={15} className="text-accent flex-shrink-0" />
                   <p className="text-sm font-bold font-sans text-accent">
-                    You save <span className="font-extrabold">{formatPrice(annualSavings)}</span> per year with annual billing
+                    You save <span className="font-extrabold">{formatPrice(annualSavings)}</span>{' '}
+                    per year with annual billing
                   </p>
                 </div>
               )}
@@ -251,21 +285,26 @@ export default function CheckoutContent() {
 
             {/* Payment Method Tabs */}
             <div className="bg-card border-2 border-border rounded-2xl p-5">
-              <h2 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">Payment Method</h2>
+              <h2 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
+                Payment Method
+              </h2>
 
               {/* Tabs */}
               <div className="flex gap-2 mb-5">
-                {([
-                  { id: 'upi', label: 'UPI', icon: Smartphone },
-                  { id: 'card', label: 'Card', icon: CreditCard },
-                  { id: 'netbanking', label: 'Net Banking', icon: Building2 },
-                ] as { id: PaymentMethod; label: string; icon: React.ElementType }[]).map(({ id, label, icon: Icon }) => (
+                {(
+                  [
+                    { id: 'upi', label: 'UPI', icon: Smartphone },
+                    { id: 'card', label: 'Card', icon: CreditCard },
+                    { id: 'netbanking', label: 'Net Banking', icon: Building2 },
+                  ] as { id: PaymentMethod; label: string; icon: React.ElementType }[]
+                ).map(({ id, label, icon: Icon }) => (
                   <button
                     key={id}
                     onClick={() => setPaymentMethod(id)}
                     className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl border-2 text-sm font-bold font-sans transition-all duration-150 ${
                       paymentMethod === id
-                        ? 'border-primary bg-primary/8 text-primary' :'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                        ? 'border-primary bg-primary/8 text-primary'
+                        : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground'
                     }`}
                   >
                     <Icon size={15} />
@@ -279,7 +318,9 @@ export default function CheckoutContent() {
               {paymentMethod === 'upi' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-sans font-medium text-muted-foreground mb-1.5">UPI ID</label>
+                    <label className="block text-xs font-sans font-medium text-muted-foreground mb-1.5">
+                      UPI ID
+                    </label>
                     <div className="relative">
                       <input
                         type="text"
@@ -288,7 +329,10 @@ export default function CheckoutContent() {
                         placeholder="yourname@upi"
                         className="w-full px-4 py-3 rounded-xl border border-border bg-input text-foreground text-sm font-sans placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                       />
-                      <Smartphone size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <Smartphone
+                        size={16}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      />
                     </div>
                     <p className="text-xs text-muted-foreground font-sans mt-1.5">
                       Supports PhonePe, Google Pay, Paytm, BHIM & all UPI apps
@@ -296,7 +340,10 @@ export default function CheckoutContent() {
                   </div>
                   <div className="flex gap-3">
                     {['gpay', 'phonepe', 'paytm', 'bhim'].map((app) => (
-                      <div key={app} className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-border bg-muted/50 text-xs font-mono-custom text-muted-foreground uppercase tracking-wide">
+                      <div
+                        key={app}
+                        className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-border bg-muted/50 text-xs font-mono-custom text-muted-foreground uppercase tracking-wide"
+                      >
                         {app}
                       </div>
                     ))}
@@ -308,7 +355,9 @@ export default function CheckoutContent() {
               {paymentMethod === 'card' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-sans font-medium text-muted-foreground mb-1.5">Card Number</label>
+                    <label className="block text-xs font-sans font-medium text-muted-foreground mb-1.5">
+                      Card Number
+                    </label>
                     <div className="relative">
                       <input
                         type="text"
@@ -318,11 +367,16 @@ export default function CheckoutContent() {
                         maxLength={19}
                         className="w-full px-4 py-3 rounded-xl border border-border bg-input text-foreground text-sm font-mono-custom placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all tracking-widest"
                       />
-                      <CreditCard size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <CreditCard
+                        size={16}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-sans font-medium text-muted-foreground mb-1.5">Cardholder Name</label>
+                    <label className="block text-xs font-sans font-medium text-muted-foreground mb-1.5">
+                      Cardholder Name
+                    </label>
                     <input
                       type="text"
                       value={cardName}
@@ -333,7 +387,9 @@ export default function CheckoutContent() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-sans font-medium text-muted-foreground mb-1.5">Expiry Date</label>
+                      <label className="block text-xs font-sans font-medium text-muted-foreground mb-1.5">
+                        Expiry Date
+                      </label>
                       <input
                         type="text"
                         value={cardExpiry}
@@ -344,17 +400,24 @@ export default function CheckoutContent() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-sans font-medium text-muted-foreground mb-1.5">CVV</label>
+                      <label className="block text-xs font-sans font-medium text-muted-foreground mb-1.5">
+                        CVV
+                      </label>
                       <div className="relative">
                         <input
                           type="password"
                           value={cardCvv}
-                          onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                          onChange={(e) =>
+                            setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))
+                          }
                           placeholder="•••"
                           maxLength={4}
                           className="w-full px-4 py-3 rounded-xl border border-border bg-input text-foreground text-sm font-mono-custom placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                         />
-                        <Info size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground cursor-help" />
+                        <Info
+                          size={14}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground cursor-help"
+                        />
                       </div>
                     </div>
                   </div>
@@ -369,7 +432,9 @@ export default function CheckoutContent() {
               {paymentMethod === 'netbanking' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-sans font-medium text-muted-foreground mb-2">Select Your Bank</label>
+                    <label className="block text-xs font-sans font-medium text-muted-foreground mb-2">
+                      Select Your Bank
+                    </label>
                     <div className="grid grid-cols-2 gap-2">
                       {BANKS.map((bank) => (
                         <button
@@ -377,12 +442,17 @@ export default function CheckoutContent() {
                           onClick={() => setSelectedBank(bank.id)}
                           className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-sm font-sans text-left transition-all duration-150 ${
                             selectedBank === bank.id
-                              ? 'border-primary bg-primary/8 text-primary' :'border-border bg-card text-foreground hover:border-primary/40'
+                              ? 'border-primary bg-primary/8 text-primary'
+                              : 'border-border bg-card text-foreground hover:border-primary/40'
                           }`}
                         >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono-custom font-bold flex-shrink-0 ${
-                            selectedBank === bank.id ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
-                          }`}>
+                          <div
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono-custom font-bold flex-shrink-0 ${
+                              selectedBank === bank.id
+                                ? 'bg-primary text-white'
+                                : 'bg-muted text-muted-foreground'
+                            }`}
+                          >
                             {bank.name.charAt(0)}
                           </div>
                           <span className="truncate text-xs">{bank.name}</span>
@@ -394,7 +464,11 @@ export default function CheckoutContent() {
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20">
                       <CheckCircle size={14} className="text-primary flex-shrink-0" />
                       <p className="text-xs font-sans text-foreground">
-                        You'll be redirected to <span className="font-semibold">{BANKS.find(b => b.id === selectedBank)?.name}</span> to complete payment
+                        You'll be redirected to{' '}
+                        <span className="font-semibold">
+                          {BANKS.find((b) => b.id === selectedBank)?.name}
+                        </span>{' '}
+                        to complete payment
                       </p>
                     </div>
                   )}
@@ -404,14 +478,22 @@ export default function CheckoutContent() {
 
             {/* Coupon Code */}
             <div className="bg-card border-2 border-border rounded-2xl p-5">
-              <h2 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-3">Promo Code</h2>
+              <h2 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-3">
+                Promo Code
+              </h2>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Tag
+                    size={14}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
                   <input
                     type="text"
                     value={couponCode}
-                    onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponApplied(false); }}
+                    onChange={(e) => {
+                      setCouponCode(e.target.value.toUpperCase());
+                      setCouponApplied(false);
+                    }}
                     placeholder="Enter promo code"
                     className="w-full pl-9 pr-4 py-3 rounded-xl border border-border bg-input text-foreground text-sm font-mono-custom placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all uppercase"
                   />
@@ -421,7 +503,8 @@ export default function CheckoutContent() {
                   disabled={!couponCode.trim() || couponApplied}
                   className={`px-5 py-3 rounded-xl text-sm font-sans font-semibold transition-all duration-150 ${
                     couponApplied
-                      ? 'bg-accent/15 text-accent border border-accent/30 cursor-default' :'btn-flame disabled:opacity-40 disabled:cursor-not-allowed'
+                      ? 'bg-accent/15 text-accent border border-accent/30 cursor-default'
+                      : 'btn-flame disabled:opacity-40 disabled:cursor-not-allowed'
                   }`}
                 >
                   {couponApplied ? '✓ Applied' : 'Apply'}
@@ -433,7 +516,10 @@ export default function CheckoutContent() {
                   Promo code <span className="font-bold">NEMO10</span> applied — 10% off!
                 </p>
               )}
-              <p className="text-xs text-muted-foreground font-sans mt-2">Try <span className="font-mono-custom font-bold text-foreground">NEMO10</span> for 10% off</p>
+              <p className="text-xs text-muted-foreground font-sans mt-2">
+                Try <span className="font-mono-custom font-bold text-foreground">NEMO10</span> for
+                10% off
+              </p>
             </div>
           </div>
 
@@ -474,7 +560,10 @@ export default function CheckoutContent() {
               {showFeatures && (
                 <ul className="mt-3 space-y-2 border-t border-border pt-3">
                   {plan.features.map((feature, i) => (
-                    <li key={`feat-${i}`} className="flex items-center gap-2 text-xs font-sans text-foreground">
+                    <li
+                      key={`feat-${i}`}
+                      className="flex items-center gap-2 text-xs font-sans text-foreground"
+                    >
                       <CheckCircle size={13} className="text-accent flex-shrink-0" />
                       {feature}
                     </li>
@@ -485,7 +574,9 @@ export default function CheckoutContent() {
 
             {/* Price Breakdown */}
             <div className="bg-card border-2 border-border rounded-2xl p-5">
-              <h2 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-4">Order Summary</h2>
+              <h2 className="text-xs font-mono-custom uppercase tracking-widest text-muted-foreground mb-4">
+                Order Summary
+              </h2>
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm font-sans">
                   <span className="text-muted-foreground">
@@ -554,7 +645,10 @@ export default function CheckoutContent() {
                 { icon: CheckCircle, text: '7-day money-back guarantee' },
                 { icon: Globe, text: 'Cancel anytime, no questions asked' },
               ].map(({ icon: Icon, text }, i) => (
-                <div key={`trust-${i}`} className="flex items-center gap-2 text-xs font-sans text-muted-foreground">
+                <div
+                  key={`trust-${i}`}
+                  className="flex items-center gap-2 text-xs font-sans text-muted-foreground"
+                >
                   <Icon size={13} className="text-accent flex-shrink-0" />
                   <span>{text}</span>
                 </div>
@@ -564,7 +658,9 @@ export default function CheckoutContent() {
             {/* GST Note */}
             <div className="px-3 py-2.5 rounded-xl bg-muted/60 border border-border">
               <p className="text-xs font-sans text-muted-foreground leading-relaxed">
-                <span className="font-semibold text-foreground">GST Note:</span> All prices are exclusive of 18% GST as per Indian tax regulations. A GST invoice will be emailed after payment.
+                <span className="font-semibold text-foreground">GST Note:</span> All prices are
+                exclusive of 18% GST as per Indian tax regulations. A GST invoice will be emailed
+                after payment.
               </p>
             </div>
           </div>

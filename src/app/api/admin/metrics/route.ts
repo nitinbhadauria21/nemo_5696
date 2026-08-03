@@ -34,8 +34,14 @@ export async function GET(request: NextRequest) {
         admin.from('profiles').select('*', { count: 'exact', head: true }),
         admin.from('profiles').select('*', { count: 'exact', head: true }).eq('plan', 'pro'),
         admin.from('profiles').select('*', { count: 'exact', head: true }).eq('plan', 'agency'),
-        admin.from('profiles').select('*', { count: 'exact', head: true }).eq('onboarding_complete', true),
-        admin.from('profiles').select('id, plan, onboarding_complete, created_at').gte('created_at', since),
+        admin
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('onboarding_complete', true),
+        admin
+          .from('profiles')
+          .select('id, plan, onboarding_complete, created_at')
+          .gte('created_at', since),
         admin
           .from('user_events')
           .select('user_id, event_name, event_category, created_at')

@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
     user_id: userId,
     query,
     page_path: body.pagePath ?? body.page_path ?? null,
-    result_count: typeof body.resultCount === 'number' ? body.resultCount : body.result_count ?? null,
+    result_count:
+      typeof body.resultCount === 'number' ? body.resultCount : (body.result_count ?? null),
   });
 
   return NextResponse.json({ ok: true });

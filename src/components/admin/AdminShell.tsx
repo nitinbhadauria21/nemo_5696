@@ -52,9 +52,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     );
   }
 
-  const meta =
-    Object.entries(TITLES).find(([path]) => pathname === path || pathname.startsWith(`${path}/`))?.[1] ??
-    { title: 'Admin', sub: 'Control plane' };
+  const meta = Object.entries(TITLES).find(
+    ([path]) => pathname === path || pathname.startsWith(`${path}/`)
+  )?.[1] ?? { title: 'Admin', sub: 'Control plane' };
 
   const isUserDetail = pathname.match(/^\/admin\/users\/[^/]+$/);
   const title = isUserDetail ? 'User profile' : meta.title;

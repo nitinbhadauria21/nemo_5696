@@ -14,7 +14,11 @@ export async function GET() {
   if (isSupabaseConfigured() && !demo) {
     const supabase = await createClient();
     if (!supabase) return NextResponse.json({ items: [] });
-    const { data } = await supabase.from('queue_items').select('*').eq('user_id', userId).order('sort_order');
+    const { data } = await supabase
+      .from('queue_items')
+      .select('*')
+      .eq('user_id', userId)
+      .order('sort_order');
     return NextResponse.json({ items: data ?? [] });
   }
   return NextResponse.json({ items: memoryQueue.get(userId) ?? [] });

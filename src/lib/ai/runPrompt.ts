@@ -6,7 +6,11 @@ function extractText(result: unknown): string {
   if (typeof r.content === 'string') return r.content;
   if (Array.isArray(r.content)) {
     return r.content
-      .map((block) => (typeof block === 'object' && block && 'text' in block ? String((block as { text: string }).text) : ''))
+      .map((block) =>
+        typeof block === 'object' && block && 'text' in block
+          ? String((block as { text: string }).text)
+          : ''
+      )
       .join('\n');
   }
   if (r.choices && Array.isArray(r.choices)) {
@@ -19,8 +23,7 @@ function extractText(result: unknown): string {
 export async function runAiPrompt(prompt: string): Promise<string> {
   const provider = (process.env.AI_PROVIDER as ProviderId) || 'ANTHROPIC';
   const model =
-    process.env.AI_MODEL ||
-    (provider === 'ANTHROPIC' ? 'claude-sonnet-4-20250514' : 'gpt-4o-mini');
+    process.env.AI_MODEL || (provider === 'ANTHROPIC' ? 'claude-sonnet-4-20250514' : 'gpt-4o-mini');
 
   const result = await createCompletion({
     provider,

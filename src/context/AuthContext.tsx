@@ -162,9 +162,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!demo || demo.password !== password) {
       return { error: 'Invalid credentials — use demo accounts or configure Supabase' };
     }
-    const localPlan = (typeof window !== 'undefined'
-      ? (localStorage.getItem(LOCAL_PLAN_KEY) as PlanId | null)
-      : null) || demo.plan;
+    const localPlan =
+      (typeof window !== 'undefined'
+        ? (localStorage.getItem(LOCAL_PLAN_KEY) as PlanId | null)
+        : null) || demo.plan;
     const localProfile: UserProfile = {
       id: `local-${email}`,
       email,

@@ -9,9 +9,29 @@
  * These functions process raw API responses into typed signal objects.
  */
 
-import { InstagramSignals, YouTubeSignals, GoogleTrendsSignals, RedditSignals, TikTokSignals, TwitterSignals, LinkedInSignals, TrendRecord, Platform, TrendNiche,  } from './types';
+import {
+  InstagramSignals,
+  YouTubeSignals,
+  GoogleTrendsSignals,
+  RedditSignals,
+  TikTokSignals,
+  TwitterSignals,
+  LinkedInSignals,
+  TrendRecord,
+  Platform,
+  TrendNiche,
+} from './types';
 
-import { computeFullNemoScore, classifyTrendStatus, normalizeRedditScore, applyBreakoutMultiplier, applyAudioBreakoutMultiplier, applyYouTubeTrafficSourceMultiplier, isRedditControversial, computeNoveltyScore,  } from './scoringEngine';
+import {
+  computeFullNemoScore,
+  classifyTrendStatus,
+  normalizeRedditScore,
+  applyBreakoutMultiplier,
+  applyAudioBreakoutMultiplier,
+  applyYouTubeTrafficSourceMultiplier,
+  isRedditControversial,
+  computeNoveltyScore,
+} from './scoringEngine';
 
 // ─── Instagram Signal Collector ───────────────────────────────────────────────
 
@@ -39,7 +59,7 @@ export function collectInstagramSignals(raw: Partial<InstagramSignals>): Instagr
     comment_velocity_15min: raw.comment_velocity_15min ?? 0,
     shares_dm_sends: raw.shares_dm_sends ?? 0,
     hashtag_frequency_24h: raw.hashtag_frequency_24h ?? 0,
-    audio_reuse_velocity: raw.audio_reuse_velocity ?? 0,  // [NEW] Apify/Phyllo required
+    audio_reuse_velocity: raw.audio_reuse_velocity ?? 0, // [NEW] Apify/Phyllo required
     saves_count: raw.saves_count ?? 0,
     likes_velocity: raw.likes_velocity ?? 0,
     follower_growth_delta: raw.follower_growth_delta ?? 0,
@@ -54,27 +74,31 @@ export function collectInstagramSignals(raw: Partial<InstagramSignals>): Instagr
  * Hashtag Frequency 12%, Audio Reuse Velocity 10%, Saves 8%, Likes Velocity 6%,
  * Follower Growth Delta 5%.
  */
-export function scoreInstagramSignals(signals: InstagramSignals, maxValues: {
-  max_reels_play_count_1h: number;
-  max_comment_velocity: number;
-  max_shares: number;
-  max_hashtag_frequency: number;
-  max_audio_reuse_velocity: number;
-  max_saves: number;
-  max_likes_velocity: number;
-  max_follower_growth: number;
-}): number {
-  const normalize = (val: number, max: number) => max > 0 ? Math.min(1, val / max) : 0;
+export function scoreInstagramSignals(
+  signals: InstagramSignals,
+  maxValues: {
+    max_reels_play_count_1h: number;
+    max_comment_velocity: number;
+    max_shares: number;
+    max_hashtag_frequency: number;
+    max_audio_reuse_velocity: number;
+    max_saves: number;
+    max_likes_velocity: number;
+    max_follower_growth: number;
+  }
+): number {
+  const normalize = (val: number, max: number) => (max > 0 ? Math.min(1, val / max) : 0);
 
   let score =
     normalize(signals.reels_play_count_1h, maxValues.max_reels_play_count_1h) * 22 +
     normalize(
       Math.max(signals.comment_velocity_5min, signals.comment_velocity_15min),
       maxValues.max_comment_velocity
-    ) * 18 +
+    ) *
+      18 +
     normalize(signals.shares_dm_sends, maxValues.max_shares) * 15 +
     normalize(signals.hashtag_frequency_24h, maxValues.max_hashtag_frequency) * 12 +
-    normalize(signals.audio_reuse_velocity, maxValues.max_audio_reuse_velocity) * 10 +  // [NEW]
+    normalize(signals.audio_reuse_velocity, maxValues.max_audio_reuse_velocity) * 10 + // [NEW]
     normalize(signals.saves_count, maxValues.max_saves) * 8 +
     normalize(signals.likes_velocity, maxValues.max_likes_velocity) * 6 +
     normalize(signals.follower_growth_delta, maxValues.max_follower_growth) * 5;
@@ -109,9 +133,9 @@ export function collectYouTubeSignals(raw: Partial<YouTubeSignals>): YouTubeSign
     comment_velocity_60min: raw.comment_velocity_60min ?? 0,
     search_volume_rising: raw.search_volume_rising ?? false,
     shorts_completion_rate_proxy: raw.shorts_completion_rate_proxy ?? 0,
-    topic_cluster_score: raw.topic_cluster_score ?? 0,  // [NEW]
+    topic_cluster_score: raw.topic_cluster_score ?? 0, // [NEW]
     likes_per_1000_views: raw.likes_per_1000_views ?? 0,
-    traffic_source_weight: raw.traffic_source_weight ?? 1.0,  // [NEW] default = no multiplier
+    traffic_source_weight: raw.traffic_source_weight ?? 1.0, // [NEW] default = no multiplier
     video_ids_sample: raw.video_ids_sample ?? [],
     collected_at: raw.collected_at ?? new Date().toISOString(),
   };
@@ -123,22 +147,33 @@ export function collectYouTubeSignals(raw: Partial<YouTubeSignals>): YouTubeSign
  * Search Volume 12%, Shorts Completion Rate 10%, Topic Cluster Score 8%,
  * Likes/1000 Views 5%, Traffic Source Weight 4%.
  */
-export function scoreYouTubeSignals(signals: YouTubeSignals, maxValues: {
-  max_views_per_hour: number;
-  max_view_growth_pct: number;
-  max_comment_velocity: number;
-  max_topic_cluster_score: number;
-  max_likes_per_1000: number;
-}): number {
-  const normalize = (val: number, max: number) => max > 0 ? Math.min(1, val / max) : 0;
+export function scoreYouTubeSignals(
+  signals: YouTubeSignals,
+  maxValues: {
+    max_views_per_hour: number;
+    max_view_growth_pct: number;
+    max_comment_velocity: number;
+    max_topic_cluster_score: number;
+    max_likes_per_1000: number;
+  }
+): number {
+  const normalize = (val: number, max: number) => (max > 0 ? Math.min(1, val / max) : 0);
 
   const base_score =
-    normalize(Math.max(signals.views_per_hour_1h, signals.views_per_hour_6h), maxValues.max_views_per_hour) * 25 +
+    normalize(
+      Math.max(signals.views_per_hour_1h, signals.views_per_hour_6h),
+      maxValues.max_views_per_hour
+    ) *
+      25 +
     normalize(signals.view_growth_speed_pct, maxValues.max_view_growth_pct) * 20 +
-    normalize(Math.max(signals.comment_velocity_15min, signals.comment_velocity_60min), maxValues.max_comment_velocity) * 15 +
+    normalize(
+      Math.max(signals.comment_velocity_15min, signals.comment_velocity_60min),
+      maxValues.max_comment_velocity
+    ) *
+      15 +
     (signals.search_volume_rising ? 12 : 0) +
     normalize(signals.shorts_completion_rate_proxy, 1) * 10 +
-    normalize(signals.topic_cluster_score, maxValues.max_topic_cluster_score) * 8 +  // [NEW]
+    normalize(signals.topic_cluster_score, maxValues.max_topic_cluster_score) * 8 + // [NEW]
     normalize(signals.likes_per_1000_views, maxValues.max_likes_per_1000) * 5;
 
   // Apply traffic source weight multiplier [NEW]
@@ -175,11 +210,11 @@ export function collectGoogleTrendsSignals(raw: Partial<GoogleTrendsSignals>): G
     time_window_48h: raw.time_window_48h ?? 0,
     time_window_7d: raw.time_window_7d ?? 0,
     active_status: raw.active_status ?? false,
-    geo_spread_score: raw.geo_spread_score ?? 0,  // [NEW]
+    geo_spread_score: raw.geo_spread_score ?? 0, // [NEW]
     source_surface: raw.source_surface ?? 'explore_rising',
     category: raw.category ?? '',
     search_type: raw.search_type ?? 'web',
-    query_cluster_id: raw.query_cluster_id,  // [NEW]
+    query_cluster_id: raw.query_cluster_id, // [NEW]
     geo_regions: raw.geo_regions ?? [],
     collected_at: raw.collected_at ?? new Date().toISOString(),
   };
@@ -190,11 +225,14 @@ export function collectGoogleTrendsSignals(raw: Partial<GoogleTrendsSignals>): G
  * Weights per document: Breakout Flag 30%, Normalized Growth 25%, Time Window 15%,
  * Active Status 12%, Geo Spread Score 8%, Source Surface 5%, Category/Search Type 5%.
  */
-export function scoreGoogleTrendsSignals(signals: GoogleTrendsSignals, maxValues: {
-  max_normalized_growth_pct: number;
-  max_geo_spread_score: number;
-}): number {
-  const normalize = (val: number, max: number) => max > 0 ? Math.min(1, val / max) : 0;
+export function scoreGoogleTrendsSignals(
+  signals: GoogleTrendsSignals,
+  maxValues: {
+    max_normalized_growth_pct: number;
+    max_geo_spread_score: number;
+  }
+): number {
+  const normalize = (val: number, max: number) => (max > 0 ? Math.min(1, val / max) : 0);
 
   // Best time window score (use highest of all 4 windows)
   const best_time_window = Math.max(
@@ -212,8 +250,8 @@ export function scoreGoogleTrendsSignals(signals: GoogleTrendsSignals, maxValues
     normalize(signals.normalized_growth_pct, maxValues.max_normalized_growth_pct) * 25 +
     normalize(best_time_window, 100) * 15 +
     (signals.active_status ? 12 : 0) +
-    normalize(signals.geo_spread_score, maxValues.max_geo_spread_score) * 8 +  // [NEW]
-    5 * source_multiplier;  // source surface
+    normalize(signals.geo_spread_score, maxValues.max_geo_spread_score) * 8 + // [NEW]
+    5 * source_multiplier; // source surface
 
   // Apply breakout 2× multiplier
   score = applyBreakoutMultiplier(score, signals.breakout_boolean);
@@ -249,7 +287,7 @@ export function collectRedditSignals(raw: Partial<RedditSignals>): RedditSignals
     sort_positions: raw.sort_positions ?? [],
     post_age_hours: raw.post_age_hours ?? 0,
     subreddit_subscriber_count: raw.subreddit_subscriber_count ?? 1,
-    comment_keyword_cluster: raw.comment_keyword_cluster ?? [],  // [NEW] top 3 keywords
+    comment_keyword_cluster: raw.comment_keyword_cluster ?? [], // [NEW] top 3 keywords
     upvote_ratio: raw.upvote_ratio ?? 1.0,
     nsfw_flag: raw.nsfw_flag ?? false,
     subreddit_names: raw.subreddit_names ?? [],
@@ -267,14 +305,17 @@ export function collectRedditSignals(raw: Partial<RedditSignals>): RedditSignals
  *   - nsfw_flag = true → return 0 (hard exclude)
  *   - upvote_ratio < 0.7 → de-weight by 0.5×
  */
-export function scoreRedditSignals(signals: RedditSignals, maxValues: {
-  max_score_velocity: number;
-  max_comment_velocity: number;
-}): number {
+export function scoreRedditSignals(
+  signals: RedditSignals,
+  maxValues: {
+    max_score_velocity: number;
+    max_comment_velocity: number;
+  }
+): number {
   // Hard filter: NSFW content excluded entirely
   if (signals.nsfw_flag) return 0;
 
-  const normalize = (val: number, max: number) => max > 0 ? Math.min(1, val / max) : 0;
+  const normalize = (val: number, max: number) => (max > 0 ? Math.min(1, val / max) : 0);
 
   // Best score velocity across all 3 time windows
   const best_score_velocity = Math.max(
@@ -284,21 +325,26 @@ export function scoreRedditSignals(signals: RedditSignals, maxValues: {
   );
 
   // Normalize score velocity using subscriber count
-  const normalized_velocity = normalizeRedditScore(best_score_velocity, signals.subreddit_subscriber_count);
+  const normalized_velocity = normalizeRedditScore(
+    best_score_velocity,
+    signals.subreddit_subscriber_count
+  );
 
   // Sort position bonus: 'rising' = 12 points (earliest signal), 'hot' = 8, 'top' = 4
-  const sort_bonus = signals.sort_positions.includes('rising') ? 12
-    : signals.sort_positions.includes('hot') ? 8
-    : signals.sort_positions.includes('top') ? 4
-    : 0;
+  const sort_bonus = signals.sort_positions.includes('rising')
+    ? 12
+    : signals.sort_positions.includes('hot')
+      ? 8
+      : signals.sort_positions.includes('top')
+        ? 4
+        : 0;
 
   // Post age penalty: posts >6h get reduced weight
   const age_factor = signals.post_age_hours > 6 ? 0.5 : 1.0;
 
   // Cross-subreddit bonus: 3+ subreddits = elevated signal
-  const cross_sub_score = signals.cross_subreddit_count >= 3
-    ? 15
-    : (signals.cross_subreddit_count / 3) * 15;
+  const cross_sub_score =
+    signals.cross_subreddit_count >= 3 ? 15 : (signals.cross_subreddit_count / 3) * 15;
 
   // Comment keyword cluster bonus [NEW]
   const keyword_bonus = signals.comment_keyword_cluster.length > 0 ? 5 : 0;
@@ -341,12 +387,12 @@ export function collectTikTokSignals(raw: Partial<TikTokSignals>): TikTokSignals
     hashtag_post_count_velocity_24h: raw.hashtag_post_count_velocity_24h ?? 0,
     song_audio_breakout_boolean: raw.song_audio_breakout_boolean ?? false,
     engagement_velocity: raw.engagement_velocity ?? 0,
-    region_spread_score: raw.region_spread_score ?? 0,  // [NEW]
+    region_spread_score: raw.region_spread_score ?? 0, // [NEW]
     hashtag_trendline_shape: raw.hashtag_trendline_shape ?? 'linear',
-    creator_amplification_score: raw.creator_amplification_score ?? 0,  // [NEW]
+    creator_amplification_score: raw.creator_amplification_score ?? 0, // [NEW]
     cross_entity_spread: raw.cross_entity_spread ?? 0,
     trend_direction: raw.trend_direction ?? 'RISING',
-    video_sort_mode: raw.video_sort_mode,  // metadata only
+    video_sort_mode: raw.video_sort_mode, // metadata only
     trending_audio_id: raw.trending_audio_id,
     hashtag_names: raw.hashtag_names ?? [],
     collected_at: raw.collected_at ?? new Date().toISOString(),
@@ -359,28 +405,33 @@ export function collectTikTokSignals(raw: Partial<TikTokSignals>): TikTokSignals
  * Engagement Velocity 18%, Regional Popularity 12%, Hashtag Trendline 10%,
  * Creator Amplification 8%, Cross-Entity Spread 6%, Trend Persistence 4%.
  */
-export function scoreTikTokSignals(signals: TikTokSignals, maxValues: {
-  max_hashtag_velocity: number;
-  max_engagement_velocity: number;
-  max_region_spread_score: number;
-  max_creator_amplification_score: number;
-}): number {
-  const normalize = (val: number, max: number) => max > 0 ? Math.min(1, val / max) : 0;
+export function scoreTikTokSignals(
+  signals: TikTokSignals,
+  maxValues: {
+    max_hashtag_velocity: number;
+    max_engagement_velocity: number;
+    max_region_spread_score: number;
+    max_creator_amplification_score: number;
+  }
+): number {
+  const normalize = (val: number, max: number) => (max > 0 ? Math.min(1, val / max) : 0);
 
   // Hashtag trendline shape weight
-  const trendline_weight = {
-    exponential: 1.0,
-    linear: 0.6,
-    plateauing: 0.3,
-    declining: -0.2,
-  }[signals.hashtag_trendline_shape] ?? 0.6;
+  const trendline_weight =
+    {
+      exponential: 1.0,
+      linear: 0.6,
+      plateauing: 0.3,
+      declining: -0.2,
+    }[signals.hashtag_trendline_shape] ?? 0.6;
 
   // Trend direction weight
-  const direction_weight = {
-    RISING: 1.0,
-    PLATEAUING: 0.5,
-    DECLINING: 0.2,
-  }[signals.trend_direction] ?? 1.0;
+  const direction_weight =
+    {
+      RISING: 1.0,
+      PLATEAUING: 0.5,
+      DECLINING: 0.2,
+    }[signals.trend_direction] ?? 1.0;
 
   const best_hashtag_velocity = Math.max(
     signals.hashtag_post_count_velocity_6h,
@@ -391,9 +442,9 @@ export function scoreTikTokSignals(signals: TikTokSignals, maxValues: {
     normalize(best_hashtag_velocity, maxValues.max_hashtag_velocity) * 22 +
     (signals.song_audio_breakout_boolean ? 20 : 0) +
     normalize(signals.engagement_velocity, maxValues.max_engagement_velocity) * 18 +
-    normalize(signals.region_spread_score, maxValues.max_region_spread_score) * 12 +  // [NEW]
+    normalize(signals.region_spread_score, maxValues.max_region_spread_score) * 12 + // [NEW]
     normalize(best_hashtag_velocity, maxValues.max_hashtag_velocity) * 10 * trendline_weight +
-    normalize(signals.creator_amplification_score, maxValues.max_creator_amplification_score) * 8 +  // [NEW]
+    normalize(signals.creator_amplification_score, maxValues.max_creator_amplification_score) * 8 + // [NEW]
     Math.min(6, signals.cross_entity_spread * 2) +
     4 * direction_weight;
 
@@ -426,10 +477,10 @@ export function collectTwitterSignals(raw: Partial<TwitterSignals>): TwitterSign
     mention_velocity_15min: raw.mention_velocity_15min ?? 0,
     mention_velocity_60min: raw.mention_velocity_60min ?? 0,
     engagement_velocity: raw.engagement_velocity ?? 0,
-    tweet_volume: raw.tweet_volume !== undefined ? raw.tweet_volume : null,  // preserve null vs 0
+    tweet_volume: raw.tweet_volume !== undefined ? raw.tweet_volume : null, // preserve null vs 0
     woeid_count: raw.woeid_count ?? 0,
-    novelty_score: raw.novelty_score ?? computeNoveltyScore(raw.repeated_appearance_count ?? 0),  // [NEW]
-    repeated_appearance_count: raw.repeated_appearance_count ?? 0,  // [NEW]
+    novelty_score: raw.novelty_score ?? computeNoveltyScore(raw.repeated_appearance_count ?? 0), // [NEW]
+    repeated_appearance_count: raw.repeated_appearance_count ?? 0, // [NEW]
     query_cluster_id: raw.query_cluster_id,
     trend_created_at: raw.trend_created_at ?? new Date().toISOString(),
     flash_trend_flag: raw.flash_trend_flag ?? false,
@@ -444,12 +495,15 @@ export function collectTwitterSignals(raw: Partial<TwitterSignals>): TwitterSign
  * Geo Spread Score 12%, Novelty Score 10%, Cluster Score 8%, Trend Creation Time 3%,
  * Persistence Score 2%.
  */
-export function scoreTwitterSignals(signals: TwitterSignals, maxValues: {
-  max_mention_velocity: number;
-  max_engagement_velocity: number;
-  max_tweet_volume: number;
-}): number {
-  const normalize = (val: number, max: number) => max > 0 ? Math.min(1, val / max) : 0;
+export function scoreTwitterSignals(
+  signals: TwitterSignals,
+  maxValues: {
+    max_mention_velocity: number;
+    max_engagement_velocity: number;
+    max_tweet_volume: number;
+  }
+): number {
+  const normalize = (val: number, max: number) => (max > 0 ? Math.min(1, val / max) : 0);
 
   // Best mention velocity across all 3 time windows
   const best_mention_velocity = Math.max(
@@ -473,7 +527,7 @@ export function scoreTwitterSignals(signals: TwitterSignals, maxValues: {
     normalize(signals.engagement_velocity, maxValues.max_engagement_velocity) * 22 +
     normalize(signals.tweet_volume ?? 0, maxValues.max_tweet_volume) * 15 +
     geo_score +
-    normalize(signals.novelty_score, 100) * 10 +  // [NEW]
+    normalize(signals.novelty_score, 100) * 10 + // [NEW]
     3 * freshness_factor +
     2 * persistence_factor;
 
@@ -504,12 +558,12 @@ export function collectLinkedInSignals(raw: Partial<LinkedInSignals>): LinkedInS
     impression_velocity_1h: raw.impression_velocity_1h ?? 0,
     share_repost_velocity: raw.share_repost_velocity ?? 0,
     comment_velocity: raw.comment_velocity ?? 0,
-    professional_diversity_score: raw.professional_diversity_score ?? 0,  // [NEW]
+    professional_diversity_score: raw.professional_diversity_score ?? 0, // [NEW]
     impression_to_view_ratio: raw.impression_to_view_ratio ?? 0,
     reaction_velocity: raw.reaction_velocity ?? 0,
     insightful_reaction_count: raw.insightful_reaction_count ?? 0,
     creator_amplification_score: raw.creator_amplification_score,
-    hashtag_frequency_in_text: raw.hashtag_frequency_in_text ?? 0,  // supplementary only
+    hashtag_frequency_in_text: raw.hashtag_frequency_in_text ?? 0, // supplementary only
     topic_keywords: raw.topic_keywords ?? [],
     collected_at: raw.collected_at ?? new Date().toISOString(),
   };
@@ -523,23 +577,30 @@ export function collectLinkedInSignals(raw: Partial<LinkedInSignals>): LinkedInS
  *
  * Note: Shares are weighted 2× vs reactions given their rarity and spread power on LinkedIn.
  */
-export function scoreLinkedInSignals(signals: LinkedInSignals, maxValues: {
-  max_impression_velocity: number;
-  max_share_velocity: number;
-  max_comment_velocity: number;
-  max_professional_diversity_score: number;
-  max_reaction_velocity: number;
-}): number {
-  const normalize = (val: number, max: number) => max > 0 ? Math.min(1, val / max) : 0;
+export function scoreLinkedInSignals(
+  signals: LinkedInSignals,
+  maxValues: {
+    max_impression_velocity: number;
+    max_share_velocity: number;
+    max_comment_velocity: number;
+    max_professional_diversity_score: number;
+    max_reaction_velocity: number;
+  }
+): number {
+  const normalize = (val: number, max: number) => (max > 0 ? Math.min(1, val / max) : 0);
 
   // Shares weighted 2× vs reactions
-  const weighted_share_score = normalize(signals.share_repost_velocity * 2, maxValues.max_share_velocity * 2);
+  const weighted_share_score = normalize(
+    signals.share_repost_velocity * 2,
+    maxValues.max_share_velocity * 2
+  );
 
   let score =
     normalize(signals.impression_velocity_1h, maxValues.max_impression_velocity) * 30 +
     weighted_share_score * 25 +
     normalize(signals.comment_velocity, maxValues.max_comment_velocity) * 18 +
-    normalize(signals.professional_diversity_score, maxValues.max_professional_diversity_score) * 10 +  // [NEW]
+    normalize(signals.professional_diversity_score, maxValues.max_professional_diversity_score) *
+      10 + // [NEW]
     normalize(signals.impression_to_view_ratio, 1) * 8 +
     normalize(signals.reaction_velocity, maxValues.max_reaction_velocity) * 5;
 

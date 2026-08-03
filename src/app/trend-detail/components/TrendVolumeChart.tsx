@@ -1,7 +1,15 @@
 'use client';
 
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface VolumeChartProps {
   sparkline: number[];
@@ -24,7 +32,13 @@ export default function TrendVolumeChart({ sparkline }: VolumeChartProps) {
           <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
           <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
           <Tooltip />
-          <Line type="monotone" dataKey="volume" stroke="var(--primary)" strokeWidth={2} dot={false} />
+          <Line
+            type="monotone"
+            dataKey="volume"
+            stroke="var(--primary)"
+            strokeWidth={2}
+            dot={false}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>

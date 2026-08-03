@@ -50,7 +50,11 @@ export async function DELETE(request: NextRequest) {
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
     if (supabase) {
-      await supabase.from('user_connections').delete().eq('user_id', userId).eq('platform', platform);
+      await supabase
+        .from('user_connections')
+        .delete()
+        .eq('user_id', userId)
+        .eq('platform', platform);
 
       const { data: profile } = await supabase
         .from('profiles')

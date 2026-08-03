@@ -23,7 +23,12 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Trend Detail', href: '/trend/trend-001', icon: 'FireIcon', group: 'main' },
   { label: 'Content Queue', href: '/queue', icon: 'QueueListIcon', group: 'create' },
   { label: 'Carousel Studio', href: '/carousel', icon: 'RectangleGroupIcon', group: 'create' },
-  { label: 'Viral Script Writer', href: '/viral-script-writer', icon: 'PencilSquareIcon', group: 'create' },
+  {
+    label: 'Viral Script Writer',
+    href: '/viral-script-writer',
+    icon: 'PencilSquareIcon',
+    group: 'create',
+  },
   { label: 'Saved Scripts', href: '/saved-scripts', icon: 'ArchiveBoxIcon', group: 'create' },
   { label: 'Analytics', href: '/analytics', icon: 'PresentationChartLineIcon', group: 'insights' },
   { label: 'Reports', href: '/reports', icon: 'ChartBarIcon', group: 'insights' },
@@ -72,14 +77,11 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
     }
   }, [user]);
 
-  const plan = (profile?.plan as 'free' | 'pro' | 'agency' | undefined) || (user ? 'free' : cookiePlan);
+  const plan =
+    (profile?.plan as 'free' | 'pro' | 'agency' | undefined) || (user ? 'free' : cookiePlan);
   const aiUsed = profile?.ai_usage_count ?? 0;
   const aiLimit = PLAN_AI_LIMITS[plan];
-  const displayName =
-    profile?.full_name?.trim() ||
-    profile?.email ||
-    user?.email ||
-    'Guest';
+  const displayName = profile?.full_name?.trim() || profile?.email || user?.email || 'Guest';
   const planLabel = plan === 'agency' ? 'Agency' : plan === 'pro' ? 'Pro' : 'Free';
 
   return (
@@ -90,12 +92,10 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
       style={{ boxShadow: '4px 0 32px rgba(0,0,0,0.18)' }}
     >
       {/* Logo */}
-      <div className={`flex items-center gap-3 px-4 py-5 border-b border-white/15 min-h-[72px] ${collapsed ? 'justify-center px-0' : ''}`}>
-        {collapsed ? (
-          <NemoMark size={38} />
-        ) : (
-          <NemoWordmark size="md" variant="onFlame" showBeta />
-        )}
+      <div
+        className={`flex items-center gap-3 px-4 py-5 border-b border-white/15 min-h-[72px] ${collapsed ? 'justify-center px-0' : ''}`}
+      >
+        {collapsed ? <NemoMark size={38} /> : <NemoWordmark size="md" variant="onFlame" showBeta />}
       </div>
 
       {/* Nav */}
@@ -119,7 +119,8 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
                         href={item.href}
                         className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative ${
                           isActive
-                            ? 'bg-white/25 text-white nav-active-glow' : 'text-white/85 hover:text-white hover:bg-white/15'
+                            ? 'bg-white/25 text-white nav-active-glow'
+                            : 'text-white/85 hover:text-white hover:bg-white/15'
                         } ${collapsed ? 'justify-center px-0 mx-0.5' : ''}`}
                         title={collapsed ? item.label : undefined}
                       >
@@ -130,7 +131,11 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
                           name={item.icon as any}
                           size={20}
                           variant={isActive ? 'solid' : 'outline'}
-                          className={isActive ? 'text-white' : 'text-white/85 group-hover:text-white transition-colors'}
+                          className={
+                            isActive
+                              ? 'text-white'
+                              : 'text-white/85 group-hover:text-white transition-colors'
+                          }
                         />
                         {!collapsed && (
                           <span className="font-display text-[1rem] font-600 truncate leading-none text-white">
@@ -173,9 +178,16 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
                 }`}
                 title={collapsed ? 'AI Chat' : undefined}
               >
-                <Icon name="ChatBubbleLeftRightIcon" size={20} variant="outline" className="text-white/85 group-hover:text-white transition-colors" />
+                <Icon
+                  name="ChatBubbleLeftRightIcon"
+                  size={20}
+                  variant="outline"
+                  className="text-white/85 group-hover:text-white transition-colors"
+                />
                 {!collapsed && (
-                  <span className="font-display text-[1rem] font-600 truncate leading-none text-white">AI Chat</span>
+                  <span className="font-display text-[1rem] font-600 truncate leading-none text-white">
+                    AI Chat
+                  </span>
                 )}
                 {!collapsed && (
                   <span className="ml-auto text-xs font-mono-custom font-bold bg-accent/40 text-white px-2 py-0.5 rounded-full">
@@ -195,7 +207,6 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
 
       {/* Bottom: theme + user + collapse */}
       <div className="border-t border-white/15 p-3 space-y-2">
-
         {/* Theme Toggle */}
         {collapsed ? (
           <div className="relative group">
@@ -210,7 +221,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
               suppressHydrationWarning
             >
               <Icon
-                name={THEME_OPTIONS.find((o) => o.mode === mode)?.icon as any ?? 'MoonIcon'}
+                name={(THEME_OPTIONS.find((o) => o.mode === mode)?.icon as any) ?? 'MoonIcon'}
                 size={18}
               />
             </button>
@@ -255,10 +266,7 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
           }`}
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          <Icon
-            name={collapsed ? 'ChevronDoubleRightIcon' : 'ChevronDoubleLeftIcon'}
-            size={17}
-          />
+          <Icon name={collapsed ? 'ChevronDoubleRightIcon' : 'ChevronDoubleLeftIcon'} size={17} />
           {!collapsed && <span className="text-sm font-semibold text-white">Collapse</span>}
         </button>
 

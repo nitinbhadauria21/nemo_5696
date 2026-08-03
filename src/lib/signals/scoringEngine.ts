@@ -47,7 +47,12 @@ import {
  * @returns number 0–100
  */
 export function computeCreatorVelocityScore(inputs: CreatorVelocityInputs): number {
-  const { creators_last_6h, creators_last_24h, creators_last_72h, historical_max_velocity_for_platform } = inputs;
+  const {
+    creators_last_6h,
+    creators_last_24h,
+    creators_last_72h,
+    historical_max_velocity_for_platform,
+  } = inputs;
 
   // Corrected raw velocity: 6h count × 4 (normalized to 24h equivalent) + 24h count
   const raw_velocity =
@@ -224,9 +229,9 @@ export function computeNemoScore(inputs: NemoScoreInputs): number {
 
   const weighted_sum =
     creator_velocity_score * NEMO_SCORE_WEIGHTS.creator_velocity +
-    spike_score            * NEMO_SCORE_WEIGHTS.spike_score +
-    cross_platform_score   * NEMO_SCORE_WEIGHTS.cross_platform +
-    freshness_score        * NEMO_SCORE_WEIGHTS.freshness;
+    spike_score * NEMO_SCORE_WEIGHTS.spike_score +
+    cross_platform_score * NEMO_SCORE_WEIGHTS.cross_platform +
+    freshness_score * NEMO_SCORE_WEIGHTS.freshness;
 
   // Apply freshness multiplier as final multiplier
   const nemo_score = Math.min(100, Math.max(0, weighted_sum * freshness_multiplier));
@@ -256,7 +261,11 @@ export function computeFullNemoScore(params: {
   const creator_velocity_score = computeCreatorVelocityScore(params.creatorVelocityInputs);
   const spike_score = computeSpikeScore(params.spikeInputs);
   const cross_platform_score = computeCrossPlatformScore(params.crossPlatformInputs);
-  const { multiplier: freshness_multiplier, trend_age_hours, is_expired } = computeFreshnessMultiplier(params.freshnessInputs);
+  const {
+    multiplier: freshness_multiplier,
+    trend_age_hours,
+    is_expired,
+  } = computeFreshnessMultiplier(params.freshnessInputs);
   const freshness_score = Math.round(freshness_multiplier * 100 * 100) / 100;
 
   // Expired trends get nemo_score = 0

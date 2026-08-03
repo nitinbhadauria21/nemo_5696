@@ -19,21 +19,37 @@ export default function TopTrendsTable() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/30">
-              <th className="px-4 py-2.5 text-left text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">#</th>
-              <th className="px-4 py-2.5 text-left text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">Trend</th>
-              <th className="px-4 py-2.5 text-left text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">Platforms</th>
-              <th className="px-4 py-2.5 text-left text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">Status</th>
-              <th className="px-4 py-2.5 text-right text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">Score</th>
+              <th className="px-4 py-2.5 text-left text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">
+                #
+              </th>
+              <th className="px-4 py-2.5 text-left text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">
+                Trend
+              </th>
+              <th className="px-4 py-2.5 text-left text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">
+                Platforms
+              </th>
+              <th className="px-4 py-2.5 text-left text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">
+                Status
+              </th>
+              <th className="px-4 py-2.5 text-right text-xs font-mono-custom uppercase tracking-widest text-muted-foreground">
+                Score
+              </th>
             </tr>
           </thead>
           <tbody>
             {TOP_5?.map((trend, idx) => (
-              <tr key={trend?.id} className="border-b border-border hover:bg-muted/40 transition-colors">
+              <tr
+                key={trend?.id}
+                className="border-b border-border hover:bg-muted/40 transition-colors"
+              >
                 <td className="px-4 py-3 text-xs font-mono-custom text-muted-foreground tabular-nums">
                   {String(idx + 1)?.padStart(2, '0')}
                 </td>
                 <td className="px-4 py-3">
-                  <Link href={`/trend/${trend?.id}`} className="text-sm font-sans font-medium text-foreground hover:text-primary transition-colors line-clamp-1">
+                  <Link
+                    href={`/trend/${trend?.id}`}
+                    className="text-sm font-sans font-medium text-foreground hover:text-primary transition-colors line-clamp-1"
+                  >
                     {trend?.title}
                   </Link>
                   <p className="text-xs text-muted-foreground font-sans">{trend?.category}</p>

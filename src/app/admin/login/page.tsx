@@ -50,10 +50,17 @@ export default function AdminLoginPage() {
           autoFocus
         />
         {error && <p className="text-sm text-[var(--admin-bad)]">{error}</p>}
-        <button type="submit" disabled={loading} className="admin-btn admin-btn-primary w-full justify-center py-3">
+        <button
+          type="submit"
+          disabled={loading}
+          className="admin-btn admin-btn-primary w-full justify-center py-3"
+        >
           {loading ? 'Signing in…' : 'Enter admin'}
         </button>
-        <Link href="/" className="block text-center text-sm text-[var(--admin-mute)] hover:text-[var(--admin-text)]">
+        <Link
+          href="/"
+          className="block text-center text-sm text-[var(--admin-mute)] hover:text-[var(--admin-text)]"
+        >
           ← Back to site
         </Link>
       </form>
