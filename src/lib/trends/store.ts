@@ -142,17 +142,14 @@ export async function getTrends(options?: { refresh?: boolean }): Promise<{
   source: 'supabase' | 'memory' | 'mock';
   collectedAt: string | null;
 }> {
-  const refresh = options?.refresh ?? false;
+  // refresh is ignored — public reads must never trigger collectors (DoS / API quota).
+  void options?.refresh;
   const now = Date.now();
   const supabaseConfigured = isSupabaseConfigured();
 
   try {
     const supabase = await createClient();
     if (supabase) {
-      if (refresh || now - lastCollectedAt > 5 * 60 * 1000) {
-        await runTrendIngestion();
-      }
-
       const { data, error } = await supabase
         .from('trend_records')
         .select('*')
@@ -183,14 +180,6 @@ export async function getTrends(options?: { refresh?: boolean }): Promise<{
     // fall through
   }
 
-  if (refresh || !memoryStore.length || now - lastCollectedAt > 5 * 60 * 1000) {
-    const result = await runTrendIngestion();
-    if (result.trends.length) {
-      memoryStore = result.trends;
-      lastCollectedAt = now;
-    }
-  }
-
   if (memoryStore.length) {
     return {
       trends: memoryStore,
@@ -199,7 +188,7 @@ export async function getTrends(options?: { refresh?: boolean }): Promise<{
     };
   }
 
-  if (supabaseConfigured) {
+  if (supabaseConfigured || process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
     return { trends: [], source: 'supabase', collectedAt: null };
   }
 
