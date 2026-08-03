@@ -3,6 +3,8 @@ import { createCompletion } from '@/lib/ai/providers';
 import { validateChatPayload } from '@/lib/ai/requestPolicy';
 import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
 import { requireAuthUserId } from '@/lib/api/auth';
+import { getClientIp } from '@/lib/api/clientIp';
+import { enforceAiHttpRateLimits } from '@/lib/ai/rateLimit';
 import { trackEvent } from '@/lib/analytics/track';
 import { logAiGeneration } from '@/lib/ai/logGeneration';
 
@@ -10,11 +12,30 @@ function safeClientError(status: number, code: string) {
   return NextResponse.json({ error: code }, { status });
 }
 
+function rateLimitedResponse(scope: 'ip' | 'user', retryAfterSec: number) {
+  return NextResponse.json(
+    { error: 'rate_limited', scope },
+    {
+      status: 429,
+      headers: {
+        'Retry-After': String(retryAfterSec),
+        'X-RateLimit-Scope': scope,
+      },
+    }
+  );
+}
+
 export async function POST(request: NextRequest) {
   // Anonymous requests rejected here (requireAuthUserId) — cover with E2E later.
   const auth = await requireAuthUserId();
   if (auth instanceof NextResponse) return auth;
   const userId = auth;
+
+  // Per-IP + per-user HTTP sliding windows (in-memory; Redis/KV needed multi-instance).
+  const rate = enforceAiHttpRateLimits(getClientIp(request), userId);
+  if (!rate.ok) {
+    return rateLimitedResponse(rate.scope, rate.result.retryAfterSec);
+  }
 
   let body: Record<string, unknown> = {};
   try {
