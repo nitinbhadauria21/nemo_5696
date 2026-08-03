@@ -13,19 +13,35 @@ export type TrackEventInput = {
 
 const SENSITIVE_KEYS = /password|token|secret|authorization|api[_-]?key|cookie|credential/i;
 
-/** Strip secrets from properties before persisting. */
+function sanitizeValue(value: unknown, depth = 0): unknown {
+  if (depth > 4) return '[truncated]';
+  if (typeof value === 'string') {
+    if (value.length > 2000) return value.slice(0, 2000);
+    // Drop obvious secret-in-value patterns
+    if (/password\s*[:=]/i.test(value) || /bearer\s+[a-z0-9._-]+/i.test(value)) {
+      return '[redacted]';
+    }
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.slice(0, 50).map((v) => sanitizeValue(v, depth + 1));
+  }
+  if (value && typeof value === 'object') {
+    return sanitizeProperties(value as Record<string, unknown>, depth + 1);
+  }
+  return value;
+}
+
+/** Strip secrets from properties before persisting (recursive). */
 export function sanitizeProperties(
-  properties?: Record<string, unknown> | null
+  properties?: Record<string, unknown> | null,
+  depth = 0
 ): Record<string, unknown> {
   if (!properties || typeof properties !== 'object') return {};
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(properties)) {
     if (SENSITIVE_KEYS.test(key)) continue;
-    if (typeof value === 'string' && value.length > 2000) {
-      out[key] = value.slice(0, 2000);
-    } else {
-      out[key] = value;
-    }
+    out[key] = sanitizeValue(value, depth);
   }
   return out;
 }

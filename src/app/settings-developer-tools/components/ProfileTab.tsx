@@ -183,6 +183,75 @@ export default function ProfileTab() {
           {isSaving ? 'Saving…' : saved ? 'Saved ✓' : 'Save Profile'}
         </button>
       </div>
+
+      <DangerZone />
     </form>
+  );
+}
+
+function DangerZone() {
+  const { signOut } = useAuth();
+  const [confirmText, setConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  const onDelete = async () => {
+    if (confirmText !== 'DELETE') {
+      toast.error('Type DELETE to confirm');
+      return;
+    }
+    if (!window.confirm('Permanently delete your account and all data? This cannot be undone.')) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      const res = await fetch('/api/user/account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: 'DELETE' }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload.error || 'Delete failed');
+      }
+      toast.success('Account deleted');
+      await signOut();
+      window.location.href = '/';
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Delete failed');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="card-surface p-5 border border-red-500/30">
+      <h3 className="text-xs font-mono-custom uppercase tracking-widest text-red-500 mb-2">
+        Danger zone
+      </h3>
+      <p className="text-sm text-muted-foreground font-sans mb-4">
+        Permanently delete your account, profile, scripts, bookmarks, and analytics. This cannot be
+        undone.
+      </p>
+      <label className="block text-sm font-sans font-medium text-foreground mb-1.5">
+        Type DELETE to confirm
+      </label>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <input
+          type="text"
+          value={confirmText}
+          onChange={(e) => setConfirmText(e.target.value)}
+          className="flex-1 bg-input border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          autoComplete="off"
+        />
+        <button
+          type="button"
+          disabled={deleting || confirmText !== 'DELETE'}
+          onClick={onDelete}
+          className="px-6 py-2.5 text-sm rounded-xl bg-red-600 text-white font-semibold disabled:opacity-50"
+        >
+          {deleting ? 'Deleting…' : 'Delete account'}
+        </button>
+      </div>
+    </div>
   );
 }
