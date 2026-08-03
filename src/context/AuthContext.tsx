@@ -40,10 +40,15 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const LOCAL_SESSION_KEY = 'nemo_local_session';
 const LOCAL_PLAN_KEY = 'nemo_plan';
 
-const DEMO_USERS: Record<string, { password: string; name: string; plan: PlanId }> = {
-  'priya.mehta@studio.in': { password: 'Nemo@2026', name: 'Priya Mehta', plan: 'pro' },
-  'admin@nemo.app': { password: 'NEMO_MASTER_2026', name: 'Nemo Admin', plan: 'agency' },
-};
+/** Demo users only exist in non-production builds (dead-code eliminated for Vercel). */
+function getDemoUsers(): Record<string, { password: string; name: string; plan: PlanId }> | null {
+  if (process.env.NODE_ENV === 'production') return null;
+  if (process.env.NEXT_PUBLIC_ALLOW_DEMO_AUTH !== 'true') return null;
+  return {
+    'priya.mehta@studio.in': { password: 'Nemo@2026', name: 'Priya Mehta', plan: 'pro' },
+    'admin@nemo.app': { password: 'NEMO_MASTER_2026', name: 'Nemo Admin', plan: 'agency' },
+  };
+}
 
 function readLocalSession(): UserProfile | null {
   if (typeof window === 'undefined') return null;
@@ -158,24 +163,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return {};
     }
 
-    // Demo accounts only when explicitly enabled for local offline work
-    if (process.env.NEXT_PUBLIC_ALLOW_DEMO_AUTH !== 'true') {
+    if (process.env.NODE_ENV === 'production') {
+      return { error: 'demo_disabled' };
+    }
+
+    const demoUsers = getDemoUsers();
+    if (!demoUsers) {
       return { error: 'Authentication is not configured. Set Supabase environment variables.' };
     }
 
-    const demo = DEMO_USERS[email];
+    const demo = demoUsers[email];
     if (!demo || demo.password !== password) {
       return { error: 'Invalid credentials' };
     }
-    const localPlan =
-      (typeof window !== 'undefined'
-        ? (localStorage.getItem(LOCAL_PLAN_KEY) as PlanId | null)
-        : null) || demo.plan;
     const localProfile: UserProfile = {
       id: `local-${email}`,
       email,
       full_name: demo.name,
-      plan: localPlan,
+      plan: demo.plan,
       onboarding_complete: true,
       niches: [],
       platforms: [],
@@ -251,14 +256,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setProfile(null);
   }, []);
 
-  const setLocalPlan = useCallback((plan: PlanId) => {
-    if (typeof window !== 'undefined') localStorage.setItem(LOCAL_PLAN_KEY, plan);
-    setProfile((prev) => {
-      const next = prev ? { ...prev, plan } : null;
-      if (next) writeLocalSession(next);
-      return next;
-    });
-  }, []);
+  /** No-op for entitlement — plan comes from profiles.plan via refreshProfile only. */
+  const setLocalPlan = useCallback(
+    (_plan: PlanId) => {
+      void _plan;
+      void refreshProfile();
+    },
+    [refreshProfile]
+  );
 
   const value = useMemo(
     () => ({

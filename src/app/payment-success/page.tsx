@@ -44,18 +44,7 @@ function PaymentSuccessInner() {
 
   useEffect(() => {
     setShow(true);
-    try {
-      const resolved = plan === 'agency' ? 'agency' : 'pro';
-      localStorage.setItem('nemo_plan', resolved);
-      const raw = localStorage.getItem('nemo_local_session');
-      if (raw) {
-        const session = JSON.parse(raw);
-        session.plan = resolved;
-        localStorage.setItem('nemo_local_session', JSON.stringify(session));
-      }
-    } catch {
-      // ignore
-    }
+    // Plan is updated server-side via verify-payment / webhook — do not write localStorage plan
   }, [plan]);
 
   return (

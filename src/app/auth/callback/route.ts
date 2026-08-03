@@ -10,12 +10,34 @@ function safeNextPath(next: string | null): string {
   return next;
 }
 
+function trustedOrigin(requestOrigin: string): string {
+  const site = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
+  if (!site) return requestOrigin;
+  try {
+    const allowed = new URL(site).origin;
+    const incoming = new URL(requestOrigin).origin;
+    if (incoming === allowed) return incoming;
+    // Allow *.vercel.app previews when site is also vercel
+    if (
+      process.env.VERCEL === '1' &&
+      incoming.endsWith('.vercel.app') &&
+      allowed.endsWith('.vercel.app')
+    ) {
+      return incoming;
+    }
+    return allowed;
+  } catch {
+    return site;
+  }
+}
+
 /**
  * Handles Supabase email confirmation / OAuth redirects.
  * Configure this URL in Supabase Auth → Redirect URLs.
  */
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams, origin: requestOrigin } = new URL(request.url);
+  const origin = trustedOrigin(requestOrigin);
   const code = searchParams.get('code');
   const next = safeNextPath(searchParams.get('next'));
 

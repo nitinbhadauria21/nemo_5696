@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import NemoWordmark, { NemoMark } from '@/components/ui/NemoWordmark';
@@ -61,24 +61,9 @@ export default function AppSidebar({ collapsed, onToggle, onOpenChat }: AppSideb
   const pathname = usePathname();
   const { mode, setMode } = useTheme();
   const { profile, signOut, user } = useAuth();
-  const [cookiePlan, setCookiePlan] = useState<'free' | 'pro' | 'agency'>('free');
 
-  useEffect(() => {
-    // Only use local plan when there is no Supabase session (offline/demo mode)
-    if (user) {
-      setCookiePlan('free');
-      return;
-    }
-    try {
-      const p = localStorage.getItem('nemo_plan');
-      if (p === 'pro' || p === 'agency' || p === 'free') setCookiePlan(p);
-    } catch {
-      // ignore
-    }
-  }, [user]);
-
-  const plan =
-    (profile?.plan as 'free' | 'pro' | 'agency' | undefined) || (user ? 'free' : cookiePlan);
+  // Plan authority: server-fetched profile only — never localStorage
+  const plan = (profile?.plan as 'free' | 'pro' | 'agency' | undefined) || 'free';
   const aiUsed = profile?.ai_usage_count ?? 0;
   const aiLimit = PLAN_AI_LIMITS[plan];
   const displayName = profile?.full_name?.trim() || profile?.email || user?.email || 'Guest';

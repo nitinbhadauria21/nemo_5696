@@ -29,6 +29,15 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   if (!isSupabaseConfigured()) {
+    // Production / Vercel must never skip auth due to missing env
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
+      if (request.nextUrl.pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'server_misconfigured' }, { status: 503 });
+      }
+      return new NextResponse('Service unavailable — authentication is misconfigured.', {
+        status: 503,
+      });
+    }
     return supabaseResponse;
   }
 

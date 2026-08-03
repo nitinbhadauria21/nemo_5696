@@ -154,8 +154,5 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json(
-    { error: 'supabase_unavailable', source: null },
-    { status: 503 }
-  );
+  return NextResponse.json({ error: 'supabase_unavailable', source: null }, { status: 503 });
 }

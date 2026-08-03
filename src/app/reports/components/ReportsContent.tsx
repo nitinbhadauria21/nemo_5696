@@ -14,6 +14,7 @@ import {
   Line,
   Legend,
 } from 'recharts';
+import { useAuth } from '@/context/AuthContext';
 
 const TREND_TIMING_DATA = [
   { hour: '6am', score: 42, volume: 1200 },
@@ -99,14 +100,12 @@ export default function ReportsContent() {
   const [nicheData, setNicheData] = useState(NICHE_DATA);
   const [timingData, setTimingData] = useState(TREND_TIMING_DATA);
 
+  // Plan gating from AuthContext profile (server), not localStorage
+  const { profile } = useAuth();
   useEffect(() => {
-    try {
-      const plan = localStorage.getItem('nemo_plan');
-      setIsPro(plan === 'pro' || plan === 'agency');
-    } catch {
-      setIsPro(false);
-    }
-  }, []);
+    const plan = profile?.plan;
+    setIsPro(plan === 'pro' || plan === 'agency');
+  }, [profile?.plan]);
 
   useEffect(() => {
     fetch('/api/trends')
