@@ -113,7 +113,13 @@ export async function updateSession(request: NextRequest) {
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profile && profile.onboarding_complete === false && !path.startsWith('/onboarding')) {
+      if (
+        profile &&
+        profile.onboarding_complete === false &&
+        !path.startsWith('/onboarding') &&
+        !path.startsWith('/reset-password') &&
+        !path.startsWith('/forgot-password')
+      ) {
         const url = request.nextUrl.clone();
         url.pathname = '/onboarding';
         return NextResponse.redirect(url);
