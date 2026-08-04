@@ -14,22 +14,23 @@ function CarouselStudioPageInner() {
       <div className="flex flex-col h-full min-h-screen bg-background">
         {/* Page header */}
         <div className="sticky top-0 z-20 bg-background/98 backdrop-blur-md border-b border-border px-6 sm:px-8 py-4 flex items-center gap-3 flex-shrink-0">
-          <div className="w-10 h-10 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
-            <span className="text-xl" aria-hidden>
-              🎠
-            </span>
+          <div className="w-10 h-10 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0 shadow-flame-sm">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <rect x="3" y="5" width="14" height="14" rx="2.5" fill="white" opacity="0.95" />
+              <rect x="7" y="3" width="14" height="14" rx="2.5" fill="white" opacity="0.55" />
+            </svg>
           </div>
           <div className="flex items-center gap-3 min-w-0">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+                <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                   Carousel Studio
                 </h1>
-                <span className="text-[0.6875rem] font-semibold tracking-[0.06em] uppercase px-2 py-0.5 rounded-full text-white bg-teal-600">
+                <span className="font-sans text-[0.6875rem] font-semibold tracking-[0.06em] uppercase px-2 py-0.5 rounded-full text-white bg-teal-600">
                   Beta
                 </span>
               </div>
-              <p className="text-sm text-foreground/60 mt-0.5">
+              <p className="font-sans text-sm text-foreground/60 mt-0.5">
                 Create and export branded social media carousels
               </p>
             </div>

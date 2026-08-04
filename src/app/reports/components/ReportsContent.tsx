@@ -15,6 +15,8 @@ import {
   Legend,
 } from 'recharts';
 import { useAuth } from '@/context/AuthContext';
+import PlatformBadge from '@/components/ui/PlatformBadge';
+import type { TrendPlatform } from '@/lib/mockData';
 
 const TREND_TIMING_DATA = [
   { hour: '6am', score: 42, volume: 1200 },
@@ -87,12 +89,17 @@ const NICHE_DATA = [
   { niche: 'Food', trends: 15, avgScore: 59 },
 ];
 
-const PLATFORM_COLORS: Record<string, string> = {
-  YouTube: 'bg-red-500/10 text-red-600 border border-red-500/20',
-  Instagram: 'bg-pink-500/10 text-pink-600 border border-pink-500/20',
-  TikTok: 'bg-slate-500/10 text-slate-600 border border-slate-500/20',
-  LinkedIn: 'bg-blue-500/10 text-blue-600 border border-blue-500/20',
-};
+function toPlatformId(platform: string): TrendPlatform {
+  const p = platform.toLowerCase();
+  if (p.includes('youtube')) return 'youtube';
+  if (p.includes('instagram')) return 'instagram';
+  if (p.includes('tiktok')) return 'tiktok';
+  if (p.includes('linkedin')) return 'linkedin';
+  if (p.includes('twitter') || p === 'x') return 'twitter';
+  if (p.includes('reddit')) return 'reddit';
+  if (p.includes('google')) return 'google';
+  return 'google';
+}
 
 export default function ReportsContent() {
   const [isPro, setIsPro] = useState(false);
@@ -291,11 +298,7 @@ export default function ReportsContent() {
                       {trend.title}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full font-bold ${PLATFORM_COLORS[trend.platform] || 'bg-muted text-muted-foreground'}`}
-                      >
-                        {trend.platform}
-                      </span>
+                      <PlatformBadge platform={toPlatformId(trend.platform)} size="xs" />
                       <span className="text-sm text-accent font-bold font-sans">
                         {trend.change}
                       </span>

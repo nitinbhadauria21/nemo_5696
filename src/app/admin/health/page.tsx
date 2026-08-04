@@ -1,8 +1,20 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import PlatformIcon from '@/components/ui/PlatformIcon';
 
 type Check = { id: string; name: string; status: string; detail: string };
+
+function platformFromCheckId(id: string): string | null {
+  if (id.includes('youtube')) return 'youtube';
+  if (id.includes('instagram')) return 'instagram';
+  if (id.includes('linkedin')) return 'linkedin';
+  if (id.includes('tiktok')) return 'tiktok';
+  if (id.includes('twitter')) return 'twitter';
+  if (id.includes('reddit')) return 'reddit';
+  if (id.includes('google')) return 'google';
+  return null;
+}
 
 export default function AdminHealthPage() {
   const [checks, setChecks] = useState<Check[]>([]);
@@ -28,39 +40,45 @@ export default function AdminHealthPage() {
           </span>
         </div>
         <div className="space-y-3">
-          {checks.map((c) => (
-            <div
-              key={c.id}
-              className="flex items-center justify-between border-b border-[var(--admin-line)] py-2 last:border-0"
-            >
-              <div className="flex items-center gap-2.5">
-                <span
-                  className={`h-2 w-2 rounded-full ${
-                    c.status === 'operational'
-                      ? 'bg-[var(--admin-ok)]'
-                      : c.status === 'degraded'
-                        ? 'bg-[var(--admin-warn)]'
-                        : 'bg-[var(--admin-bad)]'
-                  }`}
-                />
-                <span className="text-sm font-medium">{c.name}</span>
+          {checks.map((c) => {
+            const platform = platformFromCheckId(c.id);
+            return (
+              <div
+                key={c.id}
+                className="flex items-center justify-between border-b border-[var(--admin-line)] py-2 last:border-0"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      c.status === 'operational'
+                        ? 'bg-[var(--admin-ok)]'
+                        : c.status === 'degraded'
+                          ? 'bg-[var(--admin-warn)]'
+                          : 'bg-[var(--admin-bad)]'
+                    }`}
+                  />
+                  {platform ? (
+                    <PlatformIcon platform={platform} size={16} withTile={false} />
+                  ) : null}
+                  <span className="text-sm font-medium">{c.name}</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs">
+                  <span className="font-mono text-[var(--admin-mute)]">{c.detail}</span>
+                  <span
+                    className={`font-mono uppercase ${
+                      c.status === 'operational'
+                        ? 'admin-health-ok'
+                        : c.status === 'degraded'
+                          ? 'admin-health-warn'
+                          : 'admin-health-bad'
+                    }`}
+                  >
+                    {c.status}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-3 text-xs">
-                <span className="font-mono text-[var(--admin-mute)]">{c.detail}</span>
-                <span
-                  className={`font-mono uppercase ${
-                    c.status === 'operational'
-                      ? 'admin-health-ok'
-                      : c.status === 'degraded'
-                        ? 'admin-health-warn'
-                        : 'admin-health-bad'
-                  }`}
-                >
-                  {c.status}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

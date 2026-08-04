@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 
 import NemoWordmark from '@/components/ui/NemoWordmark';
+import PlatformIcon from '@/components/ui/PlatformIcon';
 
 const NICHES = [
   { id: 'ai-tech', label: 'AI & Tech', emoji: '🤖' },
@@ -26,32 +27,29 @@ const NICHES = [
 ];
 
 const PLATFORMS = [
-  { id: 'instagram', label: 'Instagram Reels', icon: '📸', color: 'from-pink-500 to-purple-600' },
-  { id: 'youtube', label: 'YouTube Shorts', icon: '▶️', color: 'from-red-500 to-red-600' },
-  { id: 'tiktok', label: 'TikTok', icon: '🎵', color: 'from-gray-800 to-gray-900' },
-  { id: 'linkedin', label: 'LinkedIn', icon: '💼', color: 'from-blue-600 to-blue-700' },
-  { id: 'twitter', label: 'Twitter / X', icon: '𝕏', color: 'from-gray-700 to-gray-900' },
+  { id: 'instagram', label: 'Instagram Reels' },
+  { id: 'youtube', label: 'YouTube Shorts' },
+  { id: 'tiktok', label: 'TikTok' },
+  { id: 'linkedin', label: 'LinkedIn' },
+  { id: 'twitter', label: 'Twitter / X' },
 ];
 
 const SOCIAL_PLATFORMS = [
   {
     id: 'instagram',
     label: 'Instagram',
-    icon: '📸',
     description: 'Connect to track Reels performance',
   },
-  { id: 'youtube', label: 'YouTube', icon: '▶️', description: 'Connect to track Shorts & videos' },
-  { id: 'tiktok', label: 'TikTok', icon: '🎵', description: 'Connect to track viral content' },
+  { id: 'youtube', label: 'YouTube', description: 'Connect to track Shorts & videos' },
+  { id: 'tiktok', label: 'TikTok', description: 'Connect to track viral content' },
   {
     id: 'linkedin',
     label: 'LinkedIn',
-    icon: '💼',
     description: 'Connect to track professional content',
   },
   {
     id: 'twitter',
     label: 'Twitter / X',
-    icon: '𝕏',
     description: 'Connect to track trending topics',
   },
 ];
@@ -289,11 +287,7 @@ export default function OnboardingWizard() {
                           : 'border-border bg-card hover:border-primary/40 hover:bg-muted'
                       }`}
                     >
-                      <div
-                        className={`w-10 h-10 rounded-xl bg-gradient-to-br ${platform.color} flex items-center justify-center text-lg flex-shrink-0`}
-                      >
-                        {platform.icon}
-                      </div>
+                      <PlatformIcon platform={platform.id} size={22} />
                       <span className="font-sans font-semibold text-foreground flex-1 text-left">
                         {platform.label}
                       </span>
@@ -340,9 +334,7 @@ export default function OnboardingWizard() {
                           : 'border-border bg-card'
                       }`}
                     >
-                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-xl flex-shrink-0">
-                        {platform.icon}
-                      </div>
+                      <PlatformIcon platform={platform.id} size={22} />
                       <div className="flex-1 min-w-0">
                         <p className="font-sans font-semibold text-foreground text-sm">
                           {platform.label}

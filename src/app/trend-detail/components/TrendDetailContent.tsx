@@ -7,6 +7,7 @@ import { ArrowLeft, Bookmark, BookmarkCheck, Share2, Plus, Copy, CheckCheck } fr
 import { toast } from 'sonner';
 import StatusBadge from '@/components/ui/StatusBadge';
 import PlatformBadge from '@/components/ui/PlatformBadge';
+import PlatformIcon from '@/components/ui/PlatformIcon';
 import TrendSparkline from '@/components/ui/TrendSparkline';
 import ScoreBreakdownPanel from './ScoreBreakdownPanel';
 import AIAnalysisSection from './AIAnalysisSection';
@@ -320,12 +321,12 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
                       key={item.id}
                       className="rounded-xl border border-border bg-card overflow-hidden"
                     >
-                      <div className="aspect-video bg-muted flex items-center justify-center text-2xl">
-                        {item.platform === 'youtube'
-                          ? '▶️'
-                          : item.platform === 'instagram'
-                            ? '📸'
-                            : '🔥'}
+                      <div className="aspect-video bg-muted flex items-center justify-center">
+                        <PlatformIcon
+                          platform={item.platform || TREND.platforms[0] || 'google'}
+                          size={28}
+                          withTile={false}
+                        />
                       </div>
                       <div className="p-3">
                         <p className="text-xs font-sans font-semibold text-foreground line-clamp-2">

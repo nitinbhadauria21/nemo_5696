@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
 import { toast } from 'sonner';
 import {
@@ -198,7 +198,6 @@ export default function CarouselStudio({
   const [slides, setSlides] = useState<Slide[]>([defaultSlide(defaultSig)]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exporting, setExporting] = useState(false);
-  const previewRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     if (initialTopic) {

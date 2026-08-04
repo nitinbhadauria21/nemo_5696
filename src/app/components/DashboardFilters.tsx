@@ -5,6 +5,7 @@ import { Search, RefreshCw, Bookmark } from 'lucide-react';
 import { CATEGORIES, PLATFORMS } from '@/lib/mockData';
 import type { TrendPlatform } from '@/lib/mockData';
 import CountrySelector from '@/components/ui/CountrySelector';
+import PlatformIcon from '@/components/ui/PlatformIcon';
 
 interface DashboardFiltersProps {
   onFiltersChange?: (filters: {
@@ -205,12 +206,13 @@ export default function DashboardFilters({
               <button
                 key={`plat-filter-${p}`}
                 onClick={() => togglePlatform(p)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-sans font-semibold border transition-all ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border transition-all ${
                   active
                     ? 'border-primary/40 bg-primary/10 text-primary'
                     : 'bg-transparent border-border text-foreground/65 hover:text-foreground'
                 }`}
               >
+                <PlatformIcon platform={p} size={14} withTile={false} />
                 {PLATFORM_LABELS[p]}
               </button>
             );

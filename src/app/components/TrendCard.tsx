@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Bookmark, BookmarkCheck, Music2, ChevronRight } from 'lucide-react';
 import type { TrendItem, TrendPlatform, TrendContentType } from '@/lib/mockData';
+import PlatformIcon from '@/components/ui/PlatformIcon';
 
 interface TrendCardProps {
   trend: TrendItem;
@@ -79,6 +80,7 @@ export default function TrendCard({ trend, onBookmarkToggle }: TrendCardProps) {
     <article className="bg-card border border-border/80 rounded-2xl flex flex-col shadow-[0_1px_2px_rgba(15,10,5,0.04)] group hover:border-primary/35 hover:shadow-[0_10px_28px_rgba(15,10,5,0.08)] transition-all duration-200">
       <div className="px-4 pt-4 pb-3 border-b border-border/70 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+          <PlatformIcon platform={primaryPlatform} size={14} withTile={false} />
           <span
             className={`text-[0.8125rem] font-semibold tracking-[0.04em] uppercase truncate ${PLATFORM_COLORS[primaryPlatform]}`}
           >

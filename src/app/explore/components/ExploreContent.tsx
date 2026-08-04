@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Icon from '@/components/ui/AppIcon';
+import PlatformIcon from '@/components/ui/PlatformIcon';
 import NemoScoreBadge from '@/components/ui/NemoScoreBadge';
 import StatusBadge from '@/components/ui/StatusBadge';
 import PlatformBadge from '@/components/ui/PlatformBadge';
@@ -179,35 +180,30 @@ export default function ExploreContent() {
   })();
 
   const platformTabs = [
-    { id: 'all' as PlatformTab, label: 'All', icon: 'Squares2X2Icon', count: trends.length },
+    { id: 'all' as PlatformTab, label: 'All', count: trends.length },
     {
       id: 'youtube' as PlatformTab,
       label: 'YouTube',
-      icon: 'PlayCircleIcon',
       count: trends.filter((t) => t.platforms.includes('youtube')).length,
     },
     {
       id: 'instagram' as PlatformTab,
       label: 'Instagram',
-      icon: 'CameraIcon',
       count: trends.filter((t) => t.platforms.includes('instagram')).length,
     },
     {
       id: 'tiktok' as PlatformTab,
       label: 'TikTok',
-      icon: 'MusicalNoteIcon',
       count: trends.filter((t) => t.platforms.includes('tiktok')).length,
     },
     {
       id: 'linkedin' as PlatformTab,
       label: 'LinkedIn',
-      icon: 'BriefcaseIcon',
       count: trends.filter((t) => t.platforms.includes('linkedin')).length,
     },
     {
       id: 'google' as PlatformTab,
       label: 'Google Trends',
-      icon: 'MagnifyingGlassIcon',
       count: trends.filter((t) => t.platforms.includes('google')).length,
     },
   ];
@@ -408,10 +404,15 @@ export default function ExploreContent() {
                   : 'bg-card border-2 border-border text-muted-foreground hover:text-foreground hover:border-primary/40'
               }`}
             >
-              <Icon name={tab.icon as any} size={16} />
+              <PlatformIcon
+                platform={tab.id}
+                size={16}
+                withTile={false}
+                className={activeTab === tab.id ? 'opacity-100' : 'opacity-90'}
+              />
               {tab.label}
               <span
-                className={`text-xs font-mono-custom font-bold px-1.5 py-0.5 rounded-full ${
+                className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
                   activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
                 }`}
               >

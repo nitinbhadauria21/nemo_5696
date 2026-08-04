@@ -3,13 +3,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import PlatformIcon from '@/components/ui/PlatformIcon';
 
 const SOCIAL_PLATFORMS = [
-  { id: 'google', label: 'Google', icon: '🔍', description: 'Sign in & trend signals' },
-  { id: 'youtube', label: 'YouTube', icon: '▶️', description: 'Shorts & video performance' },
-  { id: 'instagram', label: 'Instagram', icon: '📸', description: 'Reels & creator metrics' },
-  { id: 'linkedin', label: 'LinkedIn', icon: '💼', description: 'Professional content trends' },
-  { id: 'twitter', label: 'Twitter / X', icon: '𝕏', description: 'Real-time topic signals' },
+  { id: 'google', label: 'Google', description: 'Sign in & trend signals' },
+  { id: 'youtube', label: 'YouTube', description: 'Shorts & video performance' },
+  { id: 'instagram', label: 'Instagram', description: 'Reels & creator metrics' },
+  { id: 'linkedin', label: 'LinkedIn', description: 'Professional content trends' },
+  { id: 'twitter', label: 'Twitter / X', description: 'Real-time topic signals' },
 ];
 
 type ConnectionRow = {
@@ -73,15 +74,15 @@ export default function SocialConnectTab() {
   return (
     <div className="space-y-4">
       <div className="card-surface p-4 border-primary/20 bg-primary/5">
-        <p className="text-xs font-sans text-foreground leading-relaxed">
-          <span className="font-bold">Social Connect</span> links your creator accounts so NEMO can
-          personalize trends and track your content performance. OAuth tokens are stored server-side
-          only.
+        <p className="text-sm text-foreground leading-relaxed">
+          <span className="font-semibold">Social Connect</span> links your creator accounts so NEMO
+          can personalize trends and track your content performance. OAuth tokens are stored
+          server-side only.
         </p>
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground font-sans">Loading connections…</p>
+        <p className="text-sm text-muted-foreground">Loading connections…</p>
       ) : (
         <div className="space-y-3">
           {SOCIAL_PLATFORMS.map((platform) => {
@@ -90,17 +91,15 @@ export default function SocialConnectTab() {
             return (
               <div key={platform.id} className="card-surface p-4">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{platform.icon}</span>
-                    <div>
-                      <p className="text-sm font-sans font-semibold text-foreground">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <PlatformIcon platform={platform.id} size={22} />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground tracking-tight">
                         {platform.label}
                       </p>
-                      <p className="text-xs text-muted-foreground font-sans">
-                        {platform.description}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{platform.description}</p>
                       {connected && meta?.connected_at && (
-                        <p className="text-xs text-accent font-mono-custom mt-1">
+                        <p className="text-xs text-accent mt-1">
                           Connected {new Date(meta.connected_at).toLocaleDateString()}
                         </p>
                       )}
@@ -108,7 +107,7 @@ export default function SocialConnectTab() {
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span
-                      className={`text-xs font-mono-custom font-bold px-2.5 py-1 rounded-full border ${
+                      className={`text-[0.75rem] font-semibold px-2.5 py-1 rounded-full border ${
                         connected
                           ? 'bg-accent/10 text-accent border-accent/20'
                           : 'bg-muted text-muted-foreground border-border'
@@ -119,14 +118,14 @@ export default function SocialConnectTab() {
                     {connected ? (
                       <button
                         onClick={() => handleDisconnect(platform.id)}
-                        className="text-xs font-sans font-semibold text-muted-foreground hover:text-foreground"
+                        className="text-xs font-semibold text-muted-foreground hover:text-foreground"
                       >
                         Disconnect
                       </button>
                     ) : (
                       <button
                         onClick={() => handleConnect(platform.id)}
-                        className="text-xs font-sans font-semibold text-primary hover:underline"
+                        className="text-xs font-semibold text-primary hover:underline"
                       >
                         Connect
                       </button>

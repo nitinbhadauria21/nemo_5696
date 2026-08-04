@@ -237,7 +237,9 @@ export default function DashboardContent() {
               <div className="flex items-center gap-3 flex-wrap">
                 <h2 className="font-semibold tracking-tight text-foreground text-xl">
                   {activeFilters.countries.length > 0 ? 'Filtered Trends' : 'All Trends'}{' '}
-                  <span className="text-primary font-semibold">{filteredTrends.length} detected</span>
+                  <span className="text-primary font-semibold">
+                    {filteredTrends.length} detected
+                  </span>
                 </h2>
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[0.75rem] font-semibold uppercase tracking-[0.06em]">
