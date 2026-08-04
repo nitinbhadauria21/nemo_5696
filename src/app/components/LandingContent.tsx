@@ -115,14 +115,14 @@ export default function LandingContent() {
         </div>
       </div>
 
-      <header className="hero wrap">
+      <header className="hero">
         <div className="hero-aurora" data-parallax="0.05">
           <i className="a1" />
           <i className="a2" />
           <i className="a3" />
         </div>
-        <div className="hero-grain" />
-        <div className="hero-veil" />
+        <div className="hero-grain" aria-hidden="true" />
+        <div className="hero-veil" aria-hidden="true" />
 
         <div className="hero-platforms" data-parallax="0.06" aria-hidden="true">
           <svg
