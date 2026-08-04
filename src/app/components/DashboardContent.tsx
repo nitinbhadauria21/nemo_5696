@@ -199,10 +199,10 @@ export default function DashboardContent() {
 
             <div className="rounded-2xl border-2 border-primary/25 bg-primary/5 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <p className="text-xs font-mono-custom uppercase tracking-widest text-primary font-bold">
+                <p className="text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-primary">
                   Daily digest
                 </p>
-                <p className="text-sm text-foreground font-sans mt-1">
+                <p className="text-sm text-foreground font-sans mt-1 leading-relaxed">
                   {hotCount + risingCount} trends need your attention today —{' '}
                   {featuredTrends[0]?.title ?? 'refresh for latest picks'} leads the pack.
                 </p>
@@ -218,7 +218,9 @@ export default function DashboardContent() {
 
             {featuredTrends.length > 0 && (
               <div>
-                <h2 className="font-display font-bold text-lg mb-3">Top 3 Featured Trends</h2>
+                <h2 className="font-semibold tracking-tight text-lg mb-3 text-foreground">
+                  Top 3 Featured Trends
+                </h2>
                 <div className="grid sm:grid-cols-3 gap-3">
                   {featuredTrends.map((trend) => (
                     <TrendCard
@@ -233,15 +235,15 @@ export default function DashboardContent() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 flex-wrap">
-                <h2 className="font-display font-bold text-foreground text-xl">
+                <h2 className="font-semibold tracking-tight text-foreground text-xl">
                   {activeFilters.countries.length > 0 ? 'Filtered Trends' : 'All Trends'}{' '}
-                  <span className="text-primary">{filteredTrends.length} detected</span>
+                  <span className="text-primary font-semibold">{filteredTrends.length} detected</span>
                 </h2>
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-sm font-mono-custom font-bold uppercase tracking-wider">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[0.75rem] font-semibold uppercase tracking-[0.06em]">
                     {hotCount} Hot
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-sm font-mono-custom font-bold uppercase tracking-wider">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/15 text-[#8a5a00] dark:text-amber-200 text-[0.75rem] font-semibold uppercase tracking-[0.06em]">
                     {risingCount} Rising
                   </span>
                 </div>

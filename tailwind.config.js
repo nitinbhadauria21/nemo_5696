@@ -62,9 +62,24 @@ module.exports = {
         full: '9999px',
       },
       fontFamily: {
-        sans: ['DM Sans', 'system-ui', 'sans-serif'],
-        display: ['Fredoka', 'system-ui', 'sans-serif'],
-        mono: ['Space Mono', 'monospace'],
+        sans: [
+          'var(--font-dm-sans)',
+          'DM Sans',
+          'system-ui',
+          '-apple-system',
+          'Segoe UI',
+          'sans-serif',
+        ],
+        display: ['var(--font-fredoka)', 'Fredoka', 'system-ui', 'sans-serif'],
+        /* UI labels/numbers: crisp sans — Space Mono reserved for landing accents only */
+        mono: [
+          'var(--font-dm-sans)',
+          'DM Sans',
+          'system-ui',
+          '-apple-system',
+          'Segoe UI',
+          'sans-serif',
+        ],
       },
       fontSize: {
         'xs': ['0.875rem', { lineHeight: '1.5' }],

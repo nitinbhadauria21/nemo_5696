@@ -20,9 +20,10 @@
   --ring: #ff4500;
   --radius: 12px;
   /* Prefer Next.js font variables (sharp, self-hosted) over system fallbacks */
-  --font-sans: var(--font-dm-sans), 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-dm-sans), 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-fredoka), Fredoka, system-ui, sans-serif;
-  --font-mono: var(--font-space-mono), 'Space Mono', ui-monospace, monospace;
+  /* App UI uses sans for clarity; landing-root overrides --font-mono locally if needed */
+  --font-mono: var(--font-dm-sans), 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --flame-gradient: linear-gradient(135deg, #ff4500 0%, #ff8c00 50%, #ffb800 100%);
   --flame-gradient-soft: linear-gradient(135deg, rgba(255, 69, 0, 0.12), rgba(255, 184, 0, 0.12));
   --sidebar-width: 256px;
@@ -45,9 +46,9 @@
   --border: #1e1e2e;
   --input: #141420;
   --ring: #ff4500;
-  --font-sans: var(--font-dm-sans), 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-dm-sans), 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: var(--font-fredoka), Fredoka, system-ui, sans-serif;
-  --font-mono: var(--font-space-mono), 'Space Mono', ui-monospace, monospace;
+  --font-mono: var(--font-dm-sans), 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 @layer base {
@@ -155,12 +156,18 @@
     font-family: var(--font-display);
   }
 
+  /* Formerly Space Mono — remapped to crisp DM Sans for premium UI labels */
   .font-mono-custom {
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1;
+    letter-spacing: 0.02em;
   }
 
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
   }
 
   .flame-gradient {
@@ -307,12 +314,12 @@
     box-shadow: 0 0 20px rgba(0, 200, 150, 0.3);
   }
 
-  /* Page section headers — Space Mono, min 14px */
+  /* Page section headers — crisp sans, min 14px */
   .section-label {
-    font-family: var(--font-mono);
-    font-size: 0.875rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--muted-foreground);
   }
@@ -324,9 +331,9 @@
     gap: 4px;
     padding: 4px 12px;
     border-radius: 999px;
-    font-size: 0.875rem;
-    font-weight: 700;
-    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }

@@ -88,7 +88,7 @@ export default function DashboardKPICards({ trends }: { trends: TrendItem[] }) {
         return (
           <div
             key={kpi.id}
-            className={`${a.bg} border ${a.border} rounded-2xl p-4 flex items-center gap-3`}
+            className={`${a.bg} border ${a.border} rounded-2xl p-4 flex items-center gap-3 shadow-[0_1px_2px_rgba(15,10,5,0.03)]`}
           >
             <div
               className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${a.icon}`}
@@ -96,15 +96,17 @@ export default function DashboardKPICards({ trends }: { trends: TrendItem[] }) {
               <IconComponent size={20} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-mono-custom text-sm font-bold text-foreground/60 uppercase tracking-wider leading-tight mb-1 truncate">
+              <p className="text-[0.75rem] font-semibold text-foreground/55 uppercase tracking-[0.07em] leading-tight mb-1 truncate">
                 {kpi.label}
               </p>
               <p
-                className={`font-display font-extrabold tabular-nums text-2xl leading-none truncate ${a.value}`}
+                className={`font-bold tabular-nums text-2xl leading-none truncate tracking-tight ${a.value}`}
               >
                 {kpi.value}
               </p>
-              <p className="text-sm font-sans text-foreground/65 mt-1 truncate">{kpi.sub}</p>
+              <p className="text-[0.8125rem] font-medium text-foreground/60 mt-1 truncate">
+                {kpi.sub}
+              </p>
             </div>
           </div>
         );
