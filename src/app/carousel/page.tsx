@@ -13,22 +13,23 @@ function CarouselStudioPageInner() {
     <AppLayout>
       <div className="flex flex-col h-full min-h-screen bg-background">
         {/* Page header */}
-        <div className="sticky top-0 z-20 bg-background/98 backdrop-blur-md border-b border-border px-5 sm:px-6 py-3.5 flex items-center gap-3 flex-shrink-0">
+        <div className="sticky top-0 z-20 bg-background/98 backdrop-blur-md border-b border-border px-6 sm:px-8 py-4 flex items-center gap-3 flex-shrink-0">
           <div className="w-10 h-10 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
-            <span className="text-xl">🎠</span>
+            <span className="text-xl" aria-hidden>
+              🎠
+            </span>
           </div>
           <div className="flex items-center gap-3 min-w-0">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-2xl font-bold text-foreground">Carousel Studio</h1>
-                <span
-                  className="text-xs font-mono-custom font-bold px-2 py-0.5 rounded-full text-white"
-                  style={{ background: '#0D9488' }}
-                >
+                <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+                  Carousel Studio
+                </h1>
+                <span className="text-[0.6875rem] font-semibold tracking-[0.06em] uppercase px-2 py-0.5 rounded-full text-white bg-teal-600">
                   Beta
                 </span>
               </div>
-              <p className="text-base text-foreground/65 font-sans mt-0.5">
+              <p className="text-sm text-foreground/60 mt-0.5">
                 Create and export branded social media carousels
               </p>
             </div>

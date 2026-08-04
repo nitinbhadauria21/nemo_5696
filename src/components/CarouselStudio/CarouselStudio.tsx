@@ -152,13 +152,15 @@ function Slider({
   unit: string;
   onChange: (v: number) => void;
 }) {
+  const progress = max === min ? 0 : ((value - min) / (max - min)) * 100;
+
   return (
-    <div className="mb-4">
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs font-semibold text-foreground/65 uppercase tracking-wide">
+    <div className="mb-5">
+      <div className="flex items-center justify-between mb-2 gap-3">
+        <span className="text-[0.75rem] font-semibold text-foreground/65 uppercase tracking-[0.06em]">
           {label}
         </span>
-        <span className="text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-md">
+        <span className="text-[0.8125rem] font-semibold text-foreground bg-muted px-2 py-0.5 rounded-md tabular-nums">
           {value}
           {unit}
         </span>
@@ -169,10 +171,14 @@ function Slider({
         max={max}
         step={step}
         value={value}
+        aria-label={label}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-        style={{ accentColor: BRAND_ORANGE }}
+        className="premium-range"
+        style={{ ['--range-progress' as string]: `${progress}%` }}
       />
+      <p className="mt-1.5 text-[0.6875rem] text-foreground/45 font-medium">
+        Drag the handle left or right to adjust
+      </p>
     </div>
   );
 }

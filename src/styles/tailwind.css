@@ -324,18 +324,69 @@
     color: var(--muted-foreground);
   }
 
-  /* Pill badge — min 14px */
-  .pill-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 12px;
+  /* Visible range slider track + thumb (cross-browser) */
+  .premium-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 1.25rem;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .premium-range:focus {
+    outline: none;
+  }
+
+  .premium-range:focus-visible::-webkit-slider-thumb {
+    box-shadow:
+      0 0 0 3px var(--background),
+      0 0 0 5px rgba(255, 69, 0, 0.35);
+  }
+
+  .premium-range::-webkit-slider-runnable-track {
+    height: 6px;
     border-radius: 999px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    font-family: var(--font-sans);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    background: linear-gradient(
+      to right,
+      var(--primary) 0%,
+      var(--primary) var(--range-progress, 0%),
+      var(--border) var(--range-progress, 0%),
+      var(--border) 100%
+    );
+  }
+
+  .premium-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    margin-top: -6px;
+    border-radius: 999px;
+    background: var(--primary);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(15, 10, 5, 0.25);
+  }
+
+  .premium-range::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--border);
+  }
+
+  .premium-range::-moz-range-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--primary);
+  }
+
+  .premium-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--primary);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(15, 10, 5, 0.25);
   }
 
   /* Interactive card */

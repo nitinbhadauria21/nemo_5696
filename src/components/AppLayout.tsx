@@ -21,7 +21,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
         onToggle={() => setCollapsed((c) => !c)}
         onOpenChat={() => setChatOpen(true)}
       />
-      <main className={`flex-1 min-h-screen sidebar-transition ${collapsed ? 'ml-16' : 'ml-60'}`}>
+      <main
+        className={`flex-1 min-w-0 min-h-screen sidebar-transition ${collapsed ? 'ml-[68px]' : 'ml-64'}`}
+      >
         <TopNavbar />
         {children}
       </main>
