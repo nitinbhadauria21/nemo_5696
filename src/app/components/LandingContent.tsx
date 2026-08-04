@@ -105,7 +105,8 @@ export default function LandingContent() {
         </div>
       </nav>
 
-      <div className="wrap">
+      {/* Full-bleed ticker — not inside .wrap */}
+      <div className="ticker-shell">
         <div className="ticker">
           <div className="ticker-track">
             {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
@@ -116,10 +117,13 @@ export default function LandingContent() {
       </div>
 
       <header className="hero">
+        <div className="hero-fill" aria-hidden="true" />
         <div className="hero-aurora" data-parallax="0.05">
           <i className="a1" />
           <i className="a2" />
           <i className="a3" />
+          <i className="a4" />
+          <i className="a5" />
         </div>
         <div className="hero-grain" aria-hidden="true" />
         <div className="hero-veil" aria-hidden="true" />
