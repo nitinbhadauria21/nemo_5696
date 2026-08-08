@@ -95,10 +95,10 @@ export default function LandingContent() {
             <a href="#faq">FAQ</a>
           </div>
           <div className="right">
-            <Link className="btn btn-ghost btn-sm" href="/login" style={{ color: '#FCEFE6' }}>
+            <Link className="btn btn-ghost btn-sm" href="/login" style={{ color: '#FCEFE6' }} prefetch={false}>
               Log in
             </Link>
-            <Link className="btn btn-primary btn-sm" href="/signup">
+            <Link className="btn btn-primary btn-sm" href="/signup" prefetch={false}>
               Start free
             </Link>
           </div>
@@ -204,7 +204,7 @@ export default function LandingContent() {
               <b>how many hours you have left</b> to post about it. One score. One window.
             </p>
             <div className="cta-row">
-              <Link className="btn btn-primary btn-lg" href="/signup">
+              <Link className="btn btn-primary btn-lg" href="/signup" prefetch={false}>
                 Start free →
               </Link>
               <a
@@ -422,7 +422,7 @@ export default function LandingContent() {
           Two minutes to set up. Free forever. Your future-self will thank you.
         </p>
         <div className="cta-row reveal">
-          <Link className="btn btn-primary btn-lg" href="/signup">
+          <Link className="btn btn-primary btn-lg" href="/signup" prefetch={false}>
             Catch the wave →
           </Link>
           <a className="btn btn-ghost btn-lg" href="#features" style={{ color: '#FCEFE6' }}>

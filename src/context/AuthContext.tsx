@@ -135,9 +135,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const { data } = await supabase.auth.getSession();
+      // Prefer getUser() over getSession() so we validate the JWT (matches middleware).
+      const { data } = await supabase.auth.getUser();
       if (!mounted) return;
-      setUser(data.session?.user ?? null);
+      setUser(data.user ?? null);
       setLoading(false);
 
       supabase.auth.onAuthStateChange((_event, session) => {
@@ -225,6 +226,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error) return { error: error.message };
         return { needsVerification: true as const };
       }
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+      return { error: 'demo_disabled' };
+    }
+    const demoUsers = getDemoUsers();
+    if (!demoUsers) {
+      return { error: 'Authentication is not configured. Set Supabase environment variables.' };
     }
 
     const localProfile: UserProfile = {

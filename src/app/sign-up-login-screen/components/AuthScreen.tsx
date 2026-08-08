@@ -47,7 +47,7 @@ interface AuthScreenProps {
 
 export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
   const searchParams = useSearchParams();
-  const { signIn, signUp, supabaseReady } = useAuth();
+  const { signIn, signUp, supabaseReady, user, profile, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode);
 
   useEffect(() => {
@@ -55,6 +55,27 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
     if (m === 'signup' || m === 'login') setMode(m);
     else if (initialMode) setMode(initialMode);
   }, [searchParams, initialMode]);
+
+  // Only leave the auth UI once the browser session is confirmed — never via
+  // middleware alone (that caused Guest dashboard when cookies failed to hydrate).
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user && !profile) return;
+    // Wait for profile hydration when a Supabase user is present
+    if (user && !profile) return;
+    if (user && !user.email_confirmed_at) {
+      const email = user.email || profile?.email || '';
+      window.location.href = `/verify-email${email ? `?email=${encodeURIComponent(email)}` : ''}`;
+      return;
+    }
+    if (profile && profile.onboarding_complete === false) {
+      window.location.href = '/onboarding';
+      return;
+    }
+    const next = searchParams.get('next') || '/dashboard';
+    window.location.href = next.startsWith('/') ? next : '/dashboard';
+  }, [authLoading, user, profile, searchParams]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
