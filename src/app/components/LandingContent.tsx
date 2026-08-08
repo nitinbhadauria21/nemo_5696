@@ -95,7 +95,12 @@ export default function LandingContent() {
             <a href="#faq">FAQ</a>
           </div>
           <div className="right">
-            <Link className="btn btn-ghost btn-sm" href="/login" style={{ color: '#FCEFE6' }} prefetch={false}>
+            <Link
+              className="btn btn-ghost btn-sm"
+              href="/login"
+              style={{ color: '#FCEFE6' }}
+              prefetch={false}
+            >
               Log in
             </Link>
             <Link className="btn btn-primary btn-sm" href="/signup" prefetch={false}>
