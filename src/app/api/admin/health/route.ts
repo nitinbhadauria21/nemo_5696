@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { requireAdminSession } from '@/lib/admin/auth';
+import { resolveAiProvider } from '@/lib/ai/runPrompt';
 
 export async function GET() {
   const adminAuth = await requireAdminSession();
@@ -44,6 +45,23 @@ export async function GET() {
   const youtube = Boolean(process.env.YOUTUBE_API_KEY);
   const googleProxy = Boolean(process.env.GOOGLE_TRENDS_PROXY_URL);
   const cron = Boolean(process.env.CRON_SECRET);
+  const aiProvider = resolveAiProvider(process.env.AI_PROVIDER);
+  const keyByProvider: Record<string, boolean> = {
+    ANTHROPIC: Boolean(process.env.ANTHROPIC_API_KEY),
+    OPEN_AI: Boolean(process.env.OPENAI_API_KEY),
+    GEMINI: Boolean(process.env.GEMINI_API_KEY),
+    PERPLEXITY: Boolean(process.env.PERPLEXITY_API_KEY),
+  };
+  const aiKeyPresent = keyByProvider[aiProvider] || Object.values(keyByProvider).some(Boolean);
+
+  checks.push({
+    id: 'ai',
+    name: 'AI provider',
+    status: aiKeyPresent ? 'operational' : 'down',
+    detail: aiKeyPresent
+      ? `Key set (provider ${aiProvider})`
+      : `Missing key for ${aiProvider} (set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY / PERPLEXITY_API_KEY)`,
+  });
 
   checks.push({
     id: 'reddit',

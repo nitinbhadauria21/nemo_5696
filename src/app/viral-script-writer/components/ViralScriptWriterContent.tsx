@@ -266,30 +266,72 @@ function parseMarkdownToBlocks(markdown: string): ParsedBlock[] {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function parseScriptResponse(raw: string): GeneratedScript | null {
-  try {
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
-    const parsed = JSON.parse(jsonMatch[0]);
-    const s = parsed.script;
-    if (!s) return null;
+  const text = (raw || '').trim();
+  if (!text) return null;
+
+  const fromJson = (parsed: Record<string, unknown>): GeneratedScript | null => {
+    const s = (parsed.script ?? parsed) as Record<string, unknown> | undefined;
+    if (!s || typeof s !== 'object') return null;
+    const rawMarkdown =
+      typeof s.rawMarkdown === 'string' ? s.rawMarkdown : typeof s.body === 'string' ? s.body : '';
+    const hook = typeof s.hook === 'string' ? s.hook : '';
+    if (!rawMarkdown && !hook) return null;
     return {
       topic: '',
       audienceType: '',
       duration: '',
       scenesCount: 0,
       language: '',
-      framework: s.framework || '',
-      frameworkLabel: s.frameworkLabel || '',
-      hook: s.hook || '',
-      viralScore: s.viralScore || 0,
-      timestamps: s.timestamps || [],
-      deliveryNotes: s.deliveryNotes || '',
-      rawMarkdown: s.rawMarkdown || '',
+      framework: typeof s.framework === 'string' ? s.framework : '',
+      frameworkLabel: typeof s.frameworkLabel === 'string' ? s.frameworkLabel : '',
+      hook,
+      viralScore: typeof s.viralScore === 'number' ? s.viralScore : 0,
+      timestamps: Array.isArray(s.timestamps) ? (s.timestamps as string[]) : [],
+      deliveryNotes: typeof s.deliveryNotes === 'string' ? s.deliveryNotes : '',
+      rawMarkdown: rawMarkdown || hook,
       generatedAt: new Date().toISOString(),
     };
+  };
+
+  try {
+    const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+    const candidate = fenced?.[1]?.trim() || text;
+    const start = candidate.indexOf('{');
+    const end = candidate.lastIndexOf('}');
+    if (start !== -1 && end > start) {
+      const parsed = JSON.parse(candidate.slice(start, end + 1)) as Record<string, unknown>;
+      const script = fromJson(parsed);
+      if (script) return script;
+    }
   } catch {
-    return null;
+    // fall through to markdown fallback
   }
+
+  // Model sometimes returns prose/markdown instead of JSON — still show a usable script.
+  const hookLine =
+    text.match(/HOOK:\s*(.+)/i)?.[1]?.trim() ||
+    text.match(/\[Audio Script\]:\s*(.+)/i)?.[1]?.trim() ||
+    text
+      .split('\n')
+      .find((l) => l.trim().length > 20)
+      ?.trim() ||
+    'Generated script';
+
+  return {
+    topic: '',
+    audienceType: '',
+    duration: '',
+    scenesCount: 0,
+    language: '',
+    framework: '',
+    frameworkLabel: 'NemoScript',
+    hook: hookLine.slice(0, 280),
+    viralScore: 0,
+    timestamps: [],
+    deliveryNotes: '',
+    rawMarkdown: text,
+    generatedAt: new Date().toISOString(),
+  };
 }
 
 function getScoreColor(score: number): string {
@@ -791,7 +833,10 @@ export default function ViralScriptWriterContent() {
   );
 
   useEffect(() => {
-    if (error) toast.error(error.message);
+    if (error) {
+      setGeneratedScript(null);
+      toast.error(error.message);
+    }
   }, [error]);
 
   useEffect(() => {
@@ -809,28 +854,29 @@ export default function ViralScriptWriterContent() {
   }, [isLoading]);
 
   useEffect(() => {
-    if (response && !isLoading) {
-      const parsed = parseScriptResponse(response);
-      if (parsed) {
-        const newScript: GeneratedScript = {
-          ...parsed,
-          topic: mode === 'refine' ? 'Refined Draft' : topic,
-          audienceType,
-          duration: selectedDuration,
-          scenesCount,
-          language: selectedLanguage,
-        };
-        setGeneratedScript(newScript);
-        setExpanded(true);
-        setHistory((prev) => [newScript, ...prev.slice(0, 4)]);
-        setTimeout(() => {
-          resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
-      } else {
-        toast.error('Could not parse script. Please try again.');
-      }
+    if (!response || isLoading || error) return;
+    const parsed = parseScriptResponse(response);
+    if (parsed) {
+      const newScript: GeneratedScript = {
+        ...parsed,
+        topic: mode === 'refine' ? 'Refined Draft' : topic,
+        audienceType,
+        duration: selectedDuration,
+        scenesCount,
+        language: selectedLanguage,
+      };
+      setGeneratedScript(newScript);
+      setExpanded(true);
+      setHistory((prev) => [newScript, ...prev.slice(0, 4)]);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } else {
+      toast.error(
+        'AI returned a response that could not be parsed as a script. Try again, or check that your AI provider key is set.'
+      );
     }
-  }, [response, isLoading]);
+  }, [response, isLoading, error]);
 
   const handleCopy = () => {
     if (!generatedScript) return;
@@ -1032,6 +1078,15 @@ Calculate an honest viralScore (0–100).`;
       </div>
 
       <div className="px-5 sm:px-6 py-6 max-w-screen-xl mx-auto">
+        {error ? (
+          <div
+            role="alert"
+            className="mb-5 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+          >
+            <p className="font-semibold">AI could not generate a script</p>
+            <p className="mt-1 text-amber-900/90">{error.message}</p>
+          </div>
+        ) : null}
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
           {/* ── Left: Input Panel ── */}
           <div className="xl:col-span-2 space-y-5">
@@ -1342,7 +1397,7 @@ Calculate an honest viralScore (0–100).`;
 
           {/* ── Right: Results Panel ── */}
           <div className="xl:col-span-3 space-y-5" ref={resultsRef}>
-            {!generatedScript && !isLoading && (
+            {!generatedScript && !isLoading && !error && (
               <div className="card-surface border border-border rounded-2xl p-10 flex flex-col items-center justify-center text-center min-h-[400px]">
                 <div className="w-16 h-16 rounded-2xl flame-gradient flex items-center justify-center mb-4 opacity-80">
                   <Icon name="PencilSquareIcon" size={32} className="text-white" />
@@ -1373,6 +1428,22 @@ Calculate an honest viralScore (0–100).`;
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {error && !isLoading && (
+              <div className="card-surface border border-destructive/30 bg-destructive/5 rounded-2xl p-6 sm:p-8">
+                <h3 className="font-display text-lg font-bold text-foreground mb-2">
+                  Script generation failed
+                </h3>
+                <p className="text-sm font-sans text-foreground/90 leading-relaxed">
+                  {error.message}
+                </p>
+                <p className="text-xs font-sans text-muted-foreground mt-3 leading-relaxed">
+                  Production needs a real provider key in Vercel:{' '}
+                  <span className="font-mono">ANTHROPIC_API_KEY</span> (default) or the key matching{' '}
+                  <span className="font-mono">AI_PROVIDER</span>, then redeploy.
+                </p>
               </div>
             )}
 

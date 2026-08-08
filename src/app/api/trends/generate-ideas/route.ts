@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runAiPrompt } from '@/lib/ai/runPrompt';
+import { getAiErrorCode } from '@/lib/ai/providers';
 import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
 import { requireAuthUserId } from '@/lib/api/auth';
 import { trackEvent } from '@/lib/analytics/track';
@@ -41,14 +42,15 @@ export async function POST(request: NextRequest) {
       success: true,
     });
     return NextResponse.json({ ideas });
-  } catch {
+  } catch (error) {
+    const code = getAiErrorCode(error);
     await logAiGeneration({
       userId: auth,
       generationType: 'generate_ideas',
       trendId: body.trendId ?? null,
       success: false,
-      error: 'ai_unavailable',
+      error: code,
     });
-    return NextResponse.json({ error: 'ai_unavailable' }, { status: 503 });
+    return NextResponse.json({ error: code }, { status: 503 });
   }
 }

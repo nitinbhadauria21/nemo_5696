@@ -351,18 +351,65 @@ async function* streamOpenAiCompatible(res: Response, model: string) {
   void model;
 }
 
+export type AiProviderError = Error & {
+  statusCode?: number;
+  code?: string;
+  llmProvider?: string;
+};
+
 export function requireApiKey(provider: ProviderId): string {
   const key = getApiKey(provider);
   if (!key) {
-    const err = new Error(`${provider} API key is not configured`) as Error & {
-      statusCode?: number;
-      llmProvider?: string;
-    };
-    err.statusCode = 400;
+    const err = new Error(`${provider} API key is not configured`) as AiProviderError;
+    err.statusCode = 503;
+    err.code = 'ai_not_configured';
     err.llmProvider = provider;
     throw err;
   }
   return key;
+}
+
+/** Local/dev only: set AI_DEV_STUB=1 (never honored in production). */
+function allowDevStub(): boolean {
+  return process.env.NODE_ENV !== 'production' && process.env.AI_DEV_STUB === '1';
+}
+
+function devStubCompletion(model: string, messages: ChatMessage[]) {
+  const lastUser = [...messages].reverse().find((m) => m.role === 'user')?.content ?? '';
+  const wantsScriptJson =
+    /viralScore|rawMarkdown|"script"/i.test(lastUser) || /NemoScript/i.test(lastUser);
+  const content = wantsScriptJson
+    ? JSON.stringify({
+        script: {
+          framework: 'hears',
+          frameworkLabel: 'HEARS — Dev stub',
+          frameworkReason:
+            'AI_DEV_STUB is enabled; replace with a real provider key for production.',
+          hook: 'Stop scrolling — this is a local AI stub, not a live model.',
+          viralScore: 70,
+          timestamps: ['0:00 - Hook', '0:05 - Value', '0:12 - CTA'],
+          deliveryNotes:
+            'Dev stub only. Set ANTHROPIC_API_KEY (or your AI_PROVIDER key) for real scripts.',
+          rawMarkdown:
+            '# Scene 1: Dev Stub Hook\n[Visual Cue]: Host looks at camera.\n[Audio Script]: This is a local AI_DEV_STUB response.\n\n# Scene 2: Next Step\n[Visual Cue]: Show settings screen.\n[Audio Script]: Add your real API key in Vercel and redeploy.\n\nCTA: Comment NEMO for the real workflow!',
+        },
+      })
+    : `[AI_DEV_STUB] Local stub response. Set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY / PERPLEXITY_API_KEY for live AI.\n\nPrompt preview: ${lastUser.slice(0, 240)}`;
+  return openAiShape(content, model);
+}
+
+export function getAiErrorCode(error: unknown): string {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    typeof (error as AiProviderError).code === 'string'
+  ) {
+    return (error as AiProviderError).code!;
+  }
+  const message = error instanceof Error ? error.message : '';
+  if (/API key is not configured/i.test(message)) return 'ai_not_configured';
+  return 'ai_unavailable';
 }
 
 export async function createCompletion(options: {
@@ -373,7 +420,27 @@ export async function createCompletion(options: {
   parameters?: CompletionParams;
 }): Promise<Response | Record<string, unknown> | AsyncGenerator<Record<string, unknown>>> {
   const { provider, model, messages, stream = false, parameters = {} } = options;
-  const apiKey = requireApiKey(provider);
+
+  let apiKey: string;
+  try {
+    apiKey = requireApiKey(provider);
+  } catch (error) {
+    if (allowDevStub()) {
+      if (stream) {
+        const stub = devStubCompletion(model, messages);
+        const text = extractText(
+          (stub as { choices?: { message?: { content?: unknown } }[] }).choices?.[0]?.message
+            ?.content
+        );
+        async function* stubStream() {
+          yield openAiChunk(text, model);
+        }
+        return stubStream();
+      }
+      return devStubCompletion(model, messages);
+    }
+    throw error;
+  }
 
   if (provider === 'OPEN_AI' || provider === 'PERPLEXITY') {
     const res =

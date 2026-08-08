@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createCompletion } from '@/lib/ai/providers';
+import { createCompletion, getAiErrorCode } from '@/lib/ai/providers';
 import { validateChatPayload } from '@/lib/ai/requestPolicy';
 import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
 import { requireAuthUserId } from '@/lib/api/auth';
@@ -65,6 +65,10 @@ export async function POST(request: NextRequest) {
 
   const { provider, model, messages, maxTokens } = validated;
   const stream = Boolean(body.stream);
+  const rawTemp = Number(
+    (body.parameters as Record<string, unknown> | undefined)?.temperature ?? 0.7
+  );
+  const temperature = Number.isFinite(rawTemp) ? Math.min(2, Math.max(0, rawTemp)) : 0.7;
 
   try {
     const result = await createCompletion({
@@ -72,7 +76,7 @@ export async function POST(request: NextRequest) {
       model,
       messages,
       stream,
-      parameters: { max_tokens: maxTokens, temperature: 0.7 },
+      parameters: { max_tokens: maxTokens, temperature },
     });
 
     void trackEvent({
@@ -103,10 +107,10 @@ export async function POST(request: NextRequest) {
             }
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`));
             controller.close();
-          } catch {
+          } catch (streamError) {
             controller.enqueue(
               encoder.encode(
-                `data: ${JSON.stringify({ type: 'error', error: 'ai_unavailable' })}\n\n`
+                `data: ${JSON.stringify({ type: 'error', error: getAiErrorCode(streamError) })}\n\n`
               )
             );
             controller.close();
@@ -124,10 +128,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
+    const code = getAiErrorCode(error);
     console.error('AI chat-completion failed', {
       userId,
       provider,
       model,
+      code,
       message: error instanceof Error ? error.message : 'unknown',
     });
     void logAiGeneration({
@@ -135,8 +141,8 @@ export async function POST(request: NextRequest) {
       generationType: 'chat_completion',
       model: `${provider}/${model}`,
       success: false,
-      error: 'ai_unavailable',
+      error: code,
     });
-    return safeClientError(503, 'ai_unavailable');
+    return safeClientError(503, code);
   }
 }

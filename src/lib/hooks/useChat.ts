@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { getChatCompletion, getStreamingChatCompletion } from '@/lib/ai/chatCompletion';
+import { friendlyAiError } from '@/lib/ai/aiClient';
 
 export function useChat(provider: string, model: string, streaming: boolean = true) {
   const [response, setResponse] = useState('');
@@ -37,7 +38,11 @@ export function useChat(provider: string, model: string, streaming: boolean = tr
         } else {
           const result = await getChatCompletion(provider, model, messages, parameters);
           setFullResponse(result);
-          setResponse(result?.choices?.[0]?.message?.content || '');
+          const content = result?.choices?.[0]?.message?.content || '';
+          if (!String(content).trim()) {
+            throw new Error(friendlyAiError('ai_empty_response'));
+          }
+          setResponse(content);
           setIsLoading(false);
         }
       } catch (err) {

@@ -9,7 +9,8 @@ export const ALLOWED_MODELS: Record<ProviderId, readonly string[]> = {
 
 export const MAX_MESSAGES = 40;
 export const MAX_TOTAL_CHARS = 48_000;
-export const MAX_OUTPUT_TOKENS = 2048;
+/** Viral scripts need longer completions; keep a hard ceiling for cost control. */
+export const MAX_OUTPUT_TOKENS = 4096;
 
 export type ValidatedChatPayload = {
   provider: ProviderId;

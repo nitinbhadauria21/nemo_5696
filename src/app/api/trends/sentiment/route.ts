@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runAiPrompt } from '@/lib/ai/runPrompt';
+import { getAiErrorCode } from '@/lib/ai/providers';
 import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
 import { requireAuthUserId } from '@/lib/api/auth';
 
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
   try {
     const sentiment = await runAiPrompt(prompt);
     return NextResponse.json({ sentiment });
-  } catch {
-    return NextResponse.json({ error: 'ai_unavailable' }, { status: 503 });
+  } catch (error) {
+    return NextResponse.json({ error: getAiErrorCode(error) }, { status: 503 });
   }
 }

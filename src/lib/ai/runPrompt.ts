@@ -1,3 +1,4 @@
+import { ALLOWED_MODELS } from '@/lib/ai/requestPolicy';
 import { createCompletion, type ProviderId } from '@/lib/ai/providers';
 
 function extractText(result: unknown): string {
@@ -20,10 +21,36 @@ function extractText(result: unknown): string {
   return JSON.stringify(result);
 }
 
+/** Map env aliases like OPENAI → OPEN_AI so runPrompt matches ALLOWED_MODELS. */
+export function resolveAiProvider(raw?: string | null): ProviderId {
+  const normalized = (raw || 'ANTHROPIC').trim().toUpperCase().replace(/-/g, '_');
+  const aliases: Record<string, ProviderId> = {
+    ANTHROPIC: 'ANTHROPIC',
+    CLAUDE: 'ANTHROPIC',
+    OPENAI: 'OPEN_AI',
+    OPEN_AI: 'OPEN_AI',
+    GEMINI: 'GEMINI',
+    GOOGLE: 'GEMINI',
+    PERPLEXITY: 'PERPLEXITY',
+  };
+  const provider = aliases[normalized];
+  if (provider && provider in ALLOWED_MODELS) return provider;
+  return 'ANTHROPIC';
+}
+
+export function resolveAiModel(provider: ProviderId, raw?: string | null): string {
+  const fromEnv = raw?.trim();
+  if (fromEnv && ALLOWED_MODELS[provider].includes(fromEnv)) return fromEnv;
+  if (provider === 'ANTHROPIC') return ALLOWED_MODELS.ANTHROPIC[0];
+  if (provider === 'GEMINI') return ALLOWED_MODELS.GEMINI[0];
+  if (provider === 'PERPLEXITY') return ALLOWED_MODELS.PERPLEXITY[0];
+  return ALLOWED_MODELS.OPEN_AI[0];
+}
+
 export async function runAiPrompt(prompt: string): Promise<string> {
-  const provider = (process.env.AI_PROVIDER as ProviderId) || 'ANTHROPIC';
-  const model =
-    process.env.AI_MODEL || (provider === 'ANTHROPIC' ? 'claude-sonnet-4-20250514' : 'gpt-4o-mini');
+  const provider = resolveAiProvider(process.env.AI_PROVIDER);
+  // Keep default in sync with ALLOWED_MODELS / Viral Script Writer + AI chat panel.
+  const model = resolveAiModel(provider, process.env.AI_MODEL);
 
   const result = await createCompletion({
     provider,

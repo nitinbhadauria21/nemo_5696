@@ -1,4 +1,4 @@
-import { callAIEndpoint } from './aiClient';
+import { callAIEndpoint, friendlyAiError } from './aiClient';
 
 const ENDPOINT = '/api/ai/chat-completion';
 
@@ -26,6 +26,18 @@ export async function getStreamingChatCompletion(
   onError: (error: Error) => void,
   parameters: object = {}
 ) {
+  let settled = false;
+  const complete = () => {
+    if (settled) return;
+    settled = true;
+    onComplete();
+  };
+  const fail = (error: Error) => {
+    if (settled) return;
+    settled = true;
+    onError(error);
+  };
+
   try {
     const response = await fetch(ENDPOINT, {
       method: 'POST',
@@ -34,8 +46,8 @@ export async function getStreamingChatCompletion(
     });
 
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || `HTTP error: ${response.status}`);
+      const data = await response.json().catch(() => ({}));
+      throw new Error(friendlyAiError(data.error, response.status));
     }
 
     const reader = response.body?.getReader();
@@ -43,6 +55,7 @@ export async function getStreamingChatCompletion(
 
     const decoder = new TextDecoder();
     let buffer = '';
+    let receivedContent = false;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -57,14 +70,21 @@ export async function getStreamingChatCompletion(
           try {
             const data = JSON.parse(line.slice(6));
             if (data.type === 'chunk' && data.chunk) {
+              const content = data.chunk?.choices?.[0]?.delta?.content;
+              if (content) receivedContent = true;
               onChunk(data.chunk);
-            } else if (data.type === 'done') onComplete();
-            else if (data.type === 'error') {
+            } else if (data.type === 'done') {
+              if (!receivedContent) {
+                fail(new Error(friendlyAiError('ai_empty_response')));
+              } else {
+                complete();
+              }
+            } else if (data.type === 'error') {
               console.error('API Route Error:', {
                 error: data.error,
                 details: data.details,
               });
-              onError(new Error(data.error));
+              fail(new Error(friendlyAiError(data.error, 503)));
             }
           } catch {
             // Skip invalid JSON
@@ -72,8 +92,16 @@ export async function getStreamingChatCompletion(
         }
       }
     }
+
+    if (!settled) {
+      if (!receivedContent) {
+        fail(new Error(friendlyAiError('ai_empty_response')));
+      } else {
+        complete();
+      }
+    }
   } catch (error) {
     console.error('Streaming error:', error);
-    onError(error instanceof Error ? error : new Error('Streaming error'));
+    fail(error instanceof Error ? error : new Error('Streaming error'));
   }
 }
