@@ -237,10 +237,6 @@ export default function AuthScreen({ initialMode = 'login' }: AuthScreenProps) {
               <PlatformIcon platform="google" size={16} withTile={false} />
               Continue with Google
             </button>
-            <button className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-full border border-border bg-card text-foreground text-sm font-sans font-medium hover:bg-muted transition-all">
-              <PlatformIcon platform="linkedin" size={16} withTile={false} />
-              Continue with LinkedIn
-            </button>
           </div>
 
           <div className="flex items-center gap-3 mb-6">
