@@ -34,7 +34,8 @@ npm install
 3. Apply Supabase schema (when using Supabase):
 
 ```bash
-# Run the SQL in supabase/migrations/001_nemo_schema.sql in the Supabase SQL editor
+# Apply SQL migrations in order (001 → 010) via Supabase SQL Editor or CLI
+# Files live in supabase/migrations/
 ```
 
 4. Start the development server:

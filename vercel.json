@@ -3,6 +3,10 @@
     {
       "path": "/api/trends/ingest",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/ops/purge-analytics",
+      "schedule": "0 7 * * *"
     }
   ],
   "headers": [

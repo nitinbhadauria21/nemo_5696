@@ -1,8 +1,8 @@
 # SUPABASE_DATA_MAP
 
 **Project (MCP):** live staging connected via `user-supabase`  
-**Migrations in repo:** `001` … `009`  
-**Audit date:** 2026-08-04
+**Migrations in repo:** `001` … `010`  
+**Audit date:** 2026-08-09 (schema verified live; purge cron wired)
 
 ## Live tables vs RLS (MCP `execute_sql`)
 
@@ -40,6 +40,7 @@
 | `007_product_tables.sql` | scripts, ai_generations, collector_runs, feedback, search, notif prefs |
 | `008_p0_security_billing_ai.sql` | is_admin, billing_orders, webhook events, `increment_ai_usage` |
 | `009_analytics_retention.sql` | `purge_analytics_older_than_90_days()` (**applied via MCP**) |
+| `010_harden_definer_grants.sql` | Lock down SECURITY DEFINER execute grants + `handle_new_user` search_path |
 
 ## Application `.from('table')` map
 
@@ -82,7 +83,7 @@ See `PRIVACY.md`.
 
 1. Automated anon / user_A / user_B policy tests in CI  
 2. Encrypt OAuth tokens in `user_connections.metadata` **when/if** credential material is stored (today: status flags only + API sanitize)  
-3. Schedule `purge_analytics_older_than_90_days` on a cron (Supabase pg_cron or Vercel cron calling a secured admin ops route)  
+3. ~~Schedule purge~~ → Vercel cron `GET /api/ops/purge-analytics` daily `0 7 * * *` (Bearer `CRON_SECRET`)  
 4. Data export endpoint (portability)  
 5. Multi-instance AI rate limit store (Redis / Vercel KV) — current limiter is process-local  
 6. Staging Razorpay test-mode checkout + webhook proof with real test keys  
