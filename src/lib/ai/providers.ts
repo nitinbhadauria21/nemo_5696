@@ -3,6 +3,8 @@
  * Returns OpenAI-compatible chat completion shapes for the frontend.
  */
 
+import { OPENROUTER_ATTEMPTS_PER_MODEL, OPENROUTER_MAX_MODELS } from '@/lib/ai/openRouterRouter';
+
 export type ProviderId = 'OPEN_AI' | 'ANTHROPIC' | 'GEMINI' | 'PERPLEXITY' | 'OPENROUTER';
 
 export type ChatMessage = {
@@ -462,14 +464,20 @@ function shouldRetryOpenRouter(error: unknown): boolean {
   if (!(error instanceof Error)) return true;
   const status = (error as AiProviderError).statusCode;
   if (status === 401 || status === 403) return false;
+  if (status === 400 || status === 404) return true; // bad/unavailable free model → try next
   if (status === 429 || (typeof status === 'number' && status >= 500)) return true;
   if (/empty/i.test(error.message)) return true;
   if (status === undefined) return true; // network / parse
   return status >= 500;
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
- * OpenRouter free-model fallback: try up to 3 models on 429 / empty / transient errors.
+ * OpenRouter quality path (B+C):
+ * For each free model (up to 3), try twice on transient/empty errors, then fall back.
  */
 export async function createCompletionWithFallbacks(options: {
   provider: ProviderId;
@@ -477,39 +485,77 @@ export async function createCompletionWithFallbacks(options: {
   messages: ChatMessage[];
   stream?: boolean;
   parameters?: CompletionParams;
+  /** Attempts per model before moving on (default 2). */
+  attemptsPerModel?: number;
 }): Promise<Response | Record<string, unknown> | AsyncGenerator<Record<string, unknown>>> {
-  const models = options.models.filter(Boolean).slice(0, 3);
+  const models = options.models.filter(Boolean).slice(0, OPENROUTER_MAX_MODELS);
   if (models.length === 0) {
     throw new Error('No models provided for completion');
   }
 
-  if (options.provider !== 'OPENROUTER' || models.length === 1) {
+  if (options.provider !== 'OPENROUTER') {
     return createCompletion({ ...options, model: models[0] });
   }
 
+  const attemptsPerModel = Math.max(1, options.attemptsPerModel ?? OPENROUTER_ATTEMPTS_PER_MODEL);
   let lastError: unknown;
+
   for (let i = 0; i < models.length; i++) {
     const model = models[i];
-    try {
-      const result = await createCompletion({ ...options, model });
-      if (!options.stream) {
-        const text = completionText(result);
-        if (!text.trim()) {
-          lastError = Object.assign(new Error('AI returned an empty response'), {
-            code: 'ai_empty_response',
-            statusCode: 502,
-            llmProvider: 'OPENROUTER',
+    for (let attempt = 1; attempt <= attemptsPerModel; attempt++) {
+      try {
+        const result = await createCompletion({ ...options, model });
+        if (!options.stream) {
+          const text = completionText(result);
+          if (!text.trim()) {
+            lastError = Object.assign(new Error('AI returned an empty response'), {
+              code: 'ai_empty_response',
+              statusCode: 502,
+              llmProvider: 'OPENROUTER',
+            });
+            if (attempt < attemptsPerModel) {
+              await sleep(250 * attempt);
+              continue;
+            }
+            break; // next model
+          }
+        }
+        if (attempt > 1 || i > 0) {
+          console.info('[openrouter] succeeded', { model, attempt, modelIndex: i });
+        }
+        return result;
+      } catch (error) {
+        lastError = error;
+        const retryable = shouldRetryOpenRouter(error);
+        const moreAttempts = attempt < attemptsPerModel;
+        const moreModels = i < models.length - 1;
+
+        if (!retryable) throw error;
+
+        if (moreAttempts) {
+          console.warn('[openrouter] retry same model', {
+            model,
+            attempt,
+            message: error instanceof Error ? error.message.slice(0, 120) : 'unknown',
           });
+          await sleep(300 * attempt);
           continue;
         }
+
+        if (moreModels) {
+          console.warn('[openrouter] fallback to next model', {
+            from: model,
+            to: models[i + 1],
+            attempt,
+          });
+          break;
+        }
+
+        throw error;
       }
-      return result;
-    } catch (error) {
-      lastError = error;
-      const isLast = i === models.length - 1;
-      if (isLast || !shouldRetryOpenRouter(error)) throw error;
     }
   }
+
   throw lastError instanceof Error ? lastError : new Error('All OpenRouter free models failed');
 }
 

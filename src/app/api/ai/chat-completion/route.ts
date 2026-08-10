@@ -12,11 +12,7 @@ import { enforceAiHttpRateLimits } from '@/lib/ai/rateLimit';
 import { trackEvent } from '@/lib/analytics/track';
 import { logAiGeneration } from '@/lib/ai/logGeneration';
 import { resolveAiProvider } from '@/lib/ai/runPrompt';
-import {
-  getFreeModelChain,
-  inferTaskFromMessages,
-  resolveOpenRouterTask,
-} from '@/lib/ai/openRouterRouter';
+import { inferTaskFromMessages, selectOpenRouterRoute } from '@/lib/ai/openRouterRouter';
 
 function safeClientError(status: number, code: string) {
   return NextResponse.json({ error: code }, { status });
@@ -87,16 +83,21 @@ export async function POST(request: NextRequest) {
   );
   const temperature = Number.isFinite(rawTemp) ? Math.min(2, Math.max(0, rawTemp)) : 0.7;
 
-  const openRouterModels =
+  const openRouterRoute =
     provider === 'OPENROUTER'
-      ? getFreeModelChain(
-          resolveOpenRouterTask(taskHint ?? inferTaskFromMessages(messages)),
-          process.env.AI_MODEL
-        )
-      : [model];
+      ? selectOpenRouterRoute(taskHint ?? inferTaskFromMessages(messages), process.env.AI_MODEL)
+      : null;
+  const openRouterModels = openRouterRoute?.models ?? [model];
 
-  if (provider === 'OPENROUTER') {
-    model = openRouterModels[0];
+  if (provider === 'OPENROUTER' && openRouterRoute) {
+    model = openRouterRoute.primary;
+    console.info('[openrouter-agent]', {
+      task: openRouterRoute.task,
+      primary: openRouterRoute.primary,
+      models: openRouterRoute.models,
+      strategy: openRouterRoute.strategy,
+      reason: openRouterRoute.reason,
+    });
   }
 
   try {
@@ -121,7 +122,14 @@ export async function POST(request: NextRequest) {
       userId,
       eventName: 'ai.chat_completion',
       eventCategory: 'ai',
-      properties: { provider, model, stream, plan: usage.plan },
+      properties: {
+        provider,
+        model,
+        stream,
+        plan: usage.plan,
+        task: openRouterRoute?.task,
+        routeStrategy: openRouterRoute?.strategy,
+      },
       request,
     });
     void logAiGeneration({
@@ -129,7 +137,12 @@ export async function POST(request: NextRequest) {
       generationType: 'chat_completion',
       model: `${provider}/${model}`,
       success: true,
-      properties: { stream, plan: usage.plan },
+      properties: {
+        stream,
+        plan: usage.plan,
+        task: openRouterRoute?.task,
+        models: openRouterModels,
+      },
     });
 
     if (stream) {

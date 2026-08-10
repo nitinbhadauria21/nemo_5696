@@ -6,7 +6,7 @@ import {
 } from '@/lib/ai/providers';
 import {
   getFreeModelChain,
-  resolveOpenRouterTask,
+  selectOpenRouterRoute,
   type OpenRouterTask,
 } from '@/lib/ai/openRouterRouter';
 
@@ -70,15 +70,27 @@ export async function runAiPrompt(
   const provider = resolveAiProvider(process.env.AI_PROVIDER);
 
   if (provider === 'OPENROUTER') {
-    const task = resolveOpenRouterTask(options?.task);
-    const models = getFreeModelChain(task, process.env.AI_MODEL);
+    const route = selectOpenRouterRoute(options?.task, process.env.AI_MODEL);
+    console.info('[openrouter-agent]', {
+      task: route.task,
+      primary: route.primary,
+      models: route.models,
+      strategy: route.strategy,
+    });
     const result = await createCompletionWithFallbacks({
       provider,
-      models,
+      models: route.models,
       messages: [{ role: 'user', content: prompt }],
       stream: false,
     });
-    return extractText(result);
+    const text = extractText(result).trim();
+    if (!text) {
+      throw Object.assign(new Error('AI returned an empty response'), {
+        code: 'ai_empty_response',
+        statusCode: 502,
+      });
+    }
+    return text;
   }
 
   const model = resolveAiModel(provider, process.env.AI_MODEL);
