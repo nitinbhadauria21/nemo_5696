@@ -21,7 +21,7 @@ interface DashboardFiltersProps {
   isRefreshing?: boolean;
 }
 
-const TIMEFRAMES = ['1h', '6h', '24h', '48h', '72h'];
+const TIMEFRAMES = ['24h', '48h', '72h'];
 const SORT_OPTIONS = [
   { id: 'score', label: 'Nemo Score' },
   { id: 'recent', label: 'Most Recent' },
