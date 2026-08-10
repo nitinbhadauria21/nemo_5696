@@ -1049,7 +1049,7 @@ Calculate an honest viralScore (0–100).`;
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: mode === 'refine' ? refinePrompt : createPrompt },
       ],
-      { temperature: 0.85, max_tokens: 4000 }
+      { temperature: 0.85, max_tokens: 2200 }
     );
   };
 

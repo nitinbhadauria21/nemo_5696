@@ -49,28 +49,32 @@ const ALLOWED_SET = new Set<string>([
   ...OPENROUTER_CHEAP_FALLBACK_MODELS,
 ]);
 
-/** Quality-first free-only chains (retry-then-fallback across free models). */
+/** Speed-first free chains (smaller/faster free models before huge queue-prone ones). */
 const FREE_TASK_CHAINS: Record<OpenRouterTask, readonly string[]> = {
   script: [
-    'google/gemma-4-31b-it:free',
     'openai/gpt-oss-20b:free',
-    'nvidia/nemotron-3-super-120b-a12b:free',
+    'nvidia/nemotron-3-nano-30b-a3b:free',
+    'google/gemma-4-26b-a4b-it:free',
   ],
   analysis: [
-    'google/gemma-4-26b-a4b-it:free',
-    'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+    'nvidia/nemotron-3-nano-30b-a3b:free',
     'openai/gpt-oss-20b:free',
+    'google/gemma-4-26b-a4b-it:free',
   ],
-  ideas: ['google/gemma-4-31b-it:free', 'openai/gpt-oss-20b:free', 'poolside/laguna-s-2.1:free'],
-  sentiment: [
-    'nvidia/nemotron-3.5-content-safety:free',
+  ideas: [
+    'openai/gpt-oss-20b:free',
     'nvidia/nemotron-nano-9b-v2:free',
     'google/gemma-4-26b-a4b-it:free',
+  ],
+  sentiment: [
+    'nvidia/nemotron-nano-9b-v2:free',
+    'inclusionai/ling-3.0-tiny:free',
+    'nvidia/nemotron-3.5-content-safety:free',
   ],
   chat: [
     'nvidia/nemotron-nano-9b-v2:free',
     'inclusionai/ling-3.0-tiny:free',
-    'google/gemma-4-31b-it:free',
+    'openai/gpt-oss-20b:free',
   ],
 };
 
@@ -92,7 +96,10 @@ const PAID_TASK_FALLBACKS: Record<OpenRouterTask, readonly string[]> = {
 };
 
 export const OPENROUTER_MAX_MODELS = 3;
-export const OPENROUTER_ATTEMPTS_PER_MODEL = 2;
+/** One attempt per model — free queues make same-model retries expensive. */
+export const OPENROUTER_ATTEMPTS_PER_MODEL = 1;
+/** Per-model HTTP timeout (ms). Prevents 10–20 minute free-queue hangs. */
+export const OPENROUTER_REQUEST_TIMEOUT_MS = 35_000;
 
 export type OpenRouterRouteDecision = {
   task: OpenRouterTask;
@@ -104,11 +111,11 @@ export type OpenRouterRouteDecision = {
 };
 
 const TASK_REASONS: Record<OpenRouterTask, string> = {
-  script: 'Long-form creative script → strongest free models with free-only fallback',
-  analysis: 'Structured trend reasoning → free analysis / reasoning models',
-  ideas: 'Creative angles → strong generative free models',
-  sentiment: 'Brand safety / sentiment → free safety + compact free models',
-  chat: 'Interactive chat → fast free models with free-only fallback',
+  script: 'Viral scripts → fast free models first, optional cheap paid speed fallback',
+  analysis: 'Trend analysis → compact free models first',
+  ideas: 'Content ideas → fast generative free models',
+  sentiment: 'Sentiment → compact free classifiers',
+  chat: 'Chat → fastest free models',
 };
 
 type EnvLike = Record<string, string | undefined>;
@@ -187,7 +194,7 @@ export function getFreeModelChain(
   }
 
   if (chain.length === 0) {
-    chain.push('google/gemma-4-31b-it:free', 'nvidia/nemotron-nano-9b-v2:free');
+    chain.push('openai/gpt-oss-20b:free', 'nvidia/nemotron-nano-9b-v2:free');
   }
 
   return chain.slice(0, OPENROUTER_MAX_MODELS);

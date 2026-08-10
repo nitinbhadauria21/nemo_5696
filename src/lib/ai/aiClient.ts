@@ -2,6 +2,7 @@ const AI_ERROR_MESSAGES: Record<string, string> = {
   ai_not_configured:
     'AI is not configured. Add OPENROUTER_API_KEY in Vercel (or the key matching AI_PROVIDER), then redeploy.',
   ai_unavailable: 'AI provider request failed. Check the API key and model, then try again.',
+  ai_timeout: 'The AI took too long to respond. Please try again — a faster model will be used.',
   ai_privacy_blocked:
     'OpenRouter blocked free models due to privacy/guardrail settings. Allow free providers at openrouter.ai/settings/privacy, or wait while we use a low-cost fallback model.',
   ai_empty_response: 'AI returned an empty response. Try again or shorten your prompt.',

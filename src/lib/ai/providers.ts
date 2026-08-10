@@ -6,6 +6,7 @@
 import {
   OPENROUTER_ATTEMPTS_PER_MODEL,
   OPENROUTER_MAX_MODELS,
+  OPENROUTER_REQUEST_TIMEOUT_MS,
   isOpenRouterPrivacyBlock,
 } from '@/lib/ai/openRouterRouter';
 
@@ -90,34 +91,68 @@ async function completeOpenAiCompatible(
   llmProvider: ProviderId,
   extraHeaders?: Record<string, string>
 ) {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      ...extraHeaders,
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      stream,
-      temperature: parameters.temperature ?? 0.7,
-      max_tokens: parameters.max_tokens ?? 2048,
-    }),
-  });
+  const timeoutMs =
+    llmProvider === 'OPENROUTER'
+      ? Math.max(
+          5_000,
+          Number(process.env.OPENROUTER_REQUEST_TIMEOUT_MS) || OPENROUTER_REQUEST_TIMEOUT_MS
+        )
+      : 0;
+  const controller = timeoutMs > 0 ? new AbortController() : null;
+  const timer =
+    controller && timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : null;
 
-  if (!res.ok) {
-    const details = await res.text();
-    const err = new Error(details || res.statusText) as Error & {
-      statusCode?: number;
-      llmProvider?: string;
-    };
-    err.statusCode = res.status;
-    err.llmProvider = llmProvider;
-    throw err;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        ...extraHeaders,
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        stream,
+        temperature: parameters.temperature ?? 0.7,
+        max_tokens: parameters.max_tokens ?? 2048,
+      }),
+      signal: controller?.signal,
+    });
+
+    if (!res.ok) {
+      const details = await res.text();
+      const err = new Error(details || res.statusText) as Error & {
+        statusCode?: number;
+        llmProvider?: string;
+        code?: string;
+      };
+      err.statusCode = res.status;
+      err.llmProvider = llmProvider;
+      throw err;
+    }
+
+    return res;
+  } catch (error) {
+    if (
+      controller &&
+      error instanceof Error &&
+      (error.name === 'AbortError' || /aborted/i.test(error.message))
+    ) {
+      const err = new Error(`AI request timed out after ${timeoutMs}ms (${model})`) as Error & {
+        statusCode?: number;
+        llmProvider?: string;
+        code?: string;
+      };
+      err.statusCode = 504;
+      err.code = 'ai_timeout';
+      err.llmProvider = llmProvider;
+      throw err;
+    }
+    throw error;
+  } finally {
+    if (timer) clearTimeout(timer);
   }
-
-  return res;
 }
 
 async function completeOpenAI(
@@ -447,6 +482,7 @@ export function getAiErrorCode(error: unknown): string {
   }
   const message = error instanceof Error ? error.message : '';
   if (/API key is not configured/i.test(message)) return 'ai_not_configured';
+  if (/timed? ?out/i.test(message)) return 'ai_timeout';
   if (/guardrail restrictions and data policy|data policy|settings\/privacy/i.test(message)) {
     return 'ai_privacy_blocked';
   }
@@ -473,9 +509,9 @@ function shouldRetryOpenRouter(error: unknown): boolean {
   if (isOpenRouterPrivacyBlock(error)) return true;
   const status = (error as AiProviderError).statusCode;
   if (status === 401 || status === 403) return false;
-  if (status === 400 || status === 404) return true; // bad/unavailable free model → try next
+  if (status === 400 || status === 404 || status === 504) return true;
   if (status === 429 || (typeof status === 'number' && status >= 500)) return true;
-  if (/empty/i.test(error.message)) return true;
+  if (/empty|timed? ?out/i.test(error.message)) return true;
   if (status === undefined) return true; // network / parse
   return status >= 500;
 }
@@ -540,6 +576,17 @@ export async function createCompletionWithFallbacks(options: {
         const moreModels = i < models.length - 1;
 
         if (!retryable) throw error;
+
+        // Rate limits and timeouts — skip immediately to the next (often faster) model.
+        const status = (error as AiProviderError).statusCode;
+        if ((status === 429 || status === 504) && moreModels) {
+          console.warn('[openrouter] skip to next model', {
+            from: model,
+            to: models[i + 1],
+            status,
+          });
+          break;
+        }
 
         // Privacy blocks won't succeed on retry of the same free endpoint — skip to next model.
         if (isOpenRouterPrivacyBlock(error) && moreModels) {

@@ -98,7 +98,16 @@ describe('openRouterRouter agent', () => {
     assert.equal(route.paidFallbackEnabled, false);
     assert.ok(route.models.every((id) => isOpenRouterFreeModel(id)));
     assert.ok(route.reason.length > 10);
-    assert.equal(OPENROUTER_ATTEMPTS_PER_MODEL, 2);
+    assert.equal(OPENROUTER_ATTEMPTS_PER_MODEL, 1);
+  });
+
+  it('prefers faster free models for script over huge queue-prone ones', () => {
+    const script = getFreeModelChain('script', null, {});
+    assert.ok(
+      /gpt-oss-20b|nano-30b|gemma-4-26b/i.test(script[0]),
+      `unexpected primary ${script[0]}`
+    );
+    assert.ok(!/ultra-550b|super-120b|gemma-4-31b/i.test(script[0]));
   });
 
   it('detects OpenRouter privacy/guardrail blocks', () => {
