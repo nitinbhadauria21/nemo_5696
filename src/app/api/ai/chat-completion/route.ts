@@ -31,6 +31,31 @@ function rateLimitedResponse(scope: 'ip' | 'user', retryAfterSec: number) {
   );
 }
 
+type ScriptMeta = {
+  topic?: string;
+  audienceType?: string;
+  customAudience?: string;
+  duration?: string;
+  scenesCount?: number;
+  language?: string;
+  mode?: string;
+};
+
+function parseScriptMeta(raw: unknown): ScriptMeta | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const o = raw as Record<string, unknown>;
+  return {
+    topic: typeof o.topic === 'string' ? o.topic.slice(0, 300) : undefined,
+    audienceType: typeof o.audienceType === 'string' ? o.audienceType.slice(0, 80) : undefined,
+    customAudience:
+      typeof o.customAudience === 'string' ? o.customAudience.slice(0, 120) : undefined,
+    duration: typeof o.duration === 'string' ? o.duration.slice(0, 20) : undefined,
+    scenesCount: typeof o.scenesCount === 'number' ? o.scenesCount : undefined,
+    language: typeof o.language === 'string' ? o.language.slice(0, 40) : undefined,
+    mode: typeof o.mode === 'string' ? o.mode.slice(0, 20) : undefined,
+  };
+}
+
 export async function POST(request: NextRequest) {
   // Anonymous requests rejected here (requireAuthUserId) — cover with E2E later.
   const auth = await requireAuthUserId();
@@ -82,12 +107,15 @@ export async function POST(request: NextRequest) {
     (body.parameters as Record<string, unknown> | undefined)?.temperature ?? 0.7
   );
   const temperature = Number.isFinite(rawTemp) ? Math.min(2, Math.max(0, rawTemp)) : 0.7;
+  const scriptMeta = parseScriptMeta(body.scriptMeta ?? body.script_meta);
+  const startedAt = Date.now();
 
   const openRouterRoute =
     provider === 'OPENROUTER'
       ? selectOpenRouterRoute(taskHint ?? inferTaskFromMessages(messages), process.env.AI_MODEL)
       : null;
   const openRouterModels = openRouterRoute?.models ?? [model];
+  const taskName = openRouterRoute?.task ?? taskHint ?? 'chat';
 
   if (provider === 'OPENROUTER' && openRouterRoute) {
     model = openRouterRoute.primary;
@@ -118,6 +146,10 @@ export async function POST(request: NextRequest) {
             parameters: { max_tokens: maxTokens, temperature },
           });
 
+    const latencyMs = Date.now() - startedAt;
+    const modelUsed = `${provider}/${model}`;
+    const attemptCount = openRouterModels.length;
+
     void trackEvent({
       userId,
       eventName: 'ai.chat_completion',
@@ -127,23 +159,34 @@ export async function POST(request: NextRequest) {
         model,
         stream,
         plan: usage.plan,
-        task: openRouterRoute?.task,
+        task: taskName,
         routeStrategy: openRouterRoute?.strategy,
+        latency_ms: latencyMs,
+        ...(scriptMeta ? { scriptMeta } : {}),
       },
       request,
     });
     void logAiGeneration({
       userId,
-      generationType: 'chat_completion',
-      model: `${provider}/${model}`,
+      generationType: taskName === 'script' ? 'script' : 'chat_completion',
+      model: modelUsed,
+      modelUsed,
       success: true,
+      latencyMs,
+      task: taskName,
+      status: 'ok',
+      attemptCount,
       properties: {
         stream,
         plan: usage.plan,
-        task: openRouterRoute?.task,
+        task: taskName,
         models: openRouterModels,
+        fallback: attemptCount > 1,
+        ...(scriptMeta ? { scriptMeta } : {}),
       },
     });
+
+    // scriptMeta is logged on ai_generations/events; client POSTs script_generations after parse.
 
     if (stream) {
       const encoder = new TextEncoder();
@@ -180,6 +223,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     const code = getAiErrorCode(error);
+    const latencyMs = Date.now() - startedAt;
     console.error('AI chat-completion failed', {
       userId,
       provider,
@@ -189,10 +233,16 @@ export async function POST(request: NextRequest) {
     });
     void logAiGeneration({
       userId,
-      generationType: 'chat_completion',
+      generationType: taskName === 'script' ? 'script' : 'chat_completion',
       model: `${provider}/${model}`,
+      modelUsed: `${provider}/${model}`,
       success: false,
       error: code,
+      latencyMs,
+      task: taskName,
+      status: code,
+      attemptCount: openRouterModels.length,
+      properties: scriptMeta ? { scriptMeta } : {},
     });
     return safeClientError(code === 'rate_limited' ? 429 : 503, code);
   }

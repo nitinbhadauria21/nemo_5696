@@ -26,20 +26,25 @@ export async function POST(request: NextRequest) {
 
   const prompt = `Brand safety and sentiment analysis for trend "${body.trendTitle}". Return JSON with keys: sentiment (positive|neutral|negative|mixed), brandSafety (safe|caution|risky), summary (2 sentences), risks (array of strings).`;
 
+  const startedAt = Date.now();
   try {
     const sentiment = await runAiPrompt(prompt, { task: 'sentiment' });
+    const latencyMs = Date.now() - startedAt;
     await trackEvent({
       userId: auth,
       eventName: 'ai.sentiment',
       eventCategory: 'ai',
-      properties: { plan: usage.plan },
+      properties: { plan: usage.plan, latency_ms: latencyMs },
       request,
     });
     await logAiGeneration({
       userId: auth,
       generationType: 'sentiment',
+      task: 'sentiment',
       trendId: body.trendId ?? null,
       success: true,
+      latencyMs,
+      status: 'ok',
     });
     return NextResponse.json({ sentiment });
   } catch (error) {
@@ -47,9 +52,12 @@ export async function POST(request: NextRequest) {
     await logAiGeneration({
       userId: auth,
       generationType: 'sentiment',
+      task: 'sentiment',
       trendId: body.trendId ?? null,
       success: false,
       error: code,
+      latencyMs: Date.now() - startedAt,
+      status: code,
     });
     return NextResponse.json({ error: code }, { status: 503 });
   }

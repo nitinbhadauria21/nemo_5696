@@ -822,6 +822,8 @@ export default function ViralScriptWriterContent() {
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [expanded, setExpanded] = useState(true);
+  const [lastGenerationId, setLastGenerationId] = useState<string | null>(null);
+  const generateStartedAt = useRef<number>(0);
 
   const resultsRef = useRef<HTMLDivElement>(null);
   const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -837,6 +839,30 @@ export default function ViralScriptWriterContent() {
     if (error) {
       setGeneratedScript(null);
       toast.error(error.message);
+      const elapsed = generateStartedAt.current
+        ? Date.now() - generateStartedAt.current
+        : undefined;
+      void fetch('/api/scripts/generations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          success: false,
+          parseOk: false,
+          mode,
+          topic: mode === 'refine' ? 'Refined Draft' : topic,
+          audienceType,
+          customAudience: audienceType === 'Other' ? customAudience : undefined,
+          duration: selectedDuration,
+          scenesCount,
+          language: selectedLanguage,
+          latencyMs: elapsed,
+        }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d?.id) setLastGenerationId(d.id);
+        })
+        .catch(() => {});
     }
   }, [error]);
 
@@ -857,6 +883,9 @@ export default function ViralScriptWriterContent() {
   useEffect(() => {
     if (!response || isLoading || error) return;
     const parsed = parseScriptResponse(response);
+    const elapsed = generateStartedAt.current
+      ? Date.now() - generateStartedAt.current
+      : undefined;
     if (parsed) {
       const newScript: GeneratedScript = {
         ...parsed,
@@ -872,10 +901,55 @@ export default function ViralScriptWriterContent() {
       setTimeout(() => {
         resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
+      void fetch('/api/scripts/generations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          success: true,
+          parseOk: true,
+          mode,
+          topic: newScript.topic,
+          audienceType,
+          customAudience: audienceType === 'Other' ? customAudience : undefined,
+          duration: selectedDuration,
+          scenesCount,
+          language: selectedLanguage,
+          frameworkLabel: newScript.frameworkLabel,
+          viralScore: newScript.viralScore,
+          preview: newScript.rawMarkdown?.slice(0, 500),
+          latencyMs: elapsed,
+        }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d?.id) setLastGenerationId(d.id);
+        })
+        .catch(() => {});
     } else {
       toast.error(
         'AI returned a response that could not be parsed as a script. Try again, or check that your AI provider key is set.'
       );
+      void fetch('/api/scripts/generations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          success: false,
+          parseOk: false,
+          mode,
+          topic: mode === 'refine' ? 'Refined Draft' : topic,
+          audienceType,
+          duration: selectedDuration,
+          scenesCount,
+          language: selectedLanguage,
+          preview: response.slice(0, 500),
+          latencyMs: elapsed,
+        }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d?.id) setLastGenerationId(d.id);
+        })
+        .catch(() => {});
     }
   }, [response, isLoading, error]);
 
@@ -887,6 +961,13 @@ export default function ViralScriptWriterContent() {
     navigator.clipboard.writeText(fullScript).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      if (lastGenerationId) {
+        void fetch('/api/scripts/generations', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: lastGenerationId, copied: true }),
+        }).catch(() => {});
+      }
     });
   };
 
@@ -900,6 +981,13 @@ export default function ViralScriptWriterContent() {
         body: JSON.stringify({
           title: generatedScript.topic || 'Untitled script',
           platform: 'Reels / Shorts',
+          audienceType: generatedScript.audienceType,
+          duration: generatedScript.duration,
+          language: generatedScript.language,
+          framework: generatedScript.frameworkLabel,
+          viralScore: generatedScript.viralScore,
+          mode,
+          generationId: lastGenerationId,
           content: {
             hook: generatedScript.hook,
             body: generatedScript.rawMarkdown,
@@ -911,6 +999,7 @@ export default function ViralScriptWriterContent() {
             audienceType: generatedScript.audienceType,
             duration: generatedScript.duration,
             language: generatedScript.language,
+            mode,
             niche: generatedScript.audienceType || 'General',
             versions: [
               {
@@ -935,6 +1024,14 @@ export default function ViralScriptWriterContent() {
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || 'Failed to save');
+      }
+      const saved = await res.json().catch(() => ({}));
+      if (lastGenerationId && saved?.id) {
+        void fetch('/api/scripts/generations', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: lastGenerationId, savedScriptId: saved.id }),
+        }).catch(() => {});
       }
       toast.success('Script saved to your library');
     } catch (e) {
@@ -1044,12 +1141,24 @@ Apply all 6 psychological principles. Follow all rawMarkdown formatting rules ex
 Generate the script in ${selectedLanguage} language.
 Calculate an honest viralScore (0–100).`;
 
+    generateStartedAt.current = Date.now();
     sendMessage(
       [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: mode === 'refine' ? refinePrompt : createPrompt },
       ],
-      { temperature: 0.85, max_tokens: 2200 }
+      { temperature: 0.85, max_tokens: 2200 },
+      {
+        scriptMeta: {
+          mode,
+          topic: mode === 'refine' ? 'Refined Draft' : topic,
+          audienceType: effectiveAudience,
+          customAudience: audienceType === 'Other' ? customAudience : undefined,
+          duration: selectedDuration,
+          scenesCount,
+          language: selectedLanguage,
+        },
+      }
     );
   };
 

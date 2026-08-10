@@ -22,23 +22,35 @@ export async function POST(request: NextRequest) {
   const pagePath = body.pagePath ?? body.page_path ?? null;
   const resultCount =
     typeof body.resultCount === 'number' ? body.resultCount : (body.result_count ?? null);
+  const source =
+    typeof body.source === 'string' && body.source
+      ? String(body.source).slice(0, 40)
+      : 'global';
+  const filters =
+    body.filters && typeof body.filters === 'object' && !Array.isArray(body.filters)
+      ? body.filters
+      : {};
 
   await supabase.from('search_queries').insert({
     user_id: userId,
     query,
     page_path: pagePath,
     result_count: resultCount,
+    source,
+    filters,
   });
 
   if (userId) {
     await trackEvent({
       userId,
-      eventName: 'search.query',
+      eventName: 'search.keyword',
       eventCategory: 'product',
       properties: {
         query: query.slice(0, 200),
         page_path: pagePath,
         result_count: resultCount,
+        source,
+        filters,
       },
       request,
     });

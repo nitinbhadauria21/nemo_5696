@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 
 import { toast } from 'sonner';
 import {
@@ -198,6 +198,8 @@ export default function CarouselStudio({
   const [slides, setSlides] = useState<Slide[]>([defaultSlide(defaultSig)]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exporting, setExporting] = useState(false);
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const createdRef = useRef(false);
 
   useEffect(() => {
     if (initialTopic) {
@@ -208,6 +210,64 @@ export default function CarouselStudio({
       });
     }
   }, [initialTopic]);
+
+  const slidesMeta = () =>
+    slides.map((s) => ({
+      type: s.type,
+      title: (s.title || '').slice(0, 120),
+      kicker: (s.kicker || '').slice(0, 80),
+    }));
+
+  const ensureProject = useCallback(async () => {
+    if (projectId || createdRef.current) return projectId;
+    createdRef.current = true;
+    try {
+      const res = await fetch('/api/carousel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: initialTopic || slides[0]?.title || 'Carousel',
+          source: initialTopic ? 'trend' : 'manual',
+          format,
+          slideCount: slides.length,
+          slidesMeta: slidesMeta(),
+        }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (d?.id) {
+        setProjectId(d.id);
+        return d.id as string;
+      }
+    } catch {
+      createdRef.current = false;
+    }
+    return null;
+  }, [projectId, initialTopic, format, slides]);
+
+  useEffect(() => {
+    void ensureProject();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const persistMeta = useCallback(
+    async (exported = false) => {
+      const id = projectId || (await ensureProject());
+      if (!id) return;
+      void fetch('/api/carousel', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          topic: initialTopic || slides[0]?.title || 'Carousel',
+          format,
+          slideCount: slides.length,
+          slidesMeta: slidesMeta(),
+          exported,
+        }),
+      }).catch(() => {});
+    },
+    [projectId, ensureProject, initialTopic, format, slides]
+  );
 
   const slide = slides[currentIndex];
 
@@ -303,6 +363,7 @@ export default function CarouselStudio({
     setExporting(true);
     try {
       await exportSlide(currentIndex);
+      await persistMeta(true);
       toast.success('Slide exported as PNG ✓');
     } catch {
       toast.error('Export failed. Please try again.');
@@ -319,6 +380,7 @@ export default function CarouselStudio({
         await exportSlide(i);
         await new Promise((r) => setTimeout(r, 400));
       }
+      await persistMeta(true);
       toast.success(`All ${slides.length} slides exported ✓`);
     } catch {
       toast.error('Export failed. Please try again.');

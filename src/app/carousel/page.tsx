@@ -4,6 +4,7 @@ import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/AppLayout';
 import CarouselStudio from '@/components/CarouselStudio/CarouselStudio';
+import TrackPageView from '@/components/TrackPageView';
 
 function CarouselStudioPageInner() {
   const searchParams = useSearchParams();
@@ -11,6 +12,7 @@ function CarouselStudioPageInner() {
 
   return (
     <AppLayout>
+      <TrackPageView page="carousel" />
       <div className="flex flex-col h-full min-h-screen bg-background">
         {/* Page header */}
         <div className="sticky top-0 z-20 bg-background/98 backdrop-blur-md border-b border-border px-6 sm:px-8 py-4 flex items-center gap-3 flex-shrink-0">

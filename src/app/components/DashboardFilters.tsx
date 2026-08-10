@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, RefreshCw, Bookmark } from 'lucide-react';
 import { CATEGORIES, PLATFORMS } from '@/lib/mockData';
 import type { TrendPlatform } from '@/lib/mockData';
 import CountrySelector from '@/components/ui/CountrySelector';
 import PlatformIcon from '@/components/ui/PlatformIcon';
+import { trackSearchQuery } from '@/lib/analytics/client';
 
 interface DashboardFiltersProps {
   onFiltersChange?: (filters: {
@@ -50,6 +51,13 @@ export default function DashboardFilters({
   const [sortBy, setSortBy] = useState<'score' | 'recent' | 'rising'>('score');
   const [bookmarksOnly, setBookmarksOnly] = useState(false);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (searchDebounce.current) clearTimeout(searchDebounce.current);
+    };
+  }, []);
 
   const emitChange = (
     overrides: Partial<{
@@ -149,13 +157,62 @@ export default function DashboardFilters({
               placeholder="Search keywords in all niches… e.g. 'GPT-4', 'marathon', 'crypto'"
               value={keyword}
               onChange={(e) => {
-                setKeyword(e.target.value);
-                emitChange({ keyword: e.target.value });
+                const value = e.target.value;
+                setKeyword(value);
+                emitChange({ keyword: value });
+                if (searchDebounce.current) clearTimeout(searchDebounce.current);
+                searchDebounce.current = setTimeout(() => {
+                  if (value.trim().length >= 2) {
+                    trackSearchQuery({
+                      query: value,
+                      source: 'dashboard',
+                      filters: {
+                        categories: selectedCategories,
+                        platforms: selectedPlatforms,
+                        timeframe,
+                        countries: selectedCountries,
+                      },
+                    });
+                  }
+                }, 600);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && keyword.trim().length >= 2) {
+                  trackSearchQuery({
+                    query: keyword,
+                    source: 'dashboard',
+                    filters: {
+                      categories: selectedCategories,
+                      platforms: selectedPlatforms,
+                      timeframe,
+                      countries: selectedCountries,
+                    },
+                  });
+                }
               }}
               className="w-full bg-input border border-border rounded-lg pl-9 pr-4 py-2 text-base font-sans text-foreground placeholder:text-foreground/45 focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
-          <button className="btn-flame px-4 py-2 rounded-lg">Search</button>
+          <button
+            type="button"
+            className="btn-flame px-4 py-2 rounded-lg"
+            onClick={() => {
+              if (keyword.trim().length >= 2) {
+                trackSearchQuery({
+                  query: keyword,
+                  source: 'dashboard',
+                  filters: {
+                    categories: selectedCategories,
+                    platforms: selectedPlatforms,
+                    timeframe,
+                    countries: selectedCountries,
+                  },
+                });
+              }
+            }}
+          >
+            Search
+          </button>
         </div>
       </div>
 

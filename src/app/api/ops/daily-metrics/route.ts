@@ -13,7 +13,7 @@ function authorizeCron(request: NextRequest): boolean {
   return headerSecret === cronSecret || bearer === cronSecret;
 }
 
-async function handlePurge(request: NextRequest) {
+async function handleRefresh(request: NextRequest) {
   if (!authorizeCron(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -23,28 +23,24 @@ async function handlePurge(request: NextRequest) {
     return NextResponse.json({ error: 'Supabase admin client not configured' }, { status: 503 });
   }
 
-  const { data, error } = await admin.rpc('purge_analytics_older_than_90_days');
+  const dayParam = request.nextUrl.searchParams.get('day');
+  const targetDay = dayParam || new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+  const { data, error } = await admin.rpc('refresh_daily_metrics', {
+    target_day: targetDay,
+  });
+
   if (error) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 
-  const row = Array.isArray(data) ? data[0] : data;
-  return NextResponse.json({
-    ok: true,
-    deleted_events: Number(row?.deleted_events ?? 0),
-    deleted_sessions: Number(row?.deleted_sessions ?? 0),
-    deleted_searches: Number(row?.deleted_searches ?? 0),
-    deleted_script_gens: Number(row?.deleted_script_gens ?? 0),
-    deleted_ai: Number(row?.deleted_ai ?? 0),
-    deleted_api_logs: Number(row?.deleted_api_logs ?? 0),
-  });
+  return NextResponse.json({ ok: true, day: targetDay, row: data });
 }
 
-/** Vercel Cron invokes GET with Bearer CRON_SECRET. */
 export async function GET(request: NextRequest) {
-  return handlePurge(request);
+  return handleRefresh(request);
 }
 
 export async function POST(request: NextRequest) {
-  return handlePurge(request);
+  return handleRefresh(request);
 }

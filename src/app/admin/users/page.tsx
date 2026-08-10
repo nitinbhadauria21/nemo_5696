@@ -12,9 +12,15 @@ type AdminUser = {
   niches_count?: number;
   linked_socials_count?: number;
   last_event_at?: string | null;
+  last_login_at?: string | null;
+  last_active_at?: string | null;
   created_at?: string | null;
   onboarding_complete?: boolean | null;
   status?: string | null;
+  time_spent_7d?: string;
+  time_spent_30d?: string;
+  script_gens_30d?: number;
+  scripts_saved_30d?: number;
 };
 
 type Kpis = {
@@ -43,6 +49,11 @@ export default function AdminUsersContent() {
   const [plan, setPlan] = useState('all');
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState('…');
+  const [resetBusy, setResetBusy] = useState<string | null>(null);
+  const [tempPassword, setTempPassword] = useState<{
+    email?: string | null;
+    password: string;
+  } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,8 +78,46 @@ export default function AdminUsersContent() {
     return () => clearTimeout(t);
   }, [load]);
 
+  const resetPassword = async (userId: string) => {
+    if (!confirm('Generate a temporary password for this user? It will be shown once only.')) {
+      return;
+    }
+    setResetBusy(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/reset-password`, { method: 'POST' });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || 'Failed');
+      setTempPassword({ email: d.email, password: d.temporaryPassword });
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Reset failed');
+    } finally {
+      setResetBusy(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {tempPassword && (
+        <div className="admin-card border border-[#FF5A1F]/40 bg-[rgba(255,90,31,0.08)] p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="font-display text-sm font-bold text-[var(--admin-text)]">
+                Temporary password (shown once)
+              </h3>
+              <p className="mt-1 text-xs text-[var(--admin-mute)]">
+                {tempPassword.email || 'User'} — copy now. Not stored in the database.
+              </p>
+              <code className="mt-2 block rounded-lg bg-[var(--admin-surface-2)] px-3 py-2 font-mono text-sm">
+                {tempPassword.password}
+              </code>
+            </div>
+            <button type="button" className="admin-btn" onClick={() => setTempPassword(null)}>
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           { label: 'Total', value: kpis.totalUsers },
@@ -110,58 +159,86 @@ export default function AdminUsersContent() {
       </div>
 
       <div className="admin-card overflow-hidden">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Plan</th>
-              <th>Niches</th>
-              <th>Socials</th>
-              <th>Last active</th>
-              <th>Joined</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
+        <div className="overflow-x-auto">
+          <table className="admin-table">
+            <thead>
               <tr>
-                <td colSpan={7} className="py-10 text-center text-[var(--admin-mute)]">
-                  Loading…
-                </td>
+                <th>Name / Email</th>
+                <th>Plan</th>
+                <th>Last login</th>
+                <th>Time 7d / 30d</th>
+                <th>Scripts 30d</th>
+                <th>Status</th>
+                <th />
               </tr>
-            )}
-            {!loading &&
-              users.map((u) => (
-                <tr key={u.id}>
-                  <td>
-                    <div className="font-medium text-[var(--admin-text)]">{u.full_name || '—'}</div>
-                    <div className="text-xs text-[var(--admin-mute)]">{u.email}</div>
-                  </td>
-                  <td>{planPill(u.plan)}</td>
-                  <td className="font-mono text-xs">{u.niches_count ?? 0}</td>
-                  <td className="font-mono text-xs">{u.linked_socials_count ?? 0}</td>
-                  <td className="font-mono text-xs">
-                    {u.last_event_at ? new Date(u.last_event_at).toLocaleString() : '—'}
-                  </td>
-                  <td className="font-mono text-xs">
-                    {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
-                  </td>
-                  <td>
-                    <Link href={`/admin/users/${u.id}`} className="admin-btn text-xs">
-                      View →
-                    </Link>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td colSpan={7} className="py-10 text-center text-[var(--admin-mute)]">
+                    Loading…
                   </td>
                 </tr>
-              ))}
-            {!loading && users.length === 0 && (
-              <tr>
-                <td colSpan={7} className="py-10 text-center text-[var(--admin-mute)]">
-                  No users match
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+              {!loading &&
+                users.map((u) => (
+                  <tr key={u.id}>
+                    <td>
+                      <div className="font-medium text-[var(--admin-text)]">
+                        {u.full_name || '—'}
+                      </div>
+                      <div className="text-xs text-[var(--admin-mute)]">{u.email}</div>
+                    </td>
+                    <td>{planPill(u.plan)}</td>
+                    <td className="font-mono text-xs">
+                      {u.last_login_at
+                        ? new Date(u.last_login_at).toLocaleString()
+                        : u.last_active_at
+                          ? new Date(u.last_active_at).toLocaleString()
+                          : '—'}
+                    </td>
+                    <td className="font-mono text-xs">
+                      {u.time_spent_7d || '—'} / {u.time_spent_30d || '—'}
+                    </td>
+                    <td className="font-mono text-xs">
+                      {u.script_gens_30d ?? 0} gen · {u.scripts_saved_30d ?? 0} saved
+                    </td>
+                    <td>
+                      <span
+                        className={`admin-pill ${
+                          u.status === 'suspended' ? 'admin-pill-free' : 'admin-pill-agency'
+                        }`}
+                      >
+                        {u.status || 'active'}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="flex flex-wrap gap-1">
+                        <Link href={`/admin/users/${u.id}`} className="admin-btn text-xs">
+                          View →
+                        </Link>
+                        <button
+                          type="button"
+                          className="admin-btn text-xs"
+                          disabled={resetBusy === u.id}
+                          onClick={() => resetPassword(u.id)}
+                        >
+                          {resetBusy === u.id ? '…' : 'Reset pw'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              {!loading && users.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="py-10 text-center text-[var(--admin-mute)]">
+                    No users match
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -20,6 +20,9 @@ export async function GET(_request: NextRequest, context: Ctx) {
         { data: connections },
         { data: events },
         { count: eventCount },
+        { data: scripts },
+        { data: searches },
+        { data: carousels },
       ] = await Promise.all([
         admin.from('profiles').select('*').eq('id', id).maybeSingle(),
         admin
@@ -34,6 +37,24 @@ export async function GET(_request: NextRequest, context: Ctx) {
           .order('created_at', { ascending: false })
           .limit(40),
         admin.from('user_events').select('*', { count: 'exact', head: true }).eq('user_id', id),
+        admin
+          .from('script_generations')
+          .select('id, topic, success, created_at, viral_score')
+          .eq('user_id', id)
+          .order('created_at', { ascending: false })
+          .limit(30),
+        admin
+          .from('search_queries')
+          .select('id, query, result_count, created_at')
+          .eq('user_id', id)
+          .order('created_at', { ascending: false })
+          .limit(30),
+        admin
+          .from('carousel_projects')
+          .select('id, topic, exported, created_at')
+          .eq('user_id', id)
+          .order('created_at', { ascending: false })
+          .limit(20),
       ]);
 
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -43,10 +64,18 @@ export async function GET(_request: NextRequest, context: Ctx) {
       const idleMs = lastEvent ? Date.now() - new Date(lastEvent).getTime() : null;
       const activityStatus = idleMs !== null && idleMs < 24 * 60 * 60 * 1000 ? 'active' : 'idle';
 
+      // Strip any accidental sensitive keys from profile payload
+      const safeProfile = { ...profile } as Record<string, unknown>;
+      delete safeProfile.password;
+      delete safeProfile.encrypted_password;
+
       return NextResponse.json({
-        profile,
+        profile: safeProfile,
         connections: connections ?? [],
         events: events ?? [],
+        scripts: scripts ?? [],
+        searches: searches ?? [],
+        carousels: carousels ?? [],
         meta: {
           eventCount: eventCount ?? 0,
           lastEventAt: lastEvent,

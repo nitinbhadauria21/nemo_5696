@@ -2,12 +2,17 @@ import { callAIEndpoint, friendlyAiError } from './aiClient';
 
 const ENDPOINT = '/api/ai/chat-completion';
 
+export type ChatExtras = {
+  scriptMeta?: Record<string, unknown>;
+};
+
 export async function getChatCompletion(
   provider: string,
   model: string,
   messages: object[],
   parameters: object = {},
-  task?: string
+  task?: string,
+  extras?: ChatExtras
 ) {
   return callAIEndpoint(ENDPOINT, {
     provider,
@@ -16,6 +21,7 @@ export async function getChatCompletion(
     stream: false,
     parameters,
     ...(task ? { task } : {}),
+    ...(extras?.scriptMeta ? { scriptMeta: extras.scriptMeta } : {}),
   });
 }
 
@@ -27,7 +33,8 @@ export async function getStreamingChatCompletion(
   onComplete: () => void,
   onError: (error: Error) => void,
   parameters: object = {},
-  task?: string
+  task?: string,
+  extras?: ChatExtras
 ) {
   let settled = false;
   const complete = () => {
@@ -52,6 +59,7 @@ export async function getStreamingChatCompletion(
         stream: true,
         parameters,
         ...(task ? { task } : {}),
+        ...(extras?.scriptMeta ? { scriptMeta: extras.scriptMeta } : {}),
       }),
     });
 

@@ -161,6 +161,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (supabase) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error: error.message };
+      try {
+        void fetch('/api/analytics/event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event_name: 'auth.login', event_category: 'auth' }),
+          keepalive: true,
+        });
+      } catch {
+        // ignore
+      }
       return {};
     }
 

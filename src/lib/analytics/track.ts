@@ -106,6 +106,9 @@ export async function touchSession(opts: {
   userId?: string | null;
   request?: NextRequest | Request | null;
   incrementPage?: boolean;
+  entryPath?: string | null;
+  exitPath?: string | null;
+  activeMsDelta?: number;
 }): Promise<void> {
   try {
     const admin = createAdminClient();
@@ -116,7 +119,7 @@ export async function touchSession(opts: {
 
     const { data: existing } = await admin
       .from('user_sessions')
-      .select('id, page_count')
+      .select('id, page_count, active_ms, entry_path')
       .eq('id', opts.sessionId)
       .maybeSingle();
 
@@ -129,6 +132,11 @@ export async function touchSession(opts: {
       if (opts.incrementPage) {
         updates.page_count = (existing.page_count ?? 0) + 1;
       }
+      if (opts.activeMsDelta && opts.activeMsDelta > 0) {
+        updates.active_ms = (existing.active_ms ?? 0) + opts.activeMsDelta;
+      }
+      if (opts.exitPath) updates.exit_path = opts.exitPath;
+      if (!existing.entry_path && opts.entryPath) updates.entry_path = opts.entryPath;
       const { error } = await admin.from('user_sessions').update(updates).eq('id', opts.sessionId);
       if (error) console.error('[analytics] touchSession update failed', error.message);
       return;
@@ -140,8 +148,11 @@ export async function touchSession(opts: {
       started_at: now,
       last_seen_at: now,
       page_count: opts.incrementPage ? 1 : 0,
+      active_ms: opts.activeMsDelta && opts.activeMsDelta > 0 ? opts.activeMsDelta : 0,
       device: guessDevice(userAgent),
       user_agent: userAgent,
+      entry_path: opts.entryPath ?? null,
+      exit_path: opts.exitPath ?? null,
     });
     if (error) console.error('[analytics] touchSession insert failed', error.message);
   } catch (err) {

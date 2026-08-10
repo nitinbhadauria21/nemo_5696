@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { syncLastLoginAt } from '@/lib/analytics/session';
 
 function safeNextPath(next: string | null): string {
   if (!next || !next.startsWith('/') || next.startsWith('//') || next.includes('://')) {
@@ -46,6 +47,12 @@ export async function GET(request: Request) {
     if (supabase) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user?.id) {
+          void syncLastLoginAt(user.id, user.last_sign_in_at ?? null);
+        }
         return NextResponse.redirect(`${origin}${next}`);
       }
       console.error('[auth/callback] exchangeCodeForSession failed', error.message);

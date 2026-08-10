@@ -7,6 +7,7 @@ import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
 import AuthRecoveryRedirect from '@/components/AuthRecoveryRedirect';
+import SessionHeartbeat from '@/components/SessionHeartbeat';
 
 const fredoka = Fredoka({
   subsets: ['latin'],
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ThemeProvider>
           <AuthProvider>
             <AuthRecoveryRedirect />
+            <SessionHeartbeat />
             {children}
             <Toaster
               position="bottom-right"

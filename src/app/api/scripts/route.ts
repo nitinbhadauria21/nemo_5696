@@ -94,17 +94,52 @@ export async function POST(request: NextRequest) {
       platform: body.platform ?? null,
       trend_id: body.trendId ?? body.trend_id ?? null,
       content,
+      audience_type:
+        body.audienceType ?? body.audience_type ?? content.audienceType ?? null,
+      duration: body.duration ?? content.duration ?? null,
+      language: body.language ?? content.language ?? null,
+      framework:
+        body.framework ?? content.frameworkLabel ?? content.framework ?? null,
+      viral_score:
+        typeof body.viralScore === 'number'
+          ? body.viralScore
+          : typeof content.viralScore === 'number'
+            ? content.viralScore
+            : null,
+      mode: body.mode ?? content.mode ?? null,
     })
     .select('id')
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  const generationId =
+    typeof body.generationId === 'string'
+      ? body.generationId
+      : typeof body.generation_id === 'string'
+        ? body.generation_id
+        : null;
+  if (generationId) {
+    await supabase
+      .from('script_generations')
+      .update({ saved_script_id: data.id })
+      .eq('id', generationId)
+      .eq('user_id', userId);
+  }
+
   await trackEvent({
     userId,
     eventName: 'script.save',
     eventCategory: 'script',
-    properties: { script_id: data.id, platform: body.platform ?? null },
+    properties: {
+      script_id: data.id,
+      platform: body.platform ?? null,
+      generation_id: generationId,
+      audience_type: body.audienceType ?? content.audienceType ?? null,
+      duration: body.duration ?? content.duration ?? null,
+      language: body.language ?? content.language ?? null,
+      mode: body.mode ?? content.mode ?? null,
+    },
     request,
   });
 

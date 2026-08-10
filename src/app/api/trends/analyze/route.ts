@@ -31,20 +31,25 @@ export async function POST(request: NextRequest) {
 
   const prompt = `Analyze why "${trendTitle}" is trending${trendDescription ? `: ${String(trendDescription).slice(0, 1000)}` : ''}. Provide: 1) Why it's trending (3 bullets), 2) Predicted trajectory (next 48-72h), 3) Best platforms to act on. Be concise.`;
 
+  const startedAt = Date.now();
   try {
     const analysis = await runAiPrompt(prompt, { task: 'analysis' });
+    const latencyMs = Date.now() - startedAt;
     await trackEvent({
       userId: auth,
       eventName: 'ai.analyze',
       eventCategory: 'ai',
-      properties: { plan: usage.plan },
+      properties: { plan: usage.plan, latency_ms: latencyMs },
       request,
     });
     await logAiGeneration({
       userId: auth,
       generationType: 'analyze',
+      task: 'analysis',
       trendId: trendId ?? null,
       success: true,
+      latencyMs,
+      status: 'ok',
     });
     return NextResponse.json({ analysis });
   } catch (error) {
@@ -52,9 +57,12 @@ export async function POST(request: NextRequest) {
     await logAiGeneration({
       userId: auth,
       generationType: 'analyze',
+      task: 'analysis',
       trendId: trendId ?? null,
       success: false,
       error: code,
+      latencyMs: Date.now() - startedAt,
+      status: code,
     });
     return NextResponse.json({ error: code }, { status: 503 });
   }

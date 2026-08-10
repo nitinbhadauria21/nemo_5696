@@ -95,5 +95,38 @@ export async function GET() {
     detail: 'Session OK',
   });
 
-  return NextResponse.json({ checks, checkedAt: new Date().toISOString() });
+  let collectorFreshnessHours: number | null = null;
+  if (isSupabaseConfigured()) {
+    const admin = createAdminClient();
+    if (admin) {
+      const { data: lastRun } = await admin
+        .from('collector_runs')
+        .select('finished_at, created_at, source, error')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (lastRun) {
+        const t = new Date(lastRun.finished_at || lastRun.created_at).getTime();
+        collectorFreshnessHours = Math.round(((Date.now() - t) / 3600000) * 10) / 10;
+        checks.push({
+          id: 'collectors',
+          name: 'Trend collectors',
+          status: lastRun.error
+            ? 'degraded'
+            : collectorFreshnessHours != null && collectorFreshnessHours < 36
+              ? 'operational'
+              : 'degraded',
+          detail: lastRun.error
+            ? `Last error on ${lastRun.source}`
+            : `Last run ${collectorFreshnessHours}h ago (${lastRun.source})`,
+        });
+      }
+    }
+  }
+
+  return NextResponse.json({
+    checks,
+    checkedAt: new Date().toISOString(),
+    collectorFreshnessHours,
+  });
 }

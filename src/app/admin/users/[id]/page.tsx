@@ -64,6 +64,16 @@ export default function AdminUserDetailPage() {
   } | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [scripts, setScripts] = useState<
+    { id: string; topic: string | null; success: boolean; created_at: string; viral_score: number | null }[]
+  >([]);
+  const [searches, setSearches] = useState<
+    { id: string; query: string; result_count: number | null; created_at: string }[]
+  >([]);
+  const [carousels, setCarousels] = useState<
+    { id: string; topic: string | null; exported: boolean; created_at: string }[]
+  >([]);
 
   const load = () => {
     fetch(`/api/admin/users/${id}`)
@@ -74,6 +84,9 @@ export default function AdminUserDetailPage() {
         setConnections(d.connections ?? []);
         setEvents(d.events ?? []);
         setMeta(d.meta);
+        setScripts(d.scripts ?? []);
+        setSearches(d.searches ?? []);
+        setCarousels(d.carousels ?? []);
       })
       .catch((e) => setError(e.message));
   };
@@ -94,6 +107,23 @@ export default function AdminUserDetailPage() {
         body: JSON.stringify({ status: next }),
       });
       if (res.ok) load();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resetPassword = async () => {
+    if (!confirm('Generate a temporary password? It will be shown once only and is never stored.')) {
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/users/${id}/reset-password`, { method: 'POST' });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || 'Failed');
+      setTempPassword(d.temporaryPassword);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Reset failed');
     } finally {
       setBusy(false);
     }
@@ -151,19 +181,39 @@ export default function AdminUserDetailPage() {
             )}
           </div>
           <p className="text-sm text-[var(--admin-mute)]">{profile.email}</p>
+          {(profile as Profile & { last_login_at?: string }).last_login_at && (
+            <p className="mt-1 font-mono text-[10px] text-[var(--admin-mute)]">
+              Last login:{' '}
+              {new Date(
+                (profile as Profile & { last_login_at?: string }).last_login_at!
+              ).toLocaleString()}
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" className="admin-btn" onClick={toggleSuspend} disabled={busy}>
             {profile.status === 'suspended' ? 'Reactivate' : 'Suspend'}
           </button>
-          <button type="button" className="admin-btn opacity-50" title="v1.1" disabled>
+          <button type="button" className="admin-btn" onClick={resetPassword} disabled={busy}>
             Reset password
-          </button>
-          <button type="button" className="admin-btn opacity-50" title="v1.1" disabled>
-            Impersonate
           </button>
         </div>
       </div>
+
+      {tempPassword && (
+        <div className="admin-card border border-[#FF5A1F]/40 p-4">
+          <h3 className="font-display text-sm font-bold">Temporary password (once only)</h3>
+          <p className="mt-1 text-xs text-[var(--admin-mute)]">
+            Not stored in the database. Copy now.
+          </p>
+          <code className="mt-2 block rounded-lg bg-[var(--admin-surface-2)] px-3 py-2 font-mono text-sm">
+            {tempPassword}
+          </code>
+          <button type="button" className="admin-btn mt-3 text-xs" onClick={() => setTempPassword(null)}>
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="admin-card p-4 space-y-3">
@@ -245,6 +295,52 @@ export default function AdminUserDetailPage() {
               <li className="text-sm text-[var(--admin-mute)]">No events yet</li>
             )}
           </ul>
+        </div>
+
+        <div className="admin-card p-4 space-y-3 lg:col-span-2">
+          <h3 className="font-display text-sm font-bold">Script generations · searches · carousels</h3>
+          <div className="grid gap-4 md:grid-cols-3">
+            <ul className="max-h-48 space-y-2 overflow-auto text-sm">
+              <li className="font-mono text-[10px] uppercase text-[var(--admin-mute)]">Scripts</li>
+              {scripts.map((s) => (
+                <li key={s.id} className="border-b border-[var(--admin-line)] pb-1">
+                  {s.topic || '—'} · {s.success ? 'ok' : 'fail'} · score {s.viral_score ?? '—'}
+                  <div className="font-mono text-[10px] text-[var(--admin-mute)]">
+                    {new Date(s.created_at).toLocaleString()}
+                  </div>
+                </li>
+              ))}
+              {scripts.length === 0 && (
+                <li className="text-[var(--admin-mute)]">No script generations</li>
+              )}
+            </ul>
+            <ul className="max-h-48 space-y-2 overflow-auto text-sm">
+              <li className="font-mono text-[10px] uppercase text-[var(--admin-mute)]">Searches</li>
+              {searches.map((s) => (
+                <li key={s.id} className="border-b border-[var(--admin-line)] pb-1">
+                  {s.query}
+                  <div className="font-mono text-[10px] text-[var(--admin-mute)]">
+                    results {s.result_count ?? '—'} · {new Date(s.created_at).toLocaleString()}
+                  </div>
+                </li>
+              ))}
+              {searches.length === 0 && <li className="text-[var(--admin-mute)]">No searches</li>}
+            </ul>
+            <ul className="max-h-48 space-y-2 overflow-auto text-sm">
+              <li className="font-mono text-[10px] uppercase text-[var(--admin-mute)]">Carousels</li>
+              {carousels.map((c) => (
+                <li key={c.id} className="border-b border-[var(--admin-line)] pb-1">
+                  {c.topic || '—'} · {c.exported ? 'exported' : 'draft'}
+                  <div className="font-mono text-[10px] text-[var(--admin-mute)]">
+                    {new Date(c.created_at).toLocaleString()}
+                  </div>
+                </li>
+              ))}
+              {carousels.length === 0 && (
+                <li className="text-[var(--admin-mute)]">No carousels</li>
+              )}
+            </ul>
+          </div>
         </div>
       </div>
     </div>

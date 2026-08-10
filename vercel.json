@@ -7,6 +7,10 @@
     {
       "path": "/api/ops/purge-analytics",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/ops/daily-metrics",
+      "schedule": "15 7 * * *"
     }
   ],
   "headers": [

@@ -26,20 +26,25 @@ export async function POST(request: NextRequest) {
 
   const prompt = `Generate 5 viral content ideas for the trend "${body.trendTitle}"${body.platform ? ` on ${String(body.platform).slice(0, 40)}` : ''}. For each: hook, format (reel/short/post), and CTA. Numbered list.`;
 
+  const startedAt = Date.now();
   try {
     const ideas = await runAiPrompt(prompt, { task: 'ideas' });
+    const latencyMs = Date.now() - startedAt;
     await trackEvent({
       userId: auth,
       eventName: 'ai.generate_ideas',
       eventCategory: 'ai',
-      properties: { plan: usage.plan },
+      properties: { plan: usage.plan, latency_ms: latencyMs },
       request,
     });
     await logAiGeneration({
       userId: auth,
       generationType: 'generate_ideas',
+      task: 'ideas',
       trendId: body.trendId ?? null,
       success: true,
+      latencyMs,
+      status: 'ok',
     });
     return NextResponse.json({ ideas });
   } catch (error) {
@@ -47,9 +52,12 @@ export async function POST(request: NextRequest) {
     await logAiGeneration({
       userId: auth,
       generationType: 'generate_ideas',
+      task: 'ideas',
       trendId: body.trendId ?? null,
       success: false,
       error: code,
+      latencyMs: Date.now() - startedAt,
+      status: code,
     });
     return NextResponse.json({ error: code }, { status: 503 });
   }

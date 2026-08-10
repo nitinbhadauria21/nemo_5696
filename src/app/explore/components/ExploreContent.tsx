@@ -8,6 +8,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import PlatformBadge from '@/components/ui/PlatformBadge';
 import TrendSparkline from '@/components/ui/TrendSparkline';
 import { TrendItem } from '@/lib/mockData';
+import { trackSearchQuery } from '@/lib/analytics/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -249,6 +250,20 @@ export default function ExploreContent() {
       setRecentSearches((prev) => [q.trim(), ...prev.slice(0, 4)]);
     }
     setShowRecentSearches(false);
+    if (q.trim().length >= 2) {
+      trackSearchQuery({
+        query: q.trim(),
+        source: 'explore',
+        resultCount: filteredTrends.length,
+        filters: {
+          platform: activeTab,
+          sortBy,
+          timeFilter,
+          regionFilter,
+          niche: activeNiche,
+        },
+      });
+    }
   };
 
   // Close recent searches on outside click
