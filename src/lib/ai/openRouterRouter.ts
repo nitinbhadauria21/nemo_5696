@@ -111,8 +111,10 @@ const TASK_REASONS: Record<OpenRouterTask, string> = {
   chat: 'Interactive chat → fast free models with free-only fallback',
 };
 
+type EnvLike = Record<string, string | undefined>;
+
 /** Emergency paid twins — off by default now that :free endpoints work. */
-export function isOpenRouterPaidFallbackAllowed(env: NodeJS.ProcessEnv = process.env): boolean {
+export function isOpenRouterPaidFallbackAllowed(env: EnvLike = process.env): boolean {
   return env.OPENROUTER_ALLOW_PAID_FALLBACK?.trim().toLowerCase() === 'true';
 }
 
@@ -167,7 +169,7 @@ function buildTaskBaseChain(task: OpenRouterTask, paidFallbackEnabled: boolean):
 export function getFreeModelChain(
   task: OpenRouterTask = 'chat',
   preferred?: string | null,
-  env: NodeJS.ProcessEnv = process.env
+  env: EnvLike = process.env
 ): string[] {
   const paidFallbackEnabled = isOpenRouterPaidFallbackAllowed(env);
   const base = buildTaskBaseChain(task, paidFallbackEnabled).filter(isOpenRouterAllowedModel);
@@ -194,7 +196,7 @@ export function getFreeModelChain(
 export function selectOpenRouterRoute(
   taskHint?: string | null,
   preferredModel?: string | null,
-  env: NodeJS.ProcessEnv = process.env
+  env: EnvLike = process.env
 ): OpenRouterRouteDecision {
   const task = resolveOpenRouterTask(taskHint);
   const paidFallbackEnabled = isOpenRouterPaidFallbackAllowed(env);
