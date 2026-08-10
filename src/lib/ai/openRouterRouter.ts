@@ -1,3 +1,4 @@
+/** Agent docs: ./openRouterAgent.md — task→model OpenRouter router. */
 /**
  * OpenRouter model routing agent.
  * Prefer allowlisted `:free` / `openrouter/free` models only.
