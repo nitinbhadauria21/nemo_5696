@@ -47,10 +47,7 @@ export function validateChatPayload(body: {
   if (provider === 'OPENROUTER') {
     if (!model || model.toLowerCase() === 'auto') {
       model = ALLOWED_MODELS.OPENROUTER[0];
-    } else if (
-      !ALLOWED_MODELS.OPENROUTER.includes(model) &&
-      !isOpenRouterFreeModel(model)
-    ) {
+    } else if (!ALLOWED_MODELS.OPENROUTER.includes(model) && !isOpenRouterFreeModel(model)) {
       return { ok: false, status: 400, code: 'invalid_model' };
     }
   } else if (!model || !ALLOWED_MODELS[provider].includes(model)) {

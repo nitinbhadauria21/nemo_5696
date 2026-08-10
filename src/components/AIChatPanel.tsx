@@ -42,12 +42,7 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const { response, isLoading, error, sendMessage } = useChat(
-    'OPENROUTER',
-    'auto',
-    true,
-    'chat'
-  );
+  const { response, isLoading, error, sendMessage } = useChat('OPENROUTER', 'auto', true, 'chat');
 
   useEffect(() => {
     if (error) toast.error(error.message);

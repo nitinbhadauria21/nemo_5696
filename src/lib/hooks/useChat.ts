@@ -4,12 +4,7 @@ import { useState, useCallback } from 'react';
 import { getChatCompletion, getStreamingChatCompletion } from '@/lib/ai/chatCompletion';
 import { friendlyAiError } from '@/lib/ai/aiClient';
 
-export function useChat(
-  provider: string,
-  model: string,
-  streaming: boolean = true,
-  task?: string
-) {
+export function useChat(provider: string, model: string, streaming: boolean = true, task?: string) {
   const [response, setResponse] = useState('');
   const [fullResponse, setFullResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,13 +37,7 @@ export function useChat(
             task
           );
         } else {
-          const result = await getChatCompletion(
-            provider,
-            model,
-            messages,
-            parameters,
-            task
-          );
+          const result = await getChatCompletion(provider, model, messages, parameters, task);
           setFullResponse(result);
           const content = result?.choices?.[0]?.message?.content || '';
           if (!String(content).trim()) {

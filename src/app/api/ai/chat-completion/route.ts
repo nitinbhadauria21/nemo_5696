@@ -79,7 +79,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let { provider, model, messages, maxTokens, task: taskHint } = validated;
+  const { provider, messages, maxTokens, task: taskHint } = validated;
+  let { model } = validated;
   const stream = Boolean(body.stream);
   const rawTemp = Number(
     (body.parameters as Record<string, unknown> | undefined)?.temperature ?? 0.7
