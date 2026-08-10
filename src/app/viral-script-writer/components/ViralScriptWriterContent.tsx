@@ -883,9 +883,7 @@ export default function ViralScriptWriterContent() {
   useEffect(() => {
     if (!response || isLoading || error) return;
     const parsed = parseScriptResponse(response);
-    const elapsed = generateStartedAt.current
-      ? Date.now() - generateStartedAt.current
-      : undefined;
+    const elapsed = generateStartedAt.current ? Date.now() - generateStartedAt.current : undefined;
     if (parsed) {
       const newScript: GeneratedScript = {
         ...parsed,

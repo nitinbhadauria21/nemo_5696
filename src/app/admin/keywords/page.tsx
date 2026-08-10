@@ -13,9 +13,7 @@ export default function AdminKeywordsPage() {
   return (
     <div className="admin-card p-6">
       <h2 className="font-display text-lg font-bold">Keyword Intelligence</h2>
-      <p className="mt-2 text-sm text-[var(--admin-mute)]">
-        Redirecting to Analytics → Keywords…
-      </p>
+      <p className="mt-2 text-sm text-[var(--admin-mute)]">Redirecting to Analytics → Keywords…</p>
     </div>
   );
 }

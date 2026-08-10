@@ -29,9 +29,7 @@ function truncatePreview(text?: string | null): string | null {
 }
 
 /** Insert a script_generations row (best-effort, never throws). */
-export async function insertScriptGeneration(
-  input: ScriptGenerationInput
-): Promise<string | null> {
+export async function insertScriptGeneration(input: ScriptGenerationInput): Promise<string | null> {
   try {
     const admin = createAdminClient();
     if (!admin || !input.userId) return null;

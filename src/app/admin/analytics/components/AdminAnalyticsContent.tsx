@@ -90,7 +90,12 @@ type MetricsPayload = {
     byModel: { name: string; value: number }[];
     latency: { p50: number | null; p95: number | null; avg: number | null };
     series: { date: string; calls: number; errors: number }[];
-    errors: { task: string | null; model: string | null; error: string | null; createdAt: string }[];
+    errors: {
+      task: string | null;
+      model: string | null;
+      error: string | null;
+      createdAt: string;
+    }[];
     cost: number;
     successPct: number;
     total: number;
@@ -208,9 +213,11 @@ export default function AdminAnalyticsContent() {
           </button>
         ))}
         <span className="ml-auto text-[10px] text-[var(--admin-mute)]">
-          {loading ? 'Loading…' : `Refreshed ${metrics?.generatedAt ? new Date(metrics.generatedAt).toLocaleTimeString() : '—'}`}
+          {loading
+            ? 'Loading…'
+            : `Refreshed ${metrics?.generatedAt ? new Date(metrics.generatedAt).toLocaleTimeString() : '—'}`}
           {' · '}
-          Source: {metrics?.source === 'supabase' ? 'live Supabase' : metrics?.source ?? '…'}
+          Source: {metrics?.source === 'supabase' ? 'live Supabase' : (metrics?.source ?? '…')}
         </span>
       </div>
 
@@ -244,16 +251,8 @@ export default function AdminAnalyticsContent() {
           />
           <Kpi label="AI success" value={k?.aiSuccessPct != null ? `${k.aiSuccessPct}%` : '—'} />
           <Kpi label="Script gens" value={k ? String(k.scriptGens ?? '—') : '—'} />
-          <Kpi
-            label="Avg session"
-            value={k?.avgSessionMin != null ? `${k.avgSessionMin}m` : '—'}
-          />
-          <Kpi
-            label="Data age"
-            value={
-              k?.freshnessHours != null ? `${k.freshnessHours}h` : '—'
-            }
-          />
+          <Kpi label="Avg session" value={k?.avgSessionMin != null ? `${k.avgSessionMin}m` : '—'} />
+          <Kpi label="Data age" value={k?.freshnessHours != null ? `${k.freshnessHours}h` : '—'} />
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="admin-card p-4">
@@ -271,10 +270,7 @@ export default function AdminAnalyticsContent() {
                     endAngle={0}
                   >
                     <RadialBar background dataKey="value" cornerRadius={6} />
-                    <Legend
-                      iconSize={8}
-                      wrapperStyle={{ fontSize: 11, color: MUTE }}
-                    />
+                    <Legend iconSize={8} wrapperStyle={{ fontSize: 11, color: MUTE }} />
                     <Tooltip contentStyle={tipStyle} />
                   </RadialBarChart>
                 </ResponsiveContainer>
@@ -327,10 +323,26 @@ export default function AdminAnalyticsContent() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                <XAxis dataKey="date" tick={{ fill: MUTE, fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: MUTE, fontSize: 10 }} axisLine={false} tickLine={false} width={28} />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: MUTE, fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: MUTE, fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={28}
+                />
                 <Tooltip contentStyle={tipStyle} />
-                <Area type="monotone" dataKey="signups" stroke={ORANGE} fill="url(#gFill)" strokeWidth={2} />
+                <Area
+                  type="monotone"
+                  dataKey="signups"
+                  stroke={ORANGE}
+                  fill="url(#gFill)"
+                  strokeWidth={2}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -341,7 +353,12 @@ export default function AdminAnalyticsContent() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={metrics?.funnel ?? []} layout="vertical" margin={{ left: 24 }}>
                 <CartesianGrid stroke="rgba(255,255,255,0.06)" horizontal={false} />
-                <XAxis type="number" tick={{ fill: MUTE, fontSize: 10 }} axisLine={false} tickLine={false} />
+                <XAxis
+                  type="number"
+                  tick={{ fill: MUTE, fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <YAxis
                   type="category"
                   dataKey="step"
@@ -410,10 +427,26 @@ export default function AdminAnalyticsContent() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={metrics?.scripts?.series ?? []}>
                     <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: MUTE, fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: MUTE, fontSize: 10 }} axisLine={false} tickLine={false} width={28} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fill: MUTE, fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fill: MUTE, fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={28}
+                    />
                     <Tooltip contentStyle={tipStyle} />
-                    <Area type="monotone" dataKey="count" stroke={ORANGE} fill={ORANGE} fillOpacity={0.2} />
+                    <Area
+                      type="monotone"
+                      dataKey="count"
+                      stroke={ORANGE}
+                      fill={ORANGE}
+                      fillOpacity={0.2}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
@@ -488,10 +521,26 @@ export default function AdminAnalyticsContent() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={metrics?.keywords?.series ?? []}>
                     <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: MUTE, fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: MUTE, fontSize: 10 }} axisLine={false} tickLine={false} width={28} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fill: MUTE, fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fill: MUTE, fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={28}
+                    />
                     <Tooltip contentStyle={tipStyle} />
-                    <Line type="monotone" dataKey="count" stroke={TEAL} strokeWidth={2} dot={false} />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke={TEAL}
+                      strokeWidth={2}
+                      dot={false}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
@@ -504,8 +553,17 @@ export default function AdminAnalyticsContent() {
             <div className="h-48">
               {(metrics?.keywords?.top ?? []).length ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={(metrics?.keywords?.top ?? []).slice(0, 10)} layout="vertical" margin={{ left: 10 }}>
-                    <XAxis type="number" tick={{ fill: MUTE, fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <BarChart
+                    data={(metrics?.keywords?.top ?? []).slice(0, 10)}
+                    layout="vertical"
+                    margin={{ left: 10 }}
+                  >
+                    <XAxis
+                      type="number"
+                      tick={{ fill: MUTE, fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
                     <YAxis
                       type="category"
                       dataKey="query"
@@ -568,7 +626,13 @@ export default function AdminAnalyticsContent() {
               {(metrics?.carousel?.mix ?? []).some((m) => m.value > 0) ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={metrics?.carousel?.mix ?? []} dataKey="value" nameKey="name" innerRadius={36} outerRadius={60}>
+                    <Pie
+                      data={metrics?.carousel?.mix ?? []}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={36}
+                      outerRadius={60}
+                    >
                       {(metrics?.carousel?.mix ?? []).map((_, i) => (
                         <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                       ))}
@@ -620,8 +684,14 @@ export default function AdminAnalyticsContent() {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
           <Kpi label="Calls" value={String(metrics?.ai?.total ?? 0)} />
           <Kpi label="Success" value={`${metrics?.ai?.successPct ?? 0}%`} />
-          <Kpi label="p50 latency" value={metrics?.ai?.latency.p50 != null ? `${metrics.ai.latency.p50}ms` : '—'} />
-          <Kpi label="p95 latency" value={metrics?.ai?.latency.p95 != null ? `${metrics.ai.latency.p95}ms` : '—'} />
+          <Kpi
+            label="p50 latency"
+            value={metrics?.ai?.latency.p50 != null ? `${metrics.ai.latency.p50}ms` : '—'}
+          />
+          <Kpi
+            label="p95 latency"
+            value={metrics?.ai?.latency.p95 != null ? `${metrics.ai.latency.p95}ms` : '—'}
+          />
           <Kpi label="Est. cost" value={`$${metrics?.ai?.cost ?? 0}`} />
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -632,11 +702,35 @@ export default function AdminAnalyticsContent() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={metrics?.ai?.series ?? []}>
                     <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fill: MUTE, fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: MUTE, fontSize: 10 }} axisLine={false} tickLine={false} width={28} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fill: MUTE, fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fill: MUTE, fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={28}
+                    />
                     <Tooltip contentStyle={tipStyle} />
-                    <Area type="monotone" dataKey="calls" stackId="1" stroke={ORANGE} fill={ORANGE} fillOpacity={0.35} />
-                    <Area type="monotone" dataKey="errors" stackId="1" stroke="#f04438" fill="#f04438" fillOpacity={0.5} />
+                    <Area
+                      type="monotone"
+                      dataKey="calls"
+                      stackId="1"
+                      stroke={ORANGE}
+                      fill={ORANGE}
+                      fillOpacity={0.35}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="errors"
+                      stackId="1"
+                      stroke="#f04438"
+                      fill="#f04438"
+                      fillOpacity={0.5}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
@@ -650,7 +744,12 @@ export default function AdminAnalyticsContent() {
               {(metrics?.ai?.byModel ?? []).length ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={metrics?.ai?.byModel ?? []} dataKey="value" nameKey="name" outerRadius={70}>
+                    <Pie
+                      data={metrics?.ai?.byModel ?? []}
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius={70}
+                    >
                       {(metrics?.ai?.byModel ?? []).map((_, i) => (
                         <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                       ))}
@@ -683,7 +782,9 @@ export default function AdminAnalyticsContent() {
                   <td>{e.task || '—'}</td>
                   <td className="max-w-[140px] truncate font-mono text-[10px]">{e.model || '—'}</td>
                   <td>{e.error || '—'}</td>
-                  <td className="font-mono text-[10px]">{new Date(e.createdAt).toLocaleString()}</td>
+                  <td className="font-mono text-[10px]">
+                    {new Date(e.createdAt).toLocaleString()}
+                  </td>
                 </tr>
               ))}
               {(metrics?.ai?.errors ?? []).length === 0 && (
@@ -709,9 +810,7 @@ export default function AdminAnalyticsContent() {
         <Kpi
           label="Freshness"
           value={
-            metrics?.pipeline?.freshnessHours != null
-              ? `${metrics.pipeline.freshnessHours}h`
-              : '—'
+            metrics?.pipeline?.freshnessHours != null ? `${metrics.pipeline.freshnessHours}h` : '—'
           }
         />
         <div className="admin-card overflow-hidden">
@@ -770,7 +869,10 @@ export default function AdminAnalyticsContent() {
                 : '—'
             }
           />
-          <Kpi label="ARPU" value={metrics?.revenue?.arpu != null ? `₹${metrics.revenue.arpu}` : '—'} />
+          <Kpi
+            label="ARPU"
+            value={metrics?.revenue?.arpu != null ? `₹${metrics.revenue.arpu}` : '—'}
+          />
           <Kpi label="Checkouts" value={String(metrics?.revenue?.checkoutStarted ?? 0)} />
           <Kpi label="Paid conversion" value={`${metrics?.revenue?.conversionPct ?? 0}%`} />
         </div>

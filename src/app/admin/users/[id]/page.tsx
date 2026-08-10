@@ -66,7 +66,13 @@ export default function AdminUserDetailPage() {
   const [busy, setBusy] = useState(false);
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [scripts, setScripts] = useState<
-    { id: string; topic: string | null; success: boolean; created_at: string; viral_score: number | null }[]
+    {
+      id: string;
+      topic: string | null;
+      success: boolean;
+      created_at: string;
+      viral_score: number | null;
+    }[]
   >([]);
   const [searches, setSearches] = useState<
     { id: string; query: string; result_count: number | null; created_at: string }[]
@@ -113,7 +119,9 @@ export default function AdminUserDetailPage() {
   };
 
   const resetPassword = async () => {
-    if (!confirm('Generate a temporary password? It will be shown once only and is never stored.')) {
+    if (
+      !confirm('Generate a temporary password? It will be shown once only and is never stored.')
+    ) {
       return;
     }
     setBusy(true);
@@ -209,7 +217,11 @@ export default function AdminUserDetailPage() {
           <code className="mt-2 block rounded-lg bg-[var(--admin-surface-2)] px-3 py-2 font-mono text-sm">
             {tempPassword}
           </code>
-          <button type="button" className="admin-btn mt-3 text-xs" onClick={() => setTempPassword(null)}>
+          <button
+            type="button"
+            className="admin-btn mt-3 text-xs"
+            onClick={() => setTempPassword(null)}
+          >
             Dismiss
           </button>
         </div>
@@ -298,7 +310,9 @@ export default function AdminUserDetailPage() {
         </div>
 
         <div className="admin-card p-4 space-y-3 lg:col-span-2">
-          <h3 className="font-display text-sm font-bold">Script generations · searches · carousels</h3>
+          <h3 className="font-display text-sm font-bold">
+            Script generations · searches · carousels
+          </h3>
           <div className="grid gap-4 md:grid-cols-3">
             <ul className="max-h-48 space-y-2 overflow-auto text-sm">
               <li className="font-mono text-[10px] uppercase text-[var(--admin-mute)]">Scripts</li>
@@ -327,7 +341,9 @@ export default function AdminUserDetailPage() {
               {searches.length === 0 && <li className="text-[var(--admin-mute)]">No searches</li>}
             </ul>
             <ul className="max-h-48 space-y-2 overflow-auto text-sm">
-              <li className="font-mono text-[10px] uppercase text-[var(--admin-mute)]">Carousels</li>
+              <li className="font-mono text-[10px] uppercase text-[var(--admin-mute)]">
+                Carousels
+              </li>
               {carousels.map((c) => (
                 <li key={c.id} className="border-b border-[var(--admin-line)] pb-1">
                   {c.topic || '—'} · {c.exported ? 'exported' : 'draft'}
@@ -336,9 +352,7 @@ export default function AdminUserDetailPage() {
                   </div>
                 </li>
               ))}
-              {carousels.length === 0 && (
-                <li className="text-[var(--admin-mute)]">No carousels</li>
-              )}
+              {carousels.length === 0 && <li className="text-[var(--admin-mute)]">No carousels</li>}
             </ul>
           </div>
         </div>

@@ -70,7 +70,11 @@ export async function GET(request: NextRequest) {
           .from('profiles')
           .select('id, plan, onboarding_complete, created_at')
           .gte('created_at', since),
-        admin.from('profiles').select('id, email, full_name, plan, onboarding_complete, created_at, last_login_at, last_active_at'),
+        admin
+          .from('profiles')
+          .select(
+            'id, email, full_name, plan, onboarding_complete, created_at, last_login_at, last_active_at'
+          ),
         admin
           .from('user_events')
           .select('user_id, event_name, event_category, created_at')
@@ -179,8 +183,13 @@ export async function GET(request: NextRequest) {
         const name = (e.event_name || '').toLowerCase();
         if (name.includes('trend') || e.event_category === 'trends') usersWithTrend.add(e.user_id);
         if (e.event_category === 'ai' || name.includes('ai.')) usersWithAi.add(e.user_id);
-        if (name.includes('script') || e.event_category === 'script') usersWithScript.add(e.user_id);
-        if (name.includes('checkout') || name.includes('billing') || e.event_category === 'billing') {
+        if (name.includes('script') || e.event_category === 'script')
+          usersWithScript.add(e.user_id);
+        if (
+          name.includes('checkout') ||
+          name.includes('billing') ||
+          e.event_category === 'billing'
+        ) {
           usersWithCheckout.add(e.user_id);
         }
       }
@@ -368,8 +377,7 @@ export async function GET(request: NextRequest) {
       const sess = sessions ?? [];
       const totalActiveMs = sess.reduce((s, r) => s + Number(r.active_ms ?? 0), 0);
       const sessionUsers = new Set(sess.map((s) => s.user_id).filter(Boolean));
-      const avgSessionMs =
-        sess.length > 0 ? Math.round(totalActiveMs / sess.length) : 0;
+      const avgSessionMs = sess.length > 0 ? Math.round(totalActiveMs / sess.length) : 0;
       const pagesPerSession =
         sess.length > 0
           ? Math.round(
@@ -379,9 +387,7 @@ export async function GET(request: NextRequest) {
 
       // Retention approx: users active on day0 cohort still active D1/D7/D30
       const cohortStart = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-      const cohortUsers = new Set(
-        (profilesInRange ?? []).map((p) => p.id)
-      );
+      const cohortUsers = new Set((profilesInRange ?? []).map((p) => p.id));
       const activeByUserDays: Record<string, Set<string>> = {};
       for (const e of events ?? []) {
         if (!e.user_id) continue;
@@ -445,7 +451,9 @@ export async function GET(request: NextRequest) {
       // Revenue
       const orders = billingOrders ?? [];
       const paidOrders = orders.filter(
-        (o) => String(o.status || '').toLowerCase() === 'paid' || String(o.status).toLowerCase() === 'captured'
+        (o) =>
+          String(o.status || '').toLowerCase() === 'paid' ||
+          String(o.status).toLowerCase() === 'captured'
       );
       const revenue = {
         mrr: estMrr,
@@ -462,9 +470,7 @@ export async function GET(request: NextRequest) {
       };
 
       // Users snapshot (no passwords)
-      const summaryByUser = new Map(
-        (activitySummaries ?? []).map((s) => [s.user_id, s])
-      );
+      const summaryByUser = new Map((activitySummaries ?? []).map((s) => [s.user_id, s]));
       const usersSnapshot = profiles.slice(0, 50).map((p) => {
         const sum = summaryByUser.get(p.id);
         return {
@@ -532,9 +538,7 @@ export async function GET(request: NextRequest) {
           totalActiveMs,
           avgSessionMin: Math.round((avgSessionMs / 60000) * 10) / 10,
           sessionsPerUser:
-            sessionUsers.size > 0
-              ? Math.round((sess.length / sessionUsers.size) * 10) / 10
-              : 0,
+            sessionUsers.size > 0 ? Math.round((sess.length / sessionUsers.size) * 10) / 10 : 0,
           pagesPerSession,
           retention,
         },

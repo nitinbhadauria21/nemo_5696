@@ -40,9 +40,7 @@ export async function logAiGeneration(entry: AiGenerationLog): Promise<void> {
   try {
     const modelUsed = entry.modelUsed ?? entry.model ?? null;
     const status = entry.status ?? (entry.success ? 'ok' : 'error');
-    const cost =
-      entry.costUsdEst ??
-      estimateCostUsd(entry.tokensEstimate, modelUsed);
+    const cost = entry.costUsdEst ?? estimateCostUsd(entry.tokensEstimate, modelUsed);
 
     const row = {
       user_id: entry.userId,

@@ -23,9 +23,7 @@ export async function POST(request: NextRequest) {
   const resultCount =
     typeof body.resultCount === 'number' ? body.resultCount : (body.result_count ?? null);
   const source =
-    typeof body.source === 'string' && body.source
-      ? String(body.source).slice(0, 40)
-      : 'global';
+    typeof body.source === 'string' && body.source ? String(body.source).slice(0, 40) : 'global';
   const filters =
     body.filters && typeof body.filters === 'object' && !Array.isArray(body.filters)
       ? body.filters

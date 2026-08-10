@@ -94,12 +94,10 @@ export async function POST(request: NextRequest) {
       platform: body.platform ?? null,
       trend_id: body.trendId ?? body.trend_id ?? null,
       content,
-      audience_type:
-        body.audienceType ?? body.audience_type ?? content.audienceType ?? null,
+      audience_type: body.audienceType ?? body.audience_type ?? content.audienceType ?? null,
       duration: body.duration ?? content.duration ?? null,
       language: body.language ?? content.language ?? null,
-      framework:
-        body.framework ?? content.frameworkLabel ?? content.framework ?? null,
+      framework: body.framework ?? content.frameworkLabel ?? content.framework ?? null,
       viral_score:
         typeof body.viralScore === 'number'
           ? body.viralScore

@@ -28,7 +28,11 @@ export async function POST(_request: NextRequest, context: Ctx) {
   const admin = createAdminClient();
   if (!admin) return NextResponse.json({ error: 'Admin client unavailable' }, { status: 500 });
 
-  const { data: profile } = await admin.from('profiles').select('id, email').eq('id', id).maybeSingle();
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('id, email')
+    .eq('id', id)
+    .maybeSingle();
   if (!profile) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
   const temporaryPassword = `Nemo-${randomBytes(6).toString('base64url')}!aA1`;

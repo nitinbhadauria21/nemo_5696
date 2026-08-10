@@ -3,10 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { resolveUserId } from '@/lib/api/requireUser';
 import { trackEvent } from '@/lib/analytics/track';
-import {
-  insertScriptGeneration,
-  updateScriptGeneration,
-} from '@/lib/analytics/scriptGenerations';
+import { insertScriptGeneration, updateScriptGeneration } from '@/lib/analytics/scriptGenerations';
 
 /** POST — log a Viral Script Writer generation attempt */
 export async function POST(request: NextRequest) {
