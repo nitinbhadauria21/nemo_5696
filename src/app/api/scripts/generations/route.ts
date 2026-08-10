@@ -24,9 +24,31 @@ export async function POST(request: NextRequest) {
         ? body.rawMarkdown.slice(0, 500)
         : null;
 
+  const mode = typeof body.mode === 'string' ? body.mode : null;
+  const incomingProps =
+    body.properties && typeof body.properties === 'object' && !Array.isArray(body.properties)
+      ? (body.properties as Record<string, unknown>)
+      : {};
+  const refineTopic =
+    typeof body.refineTopic === 'string'
+      ? body.refineTopic
+      : typeof body.refine_topic === 'string'
+        ? body.refine_topic
+        : typeof incomingProps.refineTopic === 'string'
+          ? incomingProps.refineTopic
+          : typeof incomingProps.refine_topic === 'string'
+            ? incomingProps.refine_topic
+            : null;
+  const refineDraftPreview =
+    typeof body.refineDraftPreview === 'string'
+      ? body.refineDraftPreview.slice(0, 200)
+      : typeof incomingProps.refineDraftPreview === 'string'
+        ? String(incomingProps.refineDraftPreview).slice(0, 200)
+        : null;
+
   const id = await insertScriptGeneration({
     userId,
-    mode: body.mode ?? null,
+    mode,
     topic: body.topic ?? null,
     audienceType: body.audienceType ?? body.audience_type ?? null,
     customAudience: body.customAudience ?? body.custom_audience ?? null,
@@ -51,7 +73,16 @@ export async function POST(request: NextRequest) {
     provider: body.provider ?? null,
     model: body.model ?? null,
     preview,
-    properties: body.properties ?? {},
+    properties: {
+      ...incomingProps,
+      ...(mode === 'refine'
+        ? {
+            refineTopic: refineTopic || body.topic || 'Refined Draft',
+            draftLabel: 'Refined Draft',
+            ...(refineDraftPreview ? { refineDraftPreview } : {}),
+          }
+        : { createTopic: typeof body.topic === 'string' ? body.topic : incomingProps.createTopic }),
+    },
   });
 
   await trackEvent({

@@ -26,6 +26,23 @@ function countBy<T>(rows: T[], keyFn: (r: T) => string | null | undefined) {
     .sort((a, b) => b.value - a.value);
 }
 
+function asRecord(v: unknown): Record<string, unknown> {
+  return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+}
+
+function propStr(props: Record<string, unknown>, ...keys: string[]): string | null {
+  for (const k of keys) {
+    const v = props[k];
+    if (typeof v === 'string' && v.trim()) return v.trim().slice(0, 200);
+  }
+  return null;
+}
+
+function parseDurationSeconds(duration: unknown): number | null {
+  const m = String(duration || '').match(/(\d+)/);
+  return m ? Number(m[1]) : null;
+}
+
 export async function GET(request: NextRequest) {
   const adminAuth = await requireAdminSession();
   if (adminAuth !== true) return adminAuth;
@@ -73,25 +90,29 @@ export async function GET(request: NextRequest) {
         admin
           .from('profiles')
           .select(
-            'id, email, full_name, plan, onboarding_complete, created_at, last_login_at, last_active_at'
+            'id, email, full_name, plan, niches, platforms, status, onboarding_complete, connected_socials, created_at, last_login_at, last_active_at'
           ),
         admin
           .from('user_events')
-          .select('user_id, event_name, event_category, created_at')
+          .select(
+            'id, user_id, event_name, event_category, page_path, properties, created_at, session_id'
+          )
           .gte('created_at', since)
           .limit(10000),
-        admin.from('user_connections').select('platform'),
+        admin.from('user_connections').select('user_id, platform, connected_at'),
         admin
           .from('script_generations')
           .select(
-            'id, user_id, topic, audience_type, duration, language, success, copied, saved_script_id, created_at, viral_score'
+            'id, user_id, mode, topic, audience_type, custom_audience, duration, scenes_count, language, framework_label, viral_score, success, parse_ok, copied, saved_script_id, latency_ms, provider, model, properties, created_at'
           )
           .gte('created_at', since)
+          .order('created_at', { ascending: false })
           .limit(5000),
         admin
           .from('search_queries')
-          .select('id, query, result_count, source, created_at')
+          .select('id, user_id, query, result_count, source, created_at')
           .gte('created_at', since)
+          .order('created_at', { ascending: false })
           .limit(5000),
         admin
           .from('carousel_projects')
@@ -107,7 +128,9 @@ export async function GET(request: NextRequest) {
           .limit(8000),
         admin
           .from('user_sessions')
-          .select('user_id, active_ms, page_count, started_at, last_seen_at')
+          .select(
+            'id, user_id, active_ms, page_count, started_at, last_seen_at, entry_path, exit_path, device, browser, os'
+          )
           .gte('last_seen_at', since)
           .limit(5000),
         admin
@@ -142,7 +165,8 @@ export async function GET(request: NextRequest) {
       const freeToPaid = total > 0 ? Math.round((paying / total) * 1000) / 10 : 0;
       const onboardingRate = total > 0 ? Math.round(((onboarded ?? 0) / total) * 100) : 0;
 
-      // Growth series
+      const profileById = new Map((allProfiles ?? []).map((p) => [p.id, p]));
+
       const growthMap: Record<string, number> = {};
       const payingGrowthMap: Record<string, number> = {};
       for (let i = days - 1; i >= 0; i--) {
@@ -161,7 +185,6 @@ export async function GET(request: NextRequest) {
         paying: payingGrowthMap[date] || 0,
       }));
 
-      // DAU / WAU from events
       const dauUsers = new Set(
         (events ?? [])
           .filter((e) => e.created_at >= since1d && e.user_id)
@@ -173,7 +196,6 @@ export async function GET(request: NextRequest) {
           .map((e) => e.user_id as string)
       );
 
-      // Funnel
       const usersWithTrend = new Set<string>();
       const usersWithAi = new Set<string>();
       const usersWithScript = new Set<string>();
@@ -220,12 +242,13 @@ export async function GET(request: NextRequest) {
         { name: 'Agency', value: agency, mrr: agency * PLAN_MRR.agency },
       ];
 
-      // Scripts
       const gens = scriptGens ?? [];
       const scriptSuccess = gens.filter((g) => g.success).length;
       const scriptSaved = gens.filter((g) => g.saved_script_id).length;
       const scriptCopied = gens.filter((g) => g.copied).length;
       const scriptFail = gens.filter((g) => !g.success).length;
+      const createCount = gens.filter((g) => (g.mode || 'create') === 'create').length;
+      const refineCount = gens.filter((g) => g.mode === 'refine').length;
       const scriptSeriesMap: Record<string, number> = {};
       for (let i = days - 1; i >= 0; i--) {
         scriptSeriesMap[dayKey(new Date(Date.now() - i * 24 * 60 * 60 * 1000))] = 0;
@@ -237,6 +260,51 @@ export async function GET(request: NextRequest) {
       const topTopics = countBy(gens, (g) => (g.topic || '').slice(0, 80) || null)
         .filter((t) => t.name !== 'unknown')
         .slice(0, 10);
+      const durationSecs = gens
+        .map((g) => parseDurationSeconds(g.duration))
+        .filter((n): n is number => n != null);
+      const avgDurationSec = durationSecs.length
+        ? Math.round((durationSecs.reduce((a, b) => a + b, 0) / durationSecs.length) * 10) / 10
+        : null;
+
+      const generations = gens.slice(0, 500).map((g) => {
+        const profile = g.user_id ? profileById.get(g.user_id) : null;
+        const props = asRecord(g.properties);
+        const mode = (g.mode || 'create') as string;
+        const refineTopic =
+          mode === 'refine'
+            ? propStr(props, 'refineTopic', 'refine_topic', 'draftLabel', 'draft_label') ||
+              (g.topic && g.topic !== 'Refined Draft' ? g.topic : null)
+            : null;
+        return {
+          id: g.id,
+          userId: g.user_id,
+          email: profile?.email ?? null,
+          name: profile?.full_name ?? null,
+          mode,
+          topic: g.topic,
+          refineTopic,
+          refineDraftPreview: propStr(props, 'refineDraftPreview', 'refine_draft_preview'),
+          duration: g.duration,
+          durationSeconds: parseDurationSeconds(g.duration),
+          scenesCount: g.scenes_count,
+          language: g.language,
+          audienceType: g.audience_type,
+          customAudience: g.custom_audience,
+          frameworkLabel: g.framework_label,
+          viralScore: g.viral_score != null ? Number(g.viral_score) : null,
+          success: Boolean(g.success),
+          parseOk: Boolean(g.parse_ok),
+          copied: Boolean(g.copied),
+          saved: Boolean(g.saved_script_id),
+          savedScriptId: g.saved_script_id,
+          model: g.model,
+          provider: g.provider,
+          latencyMs: g.latency_ms,
+          createdAt: g.created_at,
+        };
+      });
+
       const scripts = {
         series: Object.entries(scriptSeriesMap).map(([date, count]) => ({
           date: date.slice(5),
@@ -246,6 +314,7 @@ export async function GET(request: NextRequest) {
           audience: countBy(gens, (g) => g.audience_type).slice(0, 8),
           duration: countBy(gens, (g) => g.duration).slice(0, 8),
           language: countBy(gens, (g) => g.language).slice(0, 8),
+          mode: countBy(gens, (g) => g.mode || 'create').slice(0, 4),
         },
         topTopics,
         rates: {
@@ -254,10 +323,14 @@ export async function GET(request: NextRequest) {
           savePct: gens.length ? Math.round((scriptSaved / gens.length) * 1000) / 10 : 0,
           copyPct: gens.length ? Math.round((scriptCopied / gens.length) * 1000) / 10 : 0,
           failPct: gens.length ? Math.round((scriptFail / gens.length) * 1000) / 10 : 0,
+          createPct: gens.length ? Math.round((createCount / gens.length) * 1000) / 10 : 0,
+          refinePct: gens.length ? Math.round((refineCount / gens.length) * 1000) / 10 : 0,
+          avgDurationSec,
         },
+        generations,
+        feed: generations,
       };
 
-      // Keywords
       const searchRows = searches ?? [];
       const keywordSeriesMap: Record<string, number> = {};
       for (let i = days - 1; i >= 0; i--) {
@@ -289,7 +362,23 @@ export async function GET(request: NextRequest) {
         .map(([query, v]) => ({ query, count: v.count }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
+
+      const keywordFeed = searchRows.slice(0, 500).map((s) => {
+        const profile = s.user_id ? profileById.get(s.user_id) : null;
+        return {
+          id: s.id,
+          query: s.query,
+          userId: s.user_id,
+          email: profile?.email ?? null,
+          name: profile?.full_name ?? null,
+          source: s.source || 'unknown',
+          resultCount: s.result_count ?? null,
+          createdAt: s.created_at,
+        };
+      });
+
       const keywords = {
+        feed: keywordFeed,
         top: topQueries,
         zeroResult,
         series: Object.entries(keywordSeriesMap).map(([date, count]) => ({
@@ -299,7 +388,130 @@ export async function GET(request: NextRequest) {
         total: searchRows.length,
       };
 
-      // Carousel
+      const trendEvents = (events ?? []).filter((e) => {
+        const name = (e.event_name || '').toLowerCase();
+        const cat = (e.event_category || '').toLowerCase();
+        return (
+          cat === 'trends' ||
+          cat === 'bookmark' ||
+          name.includes('trend') ||
+          name.startsWith('bookmark.') ||
+          name.startsWith('ai.analyze') ||
+          name.startsWith('ai.generate_ideas') ||
+          name.startsWith('ai.sentiment') ||
+          name.includes('filter')
+        );
+      });
+
+      const trendFeed = trendEvents.slice(0, 300).map((e) => {
+        const profile = e.user_id ? profileById.get(e.user_id) : null;
+        const props = asRecord(e.properties);
+        return {
+          id: e.id,
+          userId: e.user_id,
+          email: profile?.email ?? null,
+          name: profile?.full_name ?? null,
+          action: e.event_name,
+          category: e.event_category,
+          trendId: propStr(props, 'trend_id', 'trendId', 'id'),
+          title: propStr(props, 'title', 'trend_title', 'name'),
+          pagePath: e.page_path,
+          createdAt: e.created_at,
+        };
+      });
+
+      const topTrendIds = countBy(trendFeed, (t) => t.trendId)
+        .filter((t) => t.name !== 'unknown')
+        .slice(0, 15);
+
+      const trends = {
+        kpis: {
+          interactions: trendEvents.length,
+          opens: trendEvents.filter((e) => {
+            const n = (e.event_name || '').toLowerCase();
+            return n.includes('open') || n.includes('view') || n.includes('analyze');
+          }).length,
+          bookmarks: trendEvents.filter((e) =>
+            (e.event_name || '').toLowerCase().startsWith('bookmark.')
+          ).length,
+          filters: trendEvents.filter((e) => (e.event_name || '').toLowerCase().includes('filter'))
+            .length,
+          aiTrendCalls: trendEvents.filter((e) =>
+            (e.event_name || '').toLowerCase().startsWith('ai.')
+          ).length,
+        },
+        feed: trendFeed,
+        topTrendIds,
+        platformVolume: Object.entries(
+          (connections ?? []).reduce(
+            (acc: Record<string, number>, c) => {
+              const p = (c.platform || 'unknown').toLowerCase();
+              acc[p] = (acc[p] || 0) + 1;
+              return acc;
+            },
+            {} as Record<string, number>
+          )
+        ).map(([name, count]) => ({ name, count })),
+      };
+
+      const pageViews = (events ?? []).filter(
+        (e) => e.event_name === 'page.view' || e.event_category === 'page'
+      );
+      const pageViewFeed = pageViews.slice(0, 400).map((e) => {
+        const profile = e.user_id ? profileById.get(e.user_id) : null;
+        return {
+          id: e.id,
+          path: e.page_path || propStr(asRecord(e.properties), 'path', 'page_path') || '/',
+          userId: e.user_id,
+          email: profile?.email ?? null,
+          name: profile?.full_name ?? null,
+          sessionId: e.session_id,
+          createdAt: e.created_at,
+        };
+      });
+      const topPaths = countBy(pageViewFeed, (p) => p.path).slice(0, 20);
+      const sess = sessions ?? [];
+      const totalActiveMs = sess.reduce((s, r) => s + Number(r.active_ms ?? 0), 0);
+      const sessionUsers = new Set(sess.map((s) => s.user_id).filter(Boolean));
+      const avgSessionMs = sess.length > 0 ? Math.round(totalActiveMs / sess.length) : 0;
+      const pagesPerSession =
+        sess.length > 0
+          ? Math.round(
+              (sess.reduce((s, r) => s + Number(r.page_count ?? 0), 0) / sess.length) * 10
+            ) / 10
+          : 0;
+
+      const browser = {
+        pageViews: pageViewFeed,
+        topPaths,
+        sessionsSummary: {
+          sessions: sess.length,
+          uniqueUsers: sessionUsers.size,
+          avgActiveMs: avgSessionMs,
+          avgSessionMin: Math.round((avgSessionMs / 60000) * 10) / 10,
+          pagesPerSession,
+          totalActiveMs,
+        },
+        recentSessions: sess.slice(0, 50).map((s) => {
+          const profile = s.user_id ? profileById.get(s.user_id) : null;
+          return {
+            id: s.id,
+            userId: s.user_id,
+            email: profile?.email ?? null,
+            name: profile?.full_name ?? null,
+            activeMs: Number(s.active_ms ?? 0),
+            pageCount: Number(s.page_count ?? 0),
+            entryPath: s.entry_path ?? null,
+            exitPath: s.exit_path ?? null,
+            device: s.device ?? null,
+            browser: s.browser ?? null,
+            os: s.os ?? null,
+            startedAt: s.started_at,
+            lastSeenAt: s.last_seen_at,
+          };
+        }),
+      };
+
       const carRows = carousels ?? [];
       const exported = carRows.filter((c) => c.exported).length;
       const carousel = {
@@ -321,7 +533,6 @@ export async function GET(request: NextRequest) {
         })),
       };
 
-      // AI ops
       const ai = aiRows ?? [];
       const latencies = ai
         .map((a) => a.latency_ms)
@@ -373,19 +584,6 @@ export async function GET(request: NextRequest) {
         fallbackShare: 0,
       };
 
-      // Engagement
-      const sess = sessions ?? [];
-      const totalActiveMs = sess.reduce((s, r) => s + Number(r.active_ms ?? 0), 0);
-      const sessionUsers = new Set(sess.map((s) => s.user_id).filter(Boolean));
-      const avgSessionMs = sess.length > 0 ? Math.round(totalActiveMs / sess.length) : 0;
-      const pagesPerSession =
-        sess.length > 0
-          ? Math.round(
-              (sess.reduce((s, r) => s + Number(r.page_count ?? 0), 0) / sess.length) * 10
-            ) / 10
-          : 0;
-
-      // Retention approx: users active on day0 cohort still active D1/D7/D30
       const cohortStart = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
       const cohortUsers = new Set((profilesInRange ?? []).map((p) => p.id));
       const activeByUserDays: Record<string, Set<string>> = {};
@@ -419,7 +617,6 @@ export async function GET(request: NextRequest) {
         cohortSize: cohortN || cohortUsers.size,
       };
 
-      // Pipeline
       const collectorList = collectors ?? [];
       const newestTrendAgeHours = (() => {
         const finished = collectorList.find((c) => c.finished_at || c.created_at);
@@ -448,7 +645,6 @@ export async function GET(request: NextRequest) {
         recent: collectorList.slice(0, 10),
       };
 
-      // Revenue
       const orders = billingOrders ?? [];
       const paidOrders = orders.filter(
         (o) =>
@@ -469,19 +665,59 @@ export async function GET(request: NextRequest) {
         })),
       };
 
-      // Users snapshot (no passwords)
+      // NEVER include password fields
       const summaryByUser = new Map((activitySummaries ?? []).map((s) => [s.user_id, s]));
-      const usersSnapshot = profiles.slice(0, 50).map((p) => {
+      const connectionsByUser = new Map<string, { platform: string; connectedAt: string }[]>();
+      for (const c of connections ?? []) {
+        if (!c.user_id) continue;
+        const list = connectionsByUser.get(c.user_id) || [];
+        list.push({ platform: c.platform, connectedAt: c.connected_at });
+        connectionsByUser.set(c.user_id, list);
+      }
+      const keywordCountByUser = new Map<string, number>();
+      const recentKeywordsByUser = new Map<string, string[]>();
+      for (const s of searchRows) {
+        if (!s.user_id) continue;
+        keywordCountByUser.set(s.user_id, (keywordCountByUser.get(s.user_id) || 0) + 1);
+        const recent = recentKeywordsByUser.get(s.user_id) || [];
+        if (recent.length < 5 && s.query) recent.push(s.query);
+        recentKeywordsByUser.set(s.user_id, recent);
+      }
+      const scriptsSavedByUser = new Map<string, number>();
+      for (const g of gens) {
+        if (g.user_id && g.saved_script_id) {
+          scriptsSavedByUser.set(g.user_id, (scriptsSavedByUser.get(g.user_id) || 0) + 1);
+        }
+      }
+
+      const usersSnapshot = profiles.slice(0, 200).map((p) => {
         const sum = summaryByUser.get(p.id);
+        const conns = connectionsByUser.get(p.id) || [];
+        const socialsFromProfile = Array.isArray(p.connected_socials) ? p.connected_socials : [];
+        const connectionsList =
+          conns.length > 0
+            ? conns.map((c) => c.platform)
+            : socialsFromProfile.map((s: string) => String(s));
         return {
           id: p.id,
           email: p.email,
           name: p.full_name,
           plan: p.plan,
+          status: p.status || 'active',
+          onboarded: Boolean(p.onboarding_complete),
+          niches: Array.isArray(p.niches) ? p.niches : [],
+          platforms: Array.isArray(p.platforms) ? p.platforms : [],
+          connections: connectionsList,
+          connectionDetails: conns,
           lastLogin: p.last_login_at || sum?.last_login_at || null,
+          lastActive: p.last_active_at || sum?.last_active_at || null,
           activeMs7d: Number(sum?.active_ms_7d ?? 0),
           activeMs30d: Number(sum?.active_ms_30d ?? 0),
           scripts30d: Number(sum?.script_gens_30d ?? 0),
+          scriptsSaved30d: Number(sum?.scripts_saved_30d ?? scriptsSavedByUser.get(p.id) ?? 0),
+          keywordCount: keywordCountByUser.get(p.id) || 0,
+          recentKeywords: recentKeywordsByUser.get(p.id) || [],
+          createdAt: p.created_at,
         };
       });
 
@@ -512,6 +748,8 @@ export async function GET(request: NextRequest) {
             onboardingRate,
             activeEventUsers: new Set((events ?? []).map((e) => e.user_id).filter(Boolean)).size,
             newSignupsInRange: (profilesInRange ?? []).length,
+            keywordSearches: searchRows.length,
+            pageViews: pageViews.length,
           },
           gauges: {
             aiSuccessPct: aiSection.successPct,
@@ -519,7 +757,6 @@ export async function GET(request: NextRequest) {
             freeToPaidPct: freeToPaid,
           },
         },
-        // backwards-compat for older UI
         kpis: {
           estMrr,
           arpu,
@@ -544,6 +781,8 @@ export async function GET(request: NextRequest) {
         },
         scripts,
         keywords,
+        trends,
+        browser,
         carousel,
         ai: aiSection,
         pipeline,
@@ -573,6 +812,8 @@ export async function GET(request: NextRequest) {
         payingUsers: 3,
         freeToPaidPct: 12.5,
         onboardingRate: 64,
+        keywordSearches: 18,
+        pageViews: 42,
       },
       gauges: { aiSuccessPct: 92, onboardingPct: 64, freeToPaidPct: 12.5 },
     },
@@ -618,11 +859,41 @@ export async function GET(request: NextRequest) {
     },
     scripts: {
       series: [],
-      mix: { audience: [], duration: [], language: [] },
+      mix: { audience: [], duration: [], language: [], mode: [] },
       topTopics: [],
-      rates: { total: 0, successPct: 0, savePct: 0, copyPct: 0, failPct: 0 },
+      rates: {
+        total: 0,
+        successPct: 0,
+        savePct: 0,
+        copyPct: 0,
+        failPct: 0,
+        createPct: 0,
+        refinePct: 0,
+        avgDurationSec: null,
+      },
+      generations: [],
+      feed: [],
     },
-    keywords: { top: [], zeroResult: [], series: [], total: 0 },
+    keywords: { feed: [], top: [], zeroResult: [], series: [], total: 0 },
+    trends: {
+      kpis: { interactions: 0, opens: 0, bookmarks: 0, filters: 0, aiTrendCalls: 0 },
+      feed: [],
+      topTrendIds: [],
+      platformVolume: [],
+    },
+    browser: {
+      pageViews: [],
+      topPaths: [],
+      sessionsSummary: {
+        sessions: 0,
+        uniqueUsers: 0,
+        avgActiveMs: 0,
+        avgSessionMin: 0,
+        pagesPerSession: 0,
+        totalActiveMs: 0,
+      },
+      recentSessions: [],
+    },
     carousel: { kpis: { creates: 0, exports: 0, exportRate: 0 }, mix: [], recent: [] },
     ai: {
       byTask: [],

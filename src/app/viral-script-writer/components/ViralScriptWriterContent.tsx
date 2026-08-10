@@ -828,6 +828,48 @@ export default function ViralScriptWriterContent() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const buildScriptMeta = (overrideTopic?: string) => {
+    const isRefine = mode === 'refine';
+    const resolvedTopic = isRefine
+      ? overrideTopic || topic.trim() || 'Refined Draft'
+      : overrideTopic || topic;
+    return {
+      mode,
+      topic: resolvedTopic,
+      audienceType,
+      customAudience: audienceType === 'Other' ? customAudience : undefined,
+      duration: selectedDuration,
+      scenesCount,
+      language: selectedLanguage,
+      refineTopic: isRefine ? topic.trim() || 'Refined Draft' : undefined,
+      draftLabel: isRefine ? 'Refined Draft' : undefined,
+      refineDraftPreview: isRefine ? refineDraft.trim().slice(0, 200) : undefined,
+    };
+  };
+
+  const buildGenerationPayload = (extra: Record<string, unknown>) => {
+    const meta = buildScriptMeta(
+      typeof extra.topic === 'string' ? (extra.topic as string) : undefined
+    );
+    return {
+      audienceType: meta.audienceType,
+      customAudience: meta.customAudience,
+      duration: meta.duration,
+      scenesCount: meta.scenesCount,
+      language: meta.language,
+      ...extra,
+      mode: meta.mode,
+      topic: meta.topic,
+      properties: {
+        refineTopic: meta.refineTopic,
+        draftLabel: meta.draftLabel,
+        refineDraftPreview: meta.refineDraftPreview,
+        createTopic: meta.mode === 'create' ? meta.topic : undefined,
+        ...((extra.properties as Record<string, unknown> | undefined) || {}),
+      },
+    };
+  };
+
   const { response, isLoading, error, sendMessage } = useChat(
     'OPENROUTER',
     'auto',
@@ -845,18 +887,13 @@ export default function ViralScriptWriterContent() {
       void fetch('/api/scripts/generations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          success: false,
-          parseOk: false,
-          mode,
-          topic: mode === 'refine' ? 'Refined Draft' : topic,
-          audienceType,
-          customAudience: audienceType === 'Other' ? customAudience : undefined,
-          duration: selectedDuration,
-          scenesCount,
-          language: selectedLanguage,
-          latencyMs: elapsed,
-        }),
+        body: JSON.stringify(
+          buildGenerationPayload({
+            success: false,
+            parseOk: false,
+            latencyMs: elapsed,
+          })
+        ),
       })
         .then((r) => r.json())
         .then((d) => {
@@ -885,9 +922,10 @@ export default function ViralScriptWriterContent() {
     const parsed = parseScriptResponse(response);
     const elapsed = generateStartedAt.current ? Date.now() - generateStartedAt.current : undefined;
     if (parsed) {
+      const meta = buildScriptMeta();
       const newScript: GeneratedScript = {
         ...parsed,
-        topic: mode === 'refine' ? 'Refined Draft' : topic,
+        topic: meta.topic,
         audienceType,
         duration: selectedDuration,
         scenesCount,
@@ -902,21 +940,17 @@ export default function ViralScriptWriterContent() {
       void fetch('/api/scripts/generations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          success: true,
-          parseOk: true,
-          mode,
-          topic: newScript.topic,
-          audienceType,
-          customAudience: audienceType === 'Other' ? customAudience : undefined,
-          duration: selectedDuration,
-          scenesCount,
-          language: selectedLanguage,
-          frameworkLabel: newScript.frameworkLabel,
-          viralScore: newScript.viralScore,
-          preview: newScript.rawMarkdown?.slice(0, 500),
-          latencyMs: elapsed,
-        }),
+        body: JSON.stringify(
+          buildGenerationPayload({
+            success: true,
+            parseOk: true,
+            topic: newScript.topic,
+            frameworkLabel: newScript.frameworkLabel,
+            viralScore: newScript.viralScore,
+            preview: newScript.rawMarkdown?.slice(0, 500),
+            latencyMs: elapsed,
+          })
+        ),
       })
         .then((r) => r.json())
         .then((d) => {
@@ -930,18 +964,14 @@ export default function ViralScriptWriterContent() {
       void fetch('/api/scripts/generations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          success: false,
-          parseOk: false,
-          mode,
-          topic: mode === 'refine' ? 'Refined Draft' : topic,
-          audienceType,
-          duration: selectedDuration,
-          scenesCount,
-          language: selectedLanguage,
-          preview: response.slice(0, 500),
-          latencyMs: elapsed,
-        }),
+        body: JSON.stringify(
+          buildGenerationPayload({
+            success: false,
+            parseOk: false,
+            preview: response.slice(0, 500),
+            latencyMs: elapsed,
+          })
+        ),
       })
         .then((r) => r.json())
         .then((d) => {
@@ -1148,13 +1178,8 @@ Calculate an honest viralScore (0–100).`;
       { temperature: 0.85, max_tokens: 2200 },
       {
         scriptMeta: {
-          mode,
-          topic: mode === 'refine' ? 'Refined Draft' : topic,
+          ...buildScriptMeta(),
           audienceType: effectiveAudience,
-          customAudience: audienceType === 'Other' ? customAudience : undefined,
-          duration: selectedDuration,
-          scenesCount,
-          language: selectedLanguage,
         },
       }
     );
