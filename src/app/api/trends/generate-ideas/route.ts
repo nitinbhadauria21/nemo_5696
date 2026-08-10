@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   const prompt = `Generate 5 viral content ideas for the trend "${body.trendTitle}"${body.platform ? ` on ${String(body.platform).slice(0, 40)}` : ''}. For each: hook, format (reel/short/post), and CTA. Numbered list.`;
 
   try {
-    const ideas = await runAiPrompt(prompt);
+    const ideas = await runAiPrompt(prompt, { task: 'ideas' });
     await trackEvent({
       userId: auth,
       eventName: 'ai.generate_ideas',

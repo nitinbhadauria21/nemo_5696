@@ -6,7 +6,8 @@ export async function getChatCompletion(
   provider: string,
   model: string,
   messages: object[],
-  parameters: object = {}
+  parameters: object = {},
+  task?: string
 ) {
   return callAIEndpoint(ENDPOINT, {
     provider,
@@ -14,6 +15,7 @@ export async function getChatCompletion(
     messages,
     stream: false,
     parameters,
+    ...(task ? { task } : {}),
   });
 }
 
@@ -24,7 +26,8 @@ export async function getStreamingChatCompletion(
   onChunk: (chunk: any) => void,
   onComplete: () => void,
   onError: (error: Error) => void,
-  parameters: object = {}
+  parameters: object = {},
+  task?: string
 ) {
   let settled = false;
   const complete = () => {
@@ -42,7 +45,14 @@ export async function getStreamingChatCompletion(
     const response = await fetch(ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ provider, model, messages, stream: true, parameters }),
+      body: JSON.stringify({
+        provider,
+        model,
+        messages,
+        stream: true,
+        parameters,
+        ...(task ? { task } : {}),
+      }),
     });
 
     if (!response.ok) {

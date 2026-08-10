@@ -1,9 +1,9 @@
 /**
- * Provider-agnostic LLM client (OpenAI / Anthropic / Gemini).
+ * Provider-agnostic LLM client (OpenAI / Anthropic / Gemini / OpenRouter / Perplexity).
  * Returns OpenAI-compatible chat completion shapes for the frontend.
  */
 
-export type ProviderId = 'OPEN_AI' | 'ANTHROPIC' | 'GEMINI' | 'PERPLEXITY';
+export type ProviderId = 'OPEN_AI' | 'ANTHROPIC' | 'GEMINI' | 'PERPLEXITY' | 'OPENROUTER';
 
 export type ChatMessage = {
   role: 'system' | 'user' | 'assistant';
@@ -22,8 +22,14 @@ function getApiKey(provider: ProviderId): string | undefined {
     ANTHROPIC: process.env.ANTHROPIC_API_KEY,
     GEMINI: process.env.GEMINI_API_KEY,
     PERPLEXITY: process.env.PERPLEXITY_API_KEY,
+    OPENROUTER: process.env.OPENROUTER_API_KEY,
   };
   return keys[provider];
+}
+
+function openRouterSiteUrl(): string {
+  const raw = (process.env.NEXT_PUBLIC_SITE_URL || 'https://nemo-5696.vercel.app').trim();
+  return raw.replace(/\/$/, '') || 'https://nemo-5696.vercel.app';
 }
 
 function extractText(content: unknown): string {
@@ -68,18 +74,22 @@ function openAiChunk(content: string, model: string) {
   };
 }
 
-async function completeOpenAI(
+async function completeOpenAiCompatible(
+  url: string,
   model: string,
   messages: ChatMessage[],
   apiKey: string,
   stream: boolean,
-  parameters: CompletionParams
+  parameters: CompletionParams,
+  llmProvider: ProviderId,
+  extraHeaders?: Record<string, string>
 ) {
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
+      ...extraHeaders,
     },
     body: JSON.stringify({
       model,
@@ -97,11 +107,29 @@ async function completeOpenAI(
       llmProvider?: string;
     };
     err.statusCode = res.status;
-    err.llmProvider = 'OPEN_AI';
+    err.llmProvider = llmProvider;
     throw err;
   }
 
   return res;
+}
+
+async function completeOpenAI(
+  model: string,
+  messages: ChatMessage[],
+  apiKey: string,
+  stream: boolean,
+  parameters: CompletionParams
+) {
+  return completeOpenAiCompatible(
+    'https://api.openai.com/v1/chat/completions',
+    model,
+    messages,
+    apiKey,
+    stream,
+    parameters,
+    'OPEN_AI'
+  );
 }
 
 async function completePerplexity(
@@ -111,33 +139,37 @@ async function completePerplexity(
   stream: boolean,
   parameters: CompletionParams
 ) {
-  const res = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      stream,
-      temperature: parameters.temperature ?? 0.7,
-      max_tokens: parameters.max_tokens ?? 2048,
-    }),
-  });
+  return completeOpenAiCompatible(
+    'https://api.perplexity.ai/chat/completions',
+    model,
+    messages,
+    apiKey,
+    stream,
+    parameters,
+    'PERPLEXITY'
+  );
+}
 
-  if (!res.ok) {
-    const details = await res.text();
-    const err = new Error(details || res.statusText) as Error & {
-      statusCode?: number;
-      llmProvider?: string;
-    };
-    err.statusCode = res.status;
-    err.llmProvider = 'PERPLEXITY';
-    throw err;
-  }
-
-  return res;
+async function completeOpenRouter(
+  model: string,
+  messages: ChatMessage[],
+  apiKey: string,
+  stream: boolean,
+  parameters: CompletionParams
+) {
+  return completeOpenAiCompatible(
+    'https://openrouter.ai/api/v1/chat/completions',
+    model,
+    messages,
+    apiKey,
+    stream,
+    parameters,
+    'OPENROUTER',
+    {
+      'HTTP-Referer': openRouterSiteUrl(),
+      'X-Title': 'Nemo',
+    }
+  );
 }
 
 async function completeAnthropic(
@@ -389,12 +421,12 @@ function devStubCompletion(model: string, messages: ChatMessage[]) {
           viralScore: 70,
           timestamps: ['0:00 - Hook', '0:05 - Value', '0:12 - CTA'],
           deliveryNotes:
-            'Dev stub only. Set ANTHROPIC_API_KEY (or your AI_PROVIDER key) for real scripts.',
+            'Dev stub only. Set OPENROUTER_API_KEY (or your AI_PROVIDER key) for real scripts.',
           rawMarkdown:
             '# Scene 1: Dev Stub Hook\n[Visual Cue]: Host looks at camera.\n[Audio Script]: This is a local AI_DEV_STUB response.\n\n# Scene 2: Next Step\n[Visual Cue]: Show settings screen.\n[Audio Script]: Add your real API key in Vercel and redeploy.\n\nCTA: Comment NEMO for the real workflow!',
         },
       })
-    : `[AI_DEV_STUB] Local stub response. Set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY / PERPLEXITY_API_KEY for live AI.\n\nPrompt preview: ${lastUser.slice(0, 240)}`;
+    : `[AI_DEV_STUB] Local stub response. Set OPENROUTER_API_KEY / ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY / PERPLEXITY_API_KEY for live AI.\n\nPrompt preview: ${lastUser.slice(0, 240)}`;
   return openAiShape(content, model);
 }
 
@@ -409,7 +441,76 @@ export function getAiErrorCode(error: unknown): string {
   }
   const message = error instanceof Error ? error.message : '';
   if (/API key is not configured/i.test(message)) return 'ai_not_configured';
+  const status =
+    error && typeof error === 'object' && 'statusCode' in error
+      ? Number((error as AiProviderError).statusCode)
+      : undefined;
+  if (status === 429 || /rate.?limit/i.test(message)) return 'rate_limited';
+  if (/empty/i.test(message)) return 'ai_empty_response';
   return 'ai_unavailable';
+}
+
+function completionText(result: unknown): string {
+  if (!result || typeof result !== 'object') return '';
+  const r = result as {
+    choices?: { message?: { content?: unknown } }[];
+  };
+  return extractText(r.choices?.[0]?.message?.content);
+}
+
+function shouldRetryOpenRouter(error: unknown): boolean {
+  if (!(error instanceof Error)) return true;
+  const status = (error as AiProviderError).statusCode;
+  if (status === 401 || status === 403) return false;
+  if (status === 429 || (typeof status === 'number' && status >= 500)) return true;
+  if (/empty/i.test(error.message)) return true;
+  if (status === undefined) return true; // network / parse
+  return status >= 500;
+}
+
+/**
+ * OpenRouter free-model fallback: try up to 3 models on 429 / empty / transient errors.
+ */
+export async function createCompletionWithFallbacks(options: {
+  provider: ProviderId;
+  models: string[];
+  messages: ChatMessage[];
+  stream?: boolean;
+  parameters?: CompletionParams;
+}): Promise<Response | Record<string, unknown> | AsyncGenerator<Record<string, unknown>>> {
+  const models = options.models.filter(Boolean).slice(0, 3);
+  if (models.length === 0) {
+    throw new Error('No models provided for completion');
+  }
+
+  if (options.provider !== 'OPENROUTER' || models.length === 1) {
+    return createCompletion({ ...options, model: models[0] });
+  }
+
+  let lastError: unknown;
+  for (let i = 0; i < models.length; i++) {
+    const model = models[i];
+    try {
+      const result = await createCompletion({ ...options, model });
+      if (!options.stream) {
+        const text = completionText(result);
+        if (!text.trim()) {
+          lastError = Object.assign(new Error('AI returned an empty response'), {
+            code: 'ai_empty_response',
+            statusCode: 502,
+            llmProvider: 'OPENROUTER',
+          });
+          continue;
+        }
+      }
+      return result;
+    } catch (error) {
+      lastError = error;
+      const isLast = i === models.length - 1;
+      if (isLast || !shouldRetryOpenRouter(error)) throw error;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('All OpenRouter free models failed');
 }
 
 export async function createCompletion(options: {
@@ -442,11 +543,13 @@ export async function createCompletion(options: {
     throw error;
   }
 
-  if (provider === 'OPEN_AI' || provider === 'PERPLEXITY') {
+  if (provider === 'OPEN_AI' || provider === 'PERPLEXITY' || provider === 'OPENROUTER') {
     const res =
       provider === 'OPEN_AI'
         ? await completeOpenAI(model, messages, apiKey, stream, parameters)
-        : await completePerplexity(model, messages, apiKey, stream, parameters);
+        : provider === 'PERPLEXITY'
+          ? await completePerplexity(model, messages, apiKey, stream, parameters)
+          : await completeOpenRouter(model, messages, apiKey, stream, parameters);
 
     if (stream) {
       return streamOpenAiCompatible(res, model);

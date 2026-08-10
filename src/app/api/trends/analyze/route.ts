@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   const prompt = `Analyze why "${trendTitle}" is trending${trendDescription ? `: ${String(trendDescription).slice(0, 1000)}` : ''}. Provide: 1) Why it's trending (3 bullets), 2) Predicted trajectory (next 48-72h), 3) Best platforms to act on. Be concise.`;
 
   try {
-    const analysis = await runAiPrompt(prompt);
+    const analysis = await runAiPrompt(prompt, { task: 'analysis' });
     await trackEvent({
       userId: auth,
       eventName: 'ai.analyze',

@@ -1,6 +1,6 @@
 const AI_ERROR_MESSAGES: Record<string, string> = {
   ai_not_configured:
-    'AI is not configured. Add ANTHROPIC_API_KEY in Vercel (or OPENAI_API_KEY / GEMINI_API_KEY / PERPLEXITY_API_KEY matching AI_PROVIDER), then redeploy.',
+    'AI is not configured. Add OPENROUTER_API_KEY in Vercel (or the key matching AI_PROVIDER), then redeploy.',
   ai_unavailable: 'AI provider request failed. Check the API key and model, then try again.',
   ai_empty_response: 'AI returned an empty response. Try again or shorten your prompt.',
   ai_limit_reached:

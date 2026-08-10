@@ -1,5 +1,14 @@
 import { ALLOWED_MODELS } from '@/lib/ai/requestPolicy';
-import { createCompletion, type ProviderId } from '@/lib/ai/providers';
+import {
+  createCompletion,
+  createCompletionWithFallbacks,
+  type ProviderId,
+} from '@/lib/ai/providers';
+import {
+  getFreeModelChain,
+  resolveOpenRouterTask,
+  type OpenRouterTask,
+} from '@/lib/ai/openRouterRouter';
 
 function extractText(result: unknown): string {
   if (!result || typeof result !== 'object') return String(result ?? '');
@@ -23,7 +32,7 @@ function extractText(result: unknown): string {
 
 /** Map env aliases like OPENAI → OPEN_AI so runPrompt matches ALLOWED_MODELS. */
 export function resolveAiProvider(raw?: string | null): ProviderId {
-  const normalized = (raw || 'ANTHROPIC').trim().toUpperCase().replace(/-/g, '_');
+  const normalized = (raw || 'OPENROUTER').trim().toUpperCase().replace(/-/g, '_');
   const aliases: Record<string, ProviderId> = {
     ANTHROPIC: 'ANTHROPIC',
     CLAUDE: 'ANTHROPIC',
@@ -32,14 +41,21 @@ export function resolveAiProvider(raw?: string | null): ProviderId {
     GEMINI: 'GEMINI',
     GOOGLE: 'GEMINI',
     PERPLEXITY: 'PERPLEXITY',
+    OPENROUTER: 'OPENROUTER',
+    OPEN_ROUTER: 'OPENROUTER',
+    OR: 'OPENROUTER',
   };
   const provider = aliases[normalized];
   if (provider && provider in ALLOWED_MODELS) return provider;
-  return 'ANTHROPIC';
+  return 'OPENROUTER';
 }
 
 export function resolveAiModel(provider: ProviderId, raw?: string | null): string {
   const fromEnv = raw?.trim();
+  if (provider === 'OPENROUTER') {
+    const chain = getFreeModelChain('chat', fromEnv);
+    return chain[0];
+  }
   if (fromEnv && ALLOWED_MODELS[provider].includes(fromEnv)) return fromEnv;
   if (provider === 'ANTHROPIC') return ALLOWED_MODELS.ANTHROPIC[0];
   if (provider === 'GEMINI') return ALLOWED_MODELS.GEMINI[0];
@@ -47,11 +63,25 @@ export function resolveAiModel(provider: ProviderId, raw?: string | null): strin
   return ALLOWED_MODELS.OPEN_AI[0];
 }
 
-export async function runAiPrompt(prompt: string): Promise<string> {
+export async function runAiPrompt(
+  prompt: string,
+  options?: { task?: OpenRouterTask | string }
+): Promise<string> {
   const provider = resolveAiProvider(process.env.AI_PROVIDER);
-  // Keep default in sync with ALLOWED_MODELS / Viral Script Writer + AI chat panel.
-  const model = resolveAiModel(provider, process.env.AI_MODEL);
 
+  if (provider === 'OPENROUTER') {
+    const task = resolveOpenRouterTask(options?.task);
+    const models = getFreeModelChain(task, process.env.AI_MODEL);
+    const result = await createCompletionWithFallbacks({
+      provider,
+      models,
+      messages: [{ role: 'user', content: prompt }],
+      stream: false,
+    });
+    return extractText(result);
+  }
+
+  const model = resolveAiModel(provider, process.env.AI_MODEL);
   const result = await createCompletion({
     provider,
     model,

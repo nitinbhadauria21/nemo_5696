@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createCompletion, getAiErrorCode } from '@/lib/ai/providers';
+import {
+  createCompletion,
+  createCompletionWithFallbacks,
+  getAiErrorCode,
+} from '@/lib/ai/providers';
 import { validateChatPayload } from '@/lib/ai/requestPolicy';
 import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
 import { requireAuthUserId } from '@/lib/api/auth';
@@ -7,6 +11,12 @@ import { getClientIp } from '@/lib/api/clientIp';
 import { enforceAiHttpRateLimits } from '@/lib/ai/rateLimit';
 import { trackEvent } from '@/lib/analytics/track';
 import { logAiGeneration } from '@/lib/ai/logGeneration';
+import { resolveAiProvider } from '@/lib/ai/runPrompt';
+import {
+  getFreeModelChain,
+  inferTaskFromMessages,
+  resolveOpenRouterTask,
+} from '@/lib/ai/openRouterRouter';
 
 function safeClientError(status: number, code: string) {
   return NextResponse.json({ error: code }, { status });
@@ -44,6 +54,12 @@ export async function POST(request: NextRequest) {
     return safeClientError(400, 'invalid_json');
   }
 
+  const envProvider = resolveAiProvider(process.env.AI_PROVIDER);
+  // When production uses OpenRouter, ignore client Anthropic/Claude hardcodes.
+  if (envProvider === 'OPENROUTER') {
+    body = { ...body, provider: 'OPENROUTER', model: body.model || 'auto' };
+  }
+
   const validated = validateChatPayload(body as Parameters<typeof validateChatPayload>[0]);
   if (!validated.ok) {
     return safeClientError(validated.status, validated.code);
@@ -63,21 +79,42 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { provider, model, messages, maxTokens } = validated;
+  let { provider, model, messages, maxTokens, task: taskHint } = validated;
   const stream = Boolean(body.stream);
   const rawTemp = Number(
     (body.parameters as Record<string, unknown> | undefined)?.temperature ?? 0.7
   );
   const temperature = Number.isFinite(rawTemp) ? Math.min(2, Math.max(0, rawTemp)) : 0.7;
 
+  const openRouterModels =
+    provider === 'OPENROUTER'
+      ? getFreeModelChain(
+          resolveOpenRouterTask(taskHint ?? inferTaskFromMessages(messages)),
+          process.env.AI_MODEL
+        )
+      : [model];
+
+  if (provider === 'OPENROUTER') {
+    model = openRouterModels[0];
+  }
+
   try {
-    const result = await createCompletion({
-      provider,
-      model,
-      messages,
-      stream,
-      parameters: { max_tokens: maxTokens, temperature },
-    });
+    const result =
+      provider === 'OPENROUTER'
+        ? await createCompletionWithFallbacks({
+            provider,
+            models: openRouterModels,
+            messages,
+            stream,
+            parameters: { max_tokens: maxTokens, temperature },
+          })
+        : await createCompletion({
+            provider,
+            model,
+            messages,
+            stream,
+            parameters: { max_tokens: maxTokens, temperature },
+          });
 
     void trackEvent({
       userId,
@@ -134,7 +171,7 @@ export async function POST(request: NextRequest) {
       provider,
       model,
       code,
-      message: error instanceof Error ? error.message : 'unknown',
+      message: error instanceof Error ? error.message.slice(0, 200) : 'unknown',
     });
     void logAiGeneration({
       userId,
@@ -143,6 +180,6 @@ export async function POST(request: NextRequest) {
       success: false,
       error: code,
     });
-    return safeClientError(503, code);
+    return safeClientError(code === 'rate_limited' ? 429 : 503, code);
   }
 }

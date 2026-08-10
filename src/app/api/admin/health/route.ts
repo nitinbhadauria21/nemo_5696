@@ -47,6 +47,7 @@ export async function GET() {
   const cron = Boolean(process.env.CRON_SECRET);
   const aiProvider = resolveAiProvider(process.env.AI_PROVIDER);
   const keyByProvider: Record<string, boolean> = {
+    OPENROUTER: Boolean(process.env.OPENROUTER_API_KEY),
     ANTHROPIC: Boolean(process.env.ANTHROPIC_API_KEY),
     OPEN_AI: Boolean(process.env.OPENAI_API_KEY),
     GEMINI: Boolean(process.env.GEMINI_API_KEY),
@@ -60,7 +61,7 @@ export async function GET() {
     status: aiKeyPresent ? 'operational' : 'down',
     detail: aiKeyPresent
       ? `Key set (provider ${aiProvider})`
-      : `Missing key for ${aiProvider} (set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY / PERPLEXITY_API_KEY)`,
+      : `Missing key for ${aiProvider} (set OPENROUTER_API_KEY / ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY / PERPLEXITY_API_KEY)`,
   });
 
   checks.push({

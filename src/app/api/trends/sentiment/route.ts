@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   const prompt = `Brand safety and sentiment analysis for trend "${body.trendTitle}". Return JSON with keys: sentiment (positive|neutral|negative|mixed), brandSafety (safe|caution|risky), summary (2 sentences), risks (array of strings).`;
 
   try {
-    const sentiment = await runAiPrompt(prompt);
+    const sentiment = await runAiPrompt(prompt, { task: 'sentiment' });
     return NextResponse.json({ sentiment });
   } catch (error) {
     return NextResponse.json({ error: getAiErrorCode(error) }, { status: 503 });

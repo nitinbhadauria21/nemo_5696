@@ -827,9 +827,10 @@ export default function ViralScriptWriterContent() {
   const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { response, isLoading, error, sendMessage } = useChat(
-    'ANTHROPIC',
-    'claude-sonnet-4-6',
-    false
+    'OPENROUTER',
+    'auto',
+    false,
+    'script'
   );
 
   useEffect(() => {
@@ -1440,9 +1441,9 @@ Calculate an honest viralScore (0–100).`;
                   {error.message}
                 </p>
                 <p className="text-xs font-sans text-muted-foreground mt-3 leading-relaxed">
-                  Production needs a real provider key in Vercel:{' '}
-                  <span className="font-mono">ANTHROPIC_API_KEY</span> (default) or the key matching{' '}
-                  <span className="font-mono">AI_PROVIDER</span>, then redeploy.
+                  Production needs <span className="font-mono">OPENROUTER_API_KEY</span> in Vercel
+                  (or the key matching <span className="font-mono">AI_PROVIDER</span>), then
+                  redeploy. Free models may rate-limit — wait a moment and try again.
                 </p>
               </div>
             )}

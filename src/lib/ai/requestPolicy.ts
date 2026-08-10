@@ -1,10 +1,12 @@
 import type { ChatMessage, ProviderId } from '@/lib/ai/providers';
+import { OPENROUTER_FREE_MODELS, isOpenRouterFreeModel } from '@/lib/ai/openRouterRouter';
 
 export const ALLOWED_MODELS: Record<ProviderId, readonly string[]> = {
   OPEN_AI: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1'],
   ANTHROPIC: ['claude-sonnet-4-6', 'claude-3-5-haiku-latest', 'claude-3-5-sonnet-latest'],
   GEMINI: ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'],
   PERPLEXITY: ['sonar', 'sonar-pro'],
+  OPENROUTER: OPENROUTER_FREE_MODELS,
 };
 
 export const MAX_MESSAGES = 40;
@@ -17,6 +19,8 @@ export type ValidatedChatPayload = {
   model: string;
   messages: ChatMessage[];
   maxTokens: number;
+  /** Optional task hint for OpenRouter free-model routing. */
+  task?: string;
 };
 
 export type ValidateChatPayloadResult =
@@ -31,15 +35,28 @@ export function validateChatPayload(body: {
   model?: string;
   messages?: ChatMessage[];
   parameters?: Record<string, unknown>;
+  task?: string;
 }): ValidateChatPayloadResult {
   const provider = body.provider as ProviderId | undefined;
   if (!provider || !(provider in ALLOWED_MODELS)) {
     return { ok: false, status: 400, code: 'invalid_provider' };
   }
-  const model = body.model?.trim();
-  if (!model || !ALLOWED_MODELS[provider].includes(model)) {
+
+  let model = body.model?.trim() ?? '';
+  // OpenRouter: server picks the free model; client may send "auto" / omit.
+  if (provider === 'OPENROUTER') {
+    if (!model || model.toLowerCase() === 'auto') {
+      model = ALLOWED_MODELS.OPENROUTER[0];
+    } else if (
+      !ALLOWED_MODELS.OPENROUTER.includes(model) &&
+      !isOpenRouterFreeModel(model)
+    ) {
+      return { ok: false, status: 400, code: 'invalid_model' };
+    }
+  } else if (!model || !ALLOWED_MODELS[provider].includes(model)) {
     return { ok: false, status: 400, code: 'invalid_model' };
   }
+
   const messages = body.messages;
   if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
     return { ok: false, status: 400, code: 'invalid_messages' };
@@ -62,5 +79,6 @@ export function validateChatPayload(body: {
     MAX_OUTPUT_TOKENS,
     Math.max(1, Number.isFinite(rawMax) ? Math.floor(rawMax) : 1024)
   );
-  return { ok: true, provider, model, messages, maxTokens };
+  const task = typeof body.task === 'string' ? body.task : undefined;
+  return { ok: true, provider, model, messages, maxTokens, task };
 }

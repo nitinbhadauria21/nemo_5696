@@ -43,9 +43,10 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { response, isLoading, error, sendMessage } = useChat(
-    'ANTHROPIC',
-    'claude-sonnet-4-6',
-    true
+    'OPENROUTER',
+    'auto',
+    true,
+    'chat'
   );
 
   useEffect(() => {
