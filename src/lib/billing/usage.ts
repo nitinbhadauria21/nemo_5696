@@ -100,8 +100,7 @@ export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
   // Admins: never block on monthly quota (still keep rate limits elsewhere)
   if (profile?.is_admin === true) {
     void request;
-    const used =
-      profile.ai_usage_period === period ? (profile.ai_usage_count ?? 0) : 0;
+    const used = profile.ai_usage_period === period ? (profile.ai_usage_count ?? 0) : 0;
     return {
       allowed: true,
       plan,

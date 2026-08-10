@@ -1442,9 +1442,10 @@ Calculate an honest viralScore (0–100).`;
                 </p>
                 {/monthly AI limit|Upgrade or try again/i.test(error.message) ? null : (
                   <p className="text-xs font-sans text-muted-foreground mt-3 leading-relaxed">
-                    If this keeps failing, confirm <span className="font-mono">OPENROUTER_API_KEY</span>{' '}
-                    is set in Vercel for <span className="font-mono">AI_PROVIDER=OPENROUTER</span>, then
-                    redeploy. Free models may briefly rate-limit — wait a moment and try again.
+                    If this keeps failing, confirm{' '}
+                    <span className="font-mono">OPENROUTER_API_KEY</span> is set in Vercel for{' '}
+                    <span className="font-mono">AI_PROVIDER=OPENROUTER</span>, then redeploy. Free
+                    models may briefly rate-limit — wait a moment and try again.
                   </p>
                 )}
               </div>
