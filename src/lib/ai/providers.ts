@@ -469,7 +469,7 @@ function completionText(result: unknown): string {
 
 function shouldRetryOpenRouter(error: unknown): boolean {
   if (!(error instanceof Error)) return true;
-  // Privacy/ZDR blocks a specific free endpoint — try the next (often cheap paid) model.
+  // Privacy/ZDR blocks a specific free endpoint — try the next free (or gated paid) model.
   if (isOpenRouterPrivacyBlock(error)) return true;
   const status = (error as AiProviderError).statusCode;
   if (status === 401 || status === 403) return false;

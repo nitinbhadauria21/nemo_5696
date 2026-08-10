@@ -1,23 +1,17 @@
 import type { ChatMessage, ProviderId } from '@/lib/ai/providers';
-import { OPENROUTER_FREE_MODELS, isOpenRouterAllowedModel } from '@/lib/ai/openRouterRouter';
+import {
+  OPENROUTER_CHEAP_FALLBACK_MODELS,
+  OPENROUTER_FREE_MODELS,
+  isOpenRouterAllowedModel,
+} from '@/lib/ai/openRouterRouter';
 
 export const ALLOWED_MODELS: Record<ProviderId, readonly string[]> = {
   OPEN_AI: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1'],
   ANTHROPIC: ['claude-sonnet-4-6', 'claude-3-5-haiku-latest', 'claude-3-5-sonnet-latest'],
   GEMINI: ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'],
   PERPLEXITY: ['sonar', 'sonar-pro'],
-  // Free + ultra-cheap paid fallbacks (privacy policies often block :free endpoints)
-  OPENROUTER: [
-    ...OPENROUTER_FREE_MODELS,
-    'google/gemma-4-31b-it',
-    'google/gemma-4-26b-a4b-it',
-    'google/gemma-3-12b-it',
-    'google/gemma-3-4b-it',
-    'meta-llama/llama-3.1-8b-instruct',
-    'meta-llama/llama-3.2-3b-instruct',
-    'mistralai/mistral-nemo',
-    'mistralai/mistral-small-24b-instruct-2501',
-  ],
+  // Free primary; cheap paid twins remain allowlisted for OPENROUTER_ALLOW_PAID_FALLBACK
+  OPENROUTER: [...OPENROUTER_FREE_MODELS, ...OPENROUTER_CHEAP_FALLBACK_MODELS],
 };
 
 export const MAX_MESSAGES = 40;

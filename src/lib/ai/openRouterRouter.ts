@@ -1,12 +1,12 @@
 /**
  * OpenRouter model routing agent.
- * Prefers free `:free` models; falls back to ultra-cheap policy-safe twins when
- * account privacy/guardrails block free endpoints (common OpenRouter 404).
+ * Prefer allowlisted `:free` / `openrouter/free` models only.
+ * Cheap paid twins are opt-in via OPENROUTER_ALLOW_PAID_FALLBACK=true.
  */
 
 export type OpenRouterTask = 'script' | 'chat' | 'analysis' | 'sentiment' | 'ideas';
 
-/** Free catalog IDs (may be blocked by account privacy settings). */
+/** Free catalog IDs (primary routing). */
 export const OPENROUTER_FREE_MODELS = [
   'openrouter/free',
   'google/gemma-4-31b-it:free',
@@ -26,8 +26,8 @@ export const OPENROUTER_FREE_MODELS = [
 ] as const;
 
 /**
- * Ultra-cheap paid twins that usually pass OpenRouter privacy/guardrails when
- * `:free` endpoints are blocked. Pricing is near-zero per token.
+ * Ultra-cheap paid twins for emergency fallback when free endpoints fail.
+ * Included in chains only when OPENROUTER_ALLOW_PAID_FALLBACK=true.
  */
 export const OPENROUTER_CHEAP_FALLBACK_MODELS = [
   'google/gemma-4-31b-it',
@@ -49,38 +49,46 @@ const ALLOWED_SET = new Set<string>([
   ...OPENROUTER_CHEAP_FALLBACK_MODELS,
 ]);
 
-/** Free first, then immediate cheap twin so privacy blocks don't burn the whole chain. */
-const TASK_CHAINS: Record<OpenRouterTask, readonly string[]> = {
+/** Quality-first free-only chains (retry-then-fallback across free models). */
+const FREE_TASK_CHAINS: Record<OpenRouterTask, readonly string[]> = {
   script: [
     'google/gemma-4-31b-it:free',
-    'google/gemma-4-31b-it',
-    'google/gemma-3-12b-it',
-    'meta-llama/llama-3.1-8b-instruct',
+    'openai/gpt-oss-20b:free',
+    'nvidia/nemotron-3-super-120b-a12b:free',
   ],
   analysis: [
     'google/gemma-4-26b-a4b-it:free',
+    'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+    'openai/gpt-oss-20b:free',
+  ],
+  ideas: ['google/gemma-4-31b-it:free', 'openai/gpt-oss-20b:free', 'poolside/laguna-s-2.1:free'],
+  sentiment: [
+    'nvidia/nemotron-3.5-content-safety:free',
+    'nvidia/nemotron-nano-9b-v2:free',
+    'google/gemma-4-26b-a4b-it:free',
+  ],
+  chat: [
+    'nvidia/nemotron-nano-9b-v2:free',
+    'inclusionai/ling-3.0-tiny:free',
+    'google/gemma-4-31b-it:free',
+  ],
+};
+
+/** Paid twins appended only when OPENROUTER_ALLOW_PAID_FALLBACK=true. */
+const PAID_TASK_FALLBACKS: Record<OpenRouterTask, readonly string[]> = {
+  script: ['google/gemma-4-31b-it', 'google/gemma-3-12b-it', 'meta-llama/llama-3.1-8b-instruct'],
+  analysis: [
     'google/gemma-4-26b-a4b-it',
     'google/gemma-3-12b-it',
     'meta-llama/llama-3.1-8b-instruct',
   ],
   ideas: [
-    'google/gemma-4-31b-it:free',
     'google/gemma-4-31b-it',
     'google/gemma-3-12b-it',
     'mistralai/mistral-small-24b-instruct-2501',
   ],
-  sentiment: [
-    'nvidia/nemotron-3.5-content-safety:free',
-    'google/gemma-3-4b-it',
-    'meta-llama/llama-3.2-3b-instruct',
-    'mistralai/mistral-nemo',
-  ],
-  chat: [
-    'nvidia/nemotron-nano-9b-v2:free',
-    'google/gemma-3-4b-it',
-    'meta-llama/llama-3.2-3b-instruct',
-    'mistralai/mistral-nemo',
-  ],
+  sentiment: ['google/gemma-3-4b-it', 'meta-llama/llama-3.2-3b-instruct', 'mistralai/mistral-nemo'],
+  chat: ['google/gemma-3-4b-it', 'meta-llama/llama-3.2-3b-instruct', 'mistralai/mistral-nemo'],
 };
 
 export const OPENROUTER_MAX_MODELS = 3;
@@ -92,15 +100,21 @@ export type OpenRouterRouteDecision = {
   primary: string;
   strategy: 'quality_first_retry_fallback';
   reason: string;
+  paidFallbackEnabled: boolean;
 };
 
 const TASK_REASONS: Record<OpenRouterTask, string> = {
-  script: 'Long-form creative script → strongest free, then cheap Gemma/Llama fallbacks',
-  analysis: 'Structured trend reasoning → free analysis models, then cheap twins',
-  ideas: 'Creative angles → strong generative free models, then cheap twins',
-  sentiment: 'Brand safety / sentiment → safety free models, then compact cheap models',
-  chat: 'Interactive chat → fast free models, then compact cheap models',
+  script: 'Long-form creative script → strongest free models with free-only fallback',
+  analysis: 'Structured trend reasoning → free analysis / reasoning models',
+  ideas: 'Creative angles → strong generative free models',
+  sentiment: 'Brand safety / sentiment → free safety + compact free models',
+  chat: 'Interactive chat → fast free models with free-only fallback',
 };
+
+/** Emergency paid twins — off by default now that :free endpoints work. */
+export function isOpenRouterPaidFallbackAllowed(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.OPENROUTER_ALLOW_PAID_FALLBACK?.trim().toLowerCase() === 'true';
+}
 
 export function isOpenRouterFreeModel(model: string): boolean {
   const id = model.trim();
@@ -108,6 +122,10 @@ export function isOpenRouterFreeModel(model: string): boolean {
   if (id === 'openrouter/free') return true;
   if (FREE_SET.has(id)) return true;
   return id.endsWith(':free');
+}
+
+export function isOpenRouterCheapFallbackModel(model: string): boolean {
+  return CHEAP_SET.has(model.trim());
 }
 
 export function isOpenRouterAllowedModel(model: string): boolean {
@@ -126,23 +144,40 @@ export function resolveOpenRouterTask(raw?: string | null): OpenRouterTask {
   return 'chat';
 }
 
+function buildTaskBaseChain(task: OpenRouterTask, paidFallbackEnabled: boolean): string[] {
+  const free = [...(FREE_TASK_CHAINS[task] ?? FREE_TASK_CHAINS.chat)];
+  if (!paidFallbackEnabled) {
+    return free.filter(isOpenRouterFreeModel);
+  }
+  // Keep one strong free primary, then emergency cheap twins within the 3-slot budget.
+  const paid = [...(PAID_TASK_FALLBACKS[task] ?? PAID_TASK_FALLBACKS.chat)];
+  const chain: string[] = [];
+  if (free[0]) chain.push(free[0]);
+  for (const id of paid) {
+    if (!chain.includes(id)) chain.push(id);
+  }
+  return chain;
+}
+
 /**
- * Ordered model chain for a task (free first, then cheap paid policy fallbacks).
+ * Ordered model chain for a task.
+ * Default: free-only quality-first. With OPENROUTER_ALLOW_PAID_FALLBACK=true,
+ * primary free + cheap paid twins.
  */
 export function getFreeModelChain(
   task: OpenRouterTask = 'chat',
-  preferred?: string | null
+  preferred?: string | null,
+  env: NodeJS.ProcessEnv = process.env
 ): string[] {
-  const base = [...(TASK_CHAINS[task] ?? TASK_CHAINS.chat)].filter(isOpenRouterAllowedModel);
+  const paidFallbackEnabled = isOpenRouterPaidFallbackAllowed(env);
+  const base = buildTaskBaseChain(task, paidFallbackEnabled).filter(isOpenRouterAllowedModel);
   const pref = preferred?.trim();
   const chain: string[] = [];
 
-  if (
-    pref &&
-    isOpenRouterAllowedModel(pref) &&
-    (ALLOWED_SET.has(pref) || isOpenRouterFreeModel(pref))
-  ) {
-    chain.push(pref);
+  if (pref && isOpenRouterAllowedModel(pref)) {
+    const prefOk =
+      isOpenRouterFreeModel(pref) || (paidFallbackEnabled && isOpenRouterCheapFallbackModel(pref));
+    if (prefOk) chain.push(pref);
   }
 
   for (const id of base) {
@@ -150,7 +185,7 @@ export function getFreeModelChain(
   }
 
   if (chain.length === 0) {
-    chain.push('google/gemma-3-4b-it', 'meta-llama/llama-3.1-8b-instruct');
+    chain.push('google/gemma-4-31b-it:free', 'nvidia/nemotron-nano-9b-v2:free');
   }
 
   return chain.slice(0, OPENROUTER_MAX_MODELS);
@@ -158,16 +193,21 @@ export function getFreeModelChain(
 
 export function selectOpenRouterRoute(
   taskHint?: string | null,
-  preferredModel?: string | null
+  preferredModel?: string | null,
+  env: NodeJS.ProcessEnv = process.env
 ): OpenRouterRouteDecision {
   const task = resolveOpenRouterTask(taskHint);
-  const models = getFreeModelChain(task, preferredModel);
+  const paidFallbackEnabled = isOpenRouterPaidFallbackAllowed(env);
+  const models = getFreeModelChain(task, preferredModel, env);
   return {
     task,
     models,
     primary: models[0],
     strategy: 'quality_first_retry_fallback',
-    reason: TASK_REASONS[task],
+    reason: paidFallbackEnabled
+      ? `${TASK_REASONS[task]} (paid emergency fallback enabled)`
+      : TASK_REASONS[task],
+    paidFallbackEnabled,
   };
 }
 
