@@ -1,14 +1,10 @@
 import type { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isProductionRuntime } from '@/lib/billing/catalogue';
+import { PLAN_AI_LIMITS, type PlanId } from '@/lib/billing/plans';
 
-export type PlanId = 'free' | 'pro' | 'agency';
-
-export const PLAN_AI_LIMITS: Record<PlanId, number> = {
-  free: 5,
-  pro: 100,
-  agency: 10_000,
-};
+export type { PlanId };
+export { PLAN_AI_LIMITS };
 
 export const PLAN_FEATURES = {
   free: { reportsPdf: false, viralScripts: true, analyticsAdvanced: false },
@@ -48,6 +44,7 @@ export async function getPlanForRequest(_request?: NextRequest): Promise<PlanId>
 /**
  * Atomically check + increment AI usage for the authenticated user.
  * Requires a Supabase session. Returns unauthorized when no user.
+ * Admins are not metered (unlimited for ops / investor demos).
  */
 export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
   allowed: boolean;
@@ -92,13 +89,27 @@ export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
     };
   }
 
-  // Resolve plan first for limit
+  // Resolve plan + admin flag first
   const { data: profile } = await supabase
     .from('profiles')
-    .select('plan')
+    .select('plan, is_admin, ai_usage_count, ai_usage_period')
     .eq('id', user.id)
     .maybeSingle();
   const plan = normalizePlan(profile?.plan);
+
+  // Admins: never block on monthly quota (still keep rate limits elsewhere)
+  if (profile?.is_admin === true) {
+    void request;
+    const used =
+      profile.ai_usage_period === period ? (profile.ai_usage_count ?? 0) : 0;
+    return {
+      allowed: true,
+      plan,
+      used,
+      limit: Number.MAX_SAFE_INTEGER,
+    };
+  }
+
   const limit = PLAN_AI_LIMITS[plan];
 
   // Prefer atomic RPC; fall back to guarded update if migration not applied yet
@@ -118,14 +129,8 @@ export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
   }
 
   // Fallback path (pre-migration): still no cookie entitlement
-  const { data } = await supabase
-    .from('profiles')
-    .select('ai_usage_count, ai_usage_period, plan')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  let used = data?.ai_usage_count ?? 0;
-  if (data?.ai_usage_period !== period) used = 0;
+  let used = profile?.ai_usage_count ?? 0;
+  if (profile?.ai_usage_period !== period) used = 0;
   if (used >= limit) {
     return { allowed: false, plan, used, limit };
   }

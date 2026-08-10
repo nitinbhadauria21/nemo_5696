@@ -1440,11 +1440,13 @@ Calculate an honest viralScore (0–100).`;
                 <p className="text-sm font-sans text-foreground/90 leading-relaxed">
                   {error.message}
                 </p>
-                <p className="text-xs font-sans text-muted-foreground mt-3 leading-relaxed">
-                  Production needs <span className="font-mono">OPENROUTER_API_KEY</span> in Vercel
-                  (or the key matching <span className="font-mono">AI_PROVIDER</span>), then
-                  redeploy. Free models may rate-limit — wait a moment and try again.
-                </p>
+                {/monthly AI limit|Upgrade or try again/i.test(error.message) ? null : (
+                  <p className="text-xs font-sans text-muted-foreground mt-3 leading-relaxed">
+                    If this keeps failing, confirm <span className="font-mono">OPENROUTER_API_KEY</span>{' '}
+                    is set in Vercel for <span className="font-mono">AI_PROVIDER=OPENROUTER</span>, then
+                    redeploy. Free models may briefly rate-limit — wait a moment and try again.
+                  </p>
+                )}
               </div>
             )}
 
