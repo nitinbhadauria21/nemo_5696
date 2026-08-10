@@ -3,7 +3,11 @@
  * Returns OpenAI-compatible chat completion shapes for the frontend.
  */
 
-import { OPENROUTER_ATTEMPTS_PER_MODEL, OPENROUTER_MAX_MODELS } from '@/lib/ai/openRouterRouter';
+import {
+  OPENROUTER_ATTEMPTS_PER_MODEL,
+  OPENROUTER_MAX_MODELS,
+  isOpenRouterPrivacyBlock,
+} from '@/lib/ai/openRouterRouter';
 
 export type ProviderId = 'OPEN_AI' | 'ANTHROPIC' | 'GEMINI' | 'PERPLEXITY' | 'OPENROUTER';
 
@@ -443,6 +447,9 @@ export function getAiErrorCode(error: unknown): string {
   }
   const message = error instanceof Error ? error.message : '';
   if (/API key is not configured/i.test(message)) return 'ai_not_configured';
+  if (/guardrail restrictions and data policy|data policy|settings\/privacy/i.test(message)) {
+    return 'ai_privacy_blocked';
+  }
   const status =
     error && typeof error === 'object' && 'statusCode' in error
       ? Number((error as AiProviderError).statusCode)
@@ -462,6 +469,8 @@ function completionText(result: unknown): string {
 
 function shouldRetryOpenRouter(error: unknown): boolean {
   if (!(error instanceof Error)) return true;
+  // Privacy/ZDR blocks a specific free endpoint — try the next (often cheap paid) model.
+  if (isOpenRouterPrivacyBlock(error)) return true;
   const status = (error as AiProviderError).statusCode;
   if (status === 401 || status === 403) return false;
   if (status === 400 || status === 404) return true; // bad/unavailable free model → try next
@@ -531,6 +540,15 @@ export async function createCompletionWithFallbacks(options: {
         const moreModels = i < models.length - 1;
 
         if (!retryable) throw error;
+
+        // Privacy blocks won't succeed on retry of the same free endpoint — skip to next model.
+        if (isOpenRouterPrivacyBlock(error) && moreModels) {
+          console.warn('[openrouter] privacy block — skip to next model', {
+            from: model,
+            to: models[i + 1],
+          });
+          break;
+        }
 
         if (moreAttempts) {
           console.warn('[openrouter] retry same model', {

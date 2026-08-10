@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { isProductionRuntime } from '@/lib/billing/catalogue';
 import { PLAN_AI_LIMITS, type PlanId } from '@/lib/billing/plans';
 
@@ -41,6 +42,15 @@ export async function getPlanForRequest(_request?: NextRequest): Promise<PlanId>
   }
 }
 
+async function isAdminUser(userId: string, profileIsAdmin: boolean | null | undefined) {
+  if (profileIsAdmin === true) return true;
+  // RLS may hide is_admin from the user-scoped client — mirror admin auth fallback.
+  const admin = createAdminClient();
+  if (!admin) return false;
+  const { data } = await admin.from('profiles').select('is_admin').eq('id', userId).maybeSingle();
+  return data?.is_admin === true;
+}
+
 /**
  * Atomically check + increment AI usage for the authenticated user.
  * Requires a Supabase session. Returns unauthorized when no user.
@@ -57,7 +67,6 @@ export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
 
   const supabase = await createClient();
   if (!supabase) {
-    // Production / Vercel must have Supabase — refuse cookie bypass
     if (isProductionRuntime()) {
       return {
         allowed: false,
@@ -89,7 +98,6 @@ export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
     };
   }
 
-  // Resolve plan + admin flag first
   const { data: profile } = await supabase
     .from('profiles')
     .select('plan, is_admin, ai_usage_count, ai_usage_period')
@@ -97,10 +105,9 @@ export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
     .maybeSingle();
   const plan = normalizePlan(profile?.plan);
 
-  // Admins: never block on monthly quota (still keep rate limits elsewhere)
-  if (profile?.is_admin === true) {
+  if (await isAdminUser(user.id, profile?.is_admin)) {
     void request;
-    const used = profile.ai_usage_period === period ? (profile.ai_usage_count ?? 0) : 0;
+    const used = profile?.ai_usage_period === period ? (profile.ai_usage_count ?? 0) : 0;
     return {
       allowed: true,
       plan,
@@ -111,7 +118,6 @@ export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
 
   const limit = PLAN_AI_LIMITS[plan];
 
-  // Prefer atomic RPC; fall back to guarded update if migration not applied yet
   const { data: rpcRows, error: rpcError } = await supabase.rpc('increment_ai_usage', {
     p_period: period,
     p_limit: limit,
@@ -127,7 +133,6 @@ export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
     };
   }
 
-  // Fallback path (pre-migration): still no cookie entitlement
   let used = profile?.ai_usage_count ?? 0;
   if (profile?.ai_usage_period !== period) used = 0;
   if (used >= limit) {
@@ -139,10 +144,9 @@ export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
     .from('profiles')
     .update({ ai_usage_count: next, ai_usage_period: period })
     .eq('id', user.id)
-    .eq('ai_usage_count', used); // optimistic lock when period matches
+    .eq('ai_usage_count', used);
 
   if (error) {
-    // Retry once as period reset case
     await supabase
       .from('profiles')
       .update({ ai_usage_count: 1, ai_usage_period: period })
@@ -150,6 +154,6 @@ export async function checkAndIncrementAiUsage(request: NextRequest): Promise<{
     return { allowed: true, plan, used: 1, limit };
   }
 
-  void request; // keep signature for call sites
+  void request;
   return { allowed: true, plan, used: next, limit };
 }

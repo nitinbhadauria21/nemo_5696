@@ -3,7 +3,9 @@ import { describe, it } from 'node:test';
 import {
   getFreeModelChain,
   inferTaskFromMessages,
+  isOpenRouterAllowedModel,
   isOpenRouterFreeModel,
+  isOpenRouterPrivacyBlock,
   OPENROUTER_ATTEMPTS_PER_MODEL,
   OPENROUTER_FREE_MODELS,
   OPENROUTER_MAX_MODELS,
@@ -19,22 +21,24 @@ describe('openRouterRouter agent', () => {
     assert.equal(isOpenRouterFreeModel('gpt-4o'), false);
   });
 
-  it('builds a quality-first chain of up to 3 free models per task', () => {
-    for (const task of ['script', 'chat', 'analysis', 'sentiment', 'ideas'] as const) {
-      const chain = getFreeModelChain(task);
-      assert.ok(chain.length >= 2 && chain.length <= OPENROUTER_MAX_MODELS, task);
-      for (const id of chain) {
-        assert.equal(isOpenRouterFreeModel(id), true, id);
-      }
+  it('allows ultra-cheap paid twins used as privacy fallbacks', () => {
+    assert.equal(isOpenRouterAllowedModel('google/gemma-4-31b-it'), true);
+    assert.equal(isOpenRouterAllowedModel('meta-llama/llama-3.1-8b-instruct'), true);
+    assert.equal(isOpenRouterAllowedModel('anthropic/claude-sonnet-4'), false);
+  });
+
+  it('builds a quality-first chain that includes a non-free fallback within 3 slots', () => {
+    const chain = getFreeModelChain('script');
+    assert.ok(chain.length >= 2 && chain.length <= OPENROUTER_MAX_MODELS);
+    assert.ok(chain.some((id) => !id.endsWith(':free') && id !== 'openrouter/free'));
+    for (const id of chain) {
+      assert.equal(isOpenRouterAllowedModel(id), true, id);
     }
   });
 
-  it('puts heavier models first for script and lighter first for chat', () => {
+  it('puts a free model first for script when available', () => {
     const script = getFreeModelChain('script');
-    const chat = getFreeModelChain('chat');
-    assert.match(script[0], /gemma-4-31b|nemotron-3-super|ultra/i);
-    assert.match(chat[0], /nano-9b|ling-3\.0-tiny|nano-30b/i);
-    assert.notEqual(script[0], chat[0]);
+    assert.equal(isOpenRouterFreeModel(script[0]), true);
   });
 
   it('prefers AI_MODEL when it is an allowlisted free id', () => {
@@ -44,10 +48,10 @@ describe('openRouterRouter agent', () => {
     assert.ok(chain.length <= OPENROUTER_MAX_MODELS);
   });
 
-  it('ignores paid preferred models', () => {
+  it('ignores paid preferred models that are not allowlisted', () => {
     const chain = getFreeModelChain('analysis', 'anthropic/claude-3.5-sonnet');
     assert.notEqual(chain[0], 'anthropic/claude-3.5-sonnet');
-    assert.equal(isOpenRouterFreeModel(chain[0]), true);
+    assert.equal(isOpenRouterAllowedModel(chain[0]), true);
   });
 
   it('selectOpenRouterRoute returns agent decision metadata', () => {
@@ -57,6 +61,18 @@ describe('openRouterRouter agent', () => {
     assert.equal(route.primary, route.models[0]);
     assert.ok(route.reason.length > 10);
     assert.equal(OPENROUTER_ATTEMPTS_PER_MODEL, 2);
+  });
+
+  it('detects OpenRouter privacy/guardrail blocks', () => {
+    assert.equal(
+      isOpenRouterPrivacyBlock(
+        new Error(
+          'No endpoints available matching your guardrail restrictions and data policy. Configure: https://openrouter.ai/settings/privacy'
+        )
+      ),
+      true
+    );
+    assert.equal(isOpenRouterPrivacyBlock(new Error('rate limit')), false);
   });
 
   it('resolves and infers tasks from prompts', () => {

@@ -1,12 +1,12 @@
 /**
- * OpenRouter free-model routing agent.
- * Picks the strongest free model for each task, then lighter fallbacks.
- * Only IDs ending in `:free` or `openrouter/free` are eligible.
+ * OpenRouter model routing agent.
+ * Prefers free `:free` models; falls back to ultra-cheap policy-safe twins when
+ * account privacy/guardrails block free endpoints (common OpenRouter 404).
  */
 
 export type OpenRouterTask = 'script' | 'chat' | 'analysis' | 'sentiment' | 'ideas';
 
-/** Curated free models verified against OpenRouter's public catalog. */
+/** Free catalog IDs (may be blocked by account privacy settings). */
 export const OPENROUTER_FREE_MODELS = [
   'openrouter/free',
   'google/gemma-4-31b-it:free',
@@ -25,52 +25,65 @@ export const OPENROUTER_FREE_MODELS = [
   'nvidia/nemotron-3.5-content-safety:free',
 ] as const;
 
+/**
+ * Ultra-cheap paid twins that usually pass OpenRouter privacy/guardrails when
+ * `:free` endpoints are blocked. Pricing is near-zero per token.
+ */
+export const OPENROUTER_CHEAP_FALLBACK_MODELS = [
+  'google/gemma-4-31b-it',
+  'google/gemma-4-26b-a4b-it',
+  'google/gemma-3-12b-it',
+  'google/gemma-3-4b-it',
+  'meta-llama/llama-3.1-8b-instruct',
+  'meta-llama/llama-3.2-3b-instruct',
+  'mistralai/mistral-nemo',
+  'mistralai/mistral-small-24b-instruct-2501',
+] as const;
+
 export type OpenRouterFreeModel = (typeof OPENROUTER_FREE_MODELS)[number];
 
 const FREE_SET = new Set<string>(OPENROUTER_FREE_MODELS);
+const CHEAP_SET = new Set<string>(OPENROUTER_CHEAP_FALLBACK_MODELS);
+const ALLOWED_SET = new Set<string>([
+  ...OPENROUTER_FREE_MODELS,
+  ...OPENROUTER_CHEAP_FALLBACK_MODELS,
+]);
 
-/**
- * Quality-first chains (option C):
- * - script / analysis / ideas → heavier instruction / reasoning models first
- * - sentiment → safety-tuned then compact classifiers
- * - chat → light / fast models first
- */
+/** Free first, then immediate cheap twin so privacy blocks don't burn the whole chain. */
 const TASK_CHAINS: Record<OpenRouterTask, readonly string[]> = {
   script: [
     'google/gemma-4-31b-it:free',
-    'nvidia/nemotron-3-super-120b-a12b:free',
-    'nvidia/nemotron-3-ultra-550b-a55b:free',
-    'openai/gpt-oss-20b:free',
+    'google/gemma-4-31b-it',
+    'google/gemma-3-12b-it',
+    'meta-llama/llama-3.1-8b-instruct',
   ],
   analysis: [
     'google/gemma-4-26b-a4b-it:free',
-    'nvidia/nemotron-3-super-120b-a12b:free',
-    'openai/gpt-oss-20b:free',
-    'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+    'google/gemma-4-26b-a4b-it',
+    'google/gemma-3-12b-it',
+    'meta-llama/llama-3.1-8b-instruct',
   ],
   ideas: [
     'google/gemma-4-31b-it:free',
-    'google/gemma-4-26b-a4b-it:free',
-    'openai/gpt-oss-20b:free',
-    'nvidia/nemotron-3-nano-30b-a3b:free',
+    'google/gemma-4-31b-it',
+    'google/gemma-3-12b-it',
+    'mistralai/mistral-small-24b-instruct-2501',
   ],
   sentiment: [
     'nvidia/nemotron-3.5-content-safety:free',
-    'nvidia/nemotron-3-nano-30b-a3b:free',
-    'google/gemma-4-26b-a4b-it:free',
-    'inclusionai/ling-3.0-tiny:free',
+    'google/gemma-3-4b-it',
+    'meta-llama/llama-3.2-3b-instruct',
+    'mistralai/mistral-nemo',
   ],
   chat: [
     'nvidia/nemotron-nano-9b-v2:free',
-    'inclusionai/ling-3.0-tiny:free',
-    'nvidia/nemotron-3-nano-30b-a3b:free',
-    'google/gemma-4-26b-a4b-it:free',
+    'google/gemma-3-4b-it',
+    'meta-llama/llama-3.2-3b-instruct',
+    'mistralai/mistral-nemo',
   ],
 };
 
-/** Max distinct free models tried per request. */
 export const OPENROUTER_MAX_MODELS = 3;
-/** Attempts per model before moving to the next (option B). */
 export const OPENROUTER_ATTEMPTS_PER_MODEL = 2;
 
 export type OpenRouterRouteDecision = {
@@ -82,11 +95,11 @@ export type OpenRouterRouteDecision = {
 };
 
 const TASK_REASONS: Record<OpenRouterTask, string> = {
-  script: 'Long-form creative script → strongest free instruction models first',
-  analysis: 'Structured trend reasoning → mid/heavy free models with reasoning fallbacks',
-  ideas: 'Creative angles → strong generative free models first',
-  sentiment: 'Brand safety / sentiment → safety-tuned then compact free models',
-  chat: 'Interactive chat → fast light free models first',
+  script: 'Long-form creative script → strongest free, then cheap Gemma/Llama fallbacks',
+  analysis: 'Structured trend reasoning → free analysis models, then cheap twins',
+  ideas: 'Creative angles → strong generative free models, then cheap twins',
+  sentiment: 'Brand safety / sentiment → safety free models, then compact cheap models',
+  chat: 'Interactive chat → fast free models, then compact cheap models',
 };
 
 export function isOpenRouterFreeModel(model: string): boolean {
@@ -95,6 +108,14 @@ export function isOpenRouterFreeModel(model: string): boolean {
   if (id === 'openrouter/free') return true;
   if (FREE_SET.has(id)) return true;
   return id.endsWith(':free');
+}
+
+export function isOpenRouterAllowedModel(model: string): boolean {
+  const id = model.trim();
+  if (!id) return false;
+  if (ALLOWED_SET.has(id)) return true;
+  if (isOpenRouterFreeModel(id)) return true;
+  return CHEAP_SET.has(id);
 }
 
 export function resolveOpenRouterTask(raw?: string | null): OpenRouterTask {
@@ -106,18 +127,21 @@ export function resolveOpenRouterTask(raw?: string | null): OpenRouterTask {
 }
 
 /**
- * Ordered free-model chain for a task (quality-first).
- * If `preferred` is an allowlisted free id (e.g. AI_MODEL), it is tried first.
+ * Ordered model chain for a task (free first, then cheap paid policy fallbacks).
  */
 export function getFreeModelChain(
   task: OpenRouterTask = 'chat',
   preferred?: string | null
 ): string[] {
-  const base = [...(TASK_CHAINS[task] ?? TASK_CHAINS.chat)].filter(isOpenRouterFreeModel);
+  const base = [...(TASK_CHAINS[task] ?? TASK_CHAINS.chat)].filter(isOpenRouterAllowedModel);
   const pref = preferred?.trim();
   const chain: string[] = [];
 
-  if (pref && isOpenRouterFreeModel(pref) && FREE_SET.has(pref)) {
+  if (
+    pref &&
+    isOpenRouterAllowedModel(pref) &&
+    (ALLOWED_SET.has(pref) || isOpenRouterFreeModel(pref))
+  ) {
     chain.push(pref);
   }
 
@@ -126,15 +150,12 @@ export function getFreeModelChain(
   }
 
   if (chain.length === 0) {
-    chain.push('openrouter/free');
+    chain.push('google/gemma-3-4b-it', 'meta-llama/llama-3.1-8b-instruct');
   }
 
   return chain.slice(0, OPENROUTER_MAX_MODELS);
 }
 
-/**
- * Routing agent: decide which free OpenRouter models handle this task.
- */
 export function selectOpenRouterRoute(
   taskHint?: string | null,
   preferredModel?: string | null
@@ -150,7 +171,6 @@ export function selectOpenRouterRoute(
   };
 }
 
-/** Infer task from chat messages when the client does not send `task`. */
 export function inferTaskFromMessages(
   messages: { role: string; content: string }[]
 ): OpenRouterTask {
@@ -169,4 +189,12 @@ export function inferTaskFromMessages(
     .join('\n');
   if (/NemoScript|viralScore|Perfect Viral Script/i.test(system)) return 'script';
   return 'chat';
+}
+
+/** True when OpenRouter rejected the model due to privacy/ZDR/guardrails. */
+export function isOpenRouterPrivacyBlock(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error ?? '');
+  return /guardrail restrictions and data policy|data policy|zero data retention|settings\/privacy/i.test(
+    msg
+  );
 }
