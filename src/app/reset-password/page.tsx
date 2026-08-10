@@ -23,6 +23,8 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     let cancelled = false;
+    let subscription: { unsubscribe: () => void } | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
     async function ensureRecoverySession() {
       if (!isSupabaseConfigured()) {
@@ -35,18 +37,41 @@ export default function ResetPasswordPage() {
         return;
       }
 
+      // Implicit recovery links land with tokens in the hash; give the client a beat to parse them.
+      if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
+        await new Promise((r) => setTimeout(r, 150));
+      }
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (!cancelled) {
-        setSessionState(session ? 'ready' : 'missing');
+      if (!cancelled && session) {
+        setSessionState('ready');
       }
+
+      const authListener = supabase.auth.onAuthStateChange((event, nextSession) => {
+        if (cancelled) return;
+        if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || nextSession) {
+          setSessionState('ready');
+        }
+      });
+      subscription = authListener.data.subscription;
+
+      timer = setTimeout(async () => {
+        if (cancelled) return;
+        const {
+          data: { session: again },
+        } = await supabase.auth.getSession();
+        if (!cancelled) setSessionState(again ? 'ready' : 'missing');
+      }, 800);
     }
 
     void ensureRecoverySession();
     return () => {
       cancelled = true;
+      subscription?.unsubscribe();
+      if (timer) clearTimeout(timer);
     };
   }, []);
 

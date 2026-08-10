@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { getAuthUserId } from '@/lib/api/auth';
+import { trackEvent } from '@/lib/analytics/track';
 
 export async function POST(request: NextRequest) {
   if (!isSupabaseConfigured()) {
@@ -18,13 +19,30 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   if (!supabase) return NextResponse.json({ ok: true });
 
+  const pagePath = body.pagePath ?? body.page_path ?? null;
+  const resultCount =
+    typeof body.resultCount === 'number' ? body.resultCount : (body.result_count ?? null);
+
   await supabase.from('search_queries').insert({
     user_id: userId,
     query,
-    page_path: body.pagePath ?? body.page_path ?? null,
-    result_count:
-      typeof body.resultCount === 'number' ? body.resultCount : (body.result_count ?? null),
+    page_path: pagePath,
+    result_count: resultCount,
   });
+
+  if (userId) {
+    await trackEvent({
+      userId,
+      eventName: 'search.query',
+      eventCategory: 'product',
+      properties: {
+        query: query.slice(0, 200),
+        page_path: pagePath,
+        result_count: resultCount,
+      },
+      request,
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }

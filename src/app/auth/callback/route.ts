@@ -48,7 +48,13 @@ export async function GET(request: Request) {
       if (!error) {
         return NextResponse.redirect(`${origin}${next}`);
       }
+      console.error('[auth/callback] exchangeCodeForSession failed', error.message);
     }
+  }
+
+  // Recovery flows should retry from forgot-password rather than a bare login error.
+  if (next.startsWith('/reset-password')) {
+    return NextResponse.redirect(`${origin}/forgot-password?error=reset_link_invalid`);
   }
 
   return NextResponse.redirect(`${origin}/login?error=auth_callback`);

@@ -6,6 +6,7 @@ import '../styles/landing.css';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
+import AuthRecoveryRedirect from '@/components/AuthRecoveryRedirect';
 
 const fredoka = Fredoka({
   subsets: ['latin'],
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={dmSans.className}>
         <ThemeProvider>
           <AuthProvider>
+            <AuthRecoveryRedirect />
             {children}
             <Toaster
               position="bottom-right"
