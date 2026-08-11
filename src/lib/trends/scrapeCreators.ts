@@ -61,7 +61,7 @@ export async function scrapeCreatorsGet<T = Record<string, unknown>>(
   }
 }
 
-/** Parse topic/hashtag tokens from a trends24-style Google snippet. */
+/** Parse topic/hashtag tokens from a getdaytrends-style Google snippet. */
 export function parseTrendTokensFromText(text: string, limit = 10): string[] {
   if (!text) return [];
   const cleaned = text
