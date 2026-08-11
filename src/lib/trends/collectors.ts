@@ -170,8 +170,25 @@ export async function collectRedditTrends(): Promise<TrendItem[]> {
   }
 }
 
-/** YouTube Data API (optional YOUTUBE_API_KEY) */
-export async function collectYouTubeTrends(): Promise<TrendItem[]> {
+function mergeTrendsByTitle(items: TrendItem[]): TrendItem[] {
+  const byTitle = new Map<string, TrendItem>();
+  for (const t of items) {
+    const key = t.title.toLowerCase().replace(/\s+/g, ' ').trim();
+    const existing = byTitle.get(key);
+    if (!existing || t.nemoScore > existing.nemoScore) byTitle.set(key, t);
+  }
+  return [...byTitle.values()];
+}
+
+function ageHoursFromIso(iso?: string | null, fallback = 6): number {
+  if (!iso) return fallback;
+  const ms = Date.parse(iso);
+  if (!Number.isFinite(ms)) return fallback;
+  return Math.max(0.5, (Date.now() - ms) / 3600000);
+}
+
+/** YouTube Data API mostPopular (optional YOUTUBE_API_KEY). */
+async function collectYouTubeNative(): Promise<TrendItem[]> {
   const key = process.env.YOUTUBE_API_KEY;
   if (!key) return [];
 
@@ -179,7 +196,7 @@ export async function collectYouTubeTrends(): Promise<TrendItem[]> {
     const url = new URL('https://www.googleapis.com/youtube/v3/videos');
     url.searchParams.set('part', 'snippet,statistics');
     url.searchParams.set('chart', 'mostPopular');
-    url.searchParams.set('regionCode', 'IN');
+    url.searchParams.set('regionCode', process.env.GOOGLE_TRENDS_GEO || 'IN');
     url.searchParams.set('maxResults', '8');
     url.searchParams.set('key', key);
 
@@ -228,9 +245,52 @@ export async function collectYouTubeTrends(): Promise<TrendItem[]> {
       });
     });
   } catch (err) {
-    console.error('YouTube collector failed', err);
+    console.error('YouTube native collector failed', err);
     return [];
   }
+}
+
+/** Scrape Creators — trending YouTube Shorts. */
+async function collectYouTubeScrapeCreators(): Promise<TrendItem[]> {
+  if (!getScrapeCreatorsApiKey()) return [];
+  const data = await scrapeCreatorsGet<{ shorts?: ScYoutubeShort[] }>(
+    '/v1/youtube/shorts/trending'
+  );
+  const shorts = (data?.shorts ?? []).slice(0, 12);
+  if (!shorts.length) return [];
+
+  return shorts.map((item, idx) => {
+    const views = Number(item.viewCountInt || 1000);
+    const comments = Number(item.commentCountInt || 50);
+    const likes = Number(item.likeCountInt || 100);
+    const keywords = (item.keywords ?? []).slice(0, 4).map((k) => `#${String(k).replace(/\s+/g, '')}`);
+    const mentions24h = Math.max(100, Math.round(views / 100));
+    return toTrendItem({
+      topic: String(item.title || `YouTube Short ${idx}`).slice(0, 120),
+      niche: 'other',
+      platforms: ['youtube'],
+      creators6h: Math.max(10, Math.round(comments / 15)),
+      creators24h: Math.max(30, Math.round(comments / 5)),
+      creators72h: Math.max(60, comments),
+      mentions24h,
+      mentionsPrev24h: mentions24h,
+      ageHours: ageHoursFromIso(item.publishDate, 4 + idx),
+      description: String(item.description || item.title || '').slice(0, 220),
+      hashtags: keywords.length ? keywords : ['#youtube', '#shorts'],
+    });
+  });
+}
+
+/**
+ * YouTube trends: native Data API (mostPopular) + Scrape Creators Shorts.
+ * Merged and deduped by title — no fabricated rows.
+ */
+export async function collectYouTubeTrends(): Promise<TrendItem[]> {
+  const [native, scrapeCreators] = await Promise.all([
+    collectYouTubeNative(),
+    collectYouTubeScrapeCreators(),
+  ]);
+  return mergeTrendsByTitle([...native, ...scrapeCreators]);
 }
 
 function mapGoogleTrendRows(items: any[], sourceLabel: string): TrendItem[] {
