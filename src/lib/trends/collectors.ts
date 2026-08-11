@@ -17,8 +17,8 @@ function hashId(input: string): string {
 }
 
 function statusFromNemo(score: number): TrendStatus {
-  if (score >= 80) return 'hot';
-  if (score >= 50) return 'rising';
+  if (score >= 70) return 'hot';
+  if (score >= 35) return 'rising';
   return 'fading';
 }
 

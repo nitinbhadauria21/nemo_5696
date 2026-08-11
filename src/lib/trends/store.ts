@@ -43,7 +43,12 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
     freshnessMultiplier: Number(row.freshness_multiplier) || 1,
     velocity: Number(row.spike_score) || 0,
     spike: Number(row.spike_score) || 0,
-    status: statusRaw === 'PEAKING' ? 'hot' : statusRaw === 'RISING' ? 'rising' : 'fading',
+    status:
+      statusRaw === 'PEAKING' || Number(row.nemo_score) >= 70
+        ? 'hot'
+        : statusRaw === 'RISING' || Number(row.nemo_score) >= 35
+          ? 'rising'
+          : 'fading',
     mentions24h,
     mentionsPrev24h: Number(row.mentions_prev_24h) || Math.max(1, Math.round(mentions24h * 0.6)),
     creatorsCount: creators72,

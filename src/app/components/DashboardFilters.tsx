@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, RefreshCw, Bookmark } from 'lucide-react';
-import { CATEGORIES, PLATFORMS } from '@/lib/mockData';
+import { CATEGORIES } from '@/lib/mockData';
 import type { TrendPlatform } from '@/lib/mockData';
 import CountrySelector from '@/components/ui/CountrySelector';
-import PlatformIcon from '@/components/ui/PlatformIcon';
 import { trackSearchQuery } from '@/lib/analytics/client';
 
 interface DashboardFiltersProps {
@@ -29,26 +28,14 @@ const SORT_OPTIONS = [
   { id: 'rising', label: 'Rising Fastest' },
 ] as const;
 
-const PLATFORM_LABELS: Record<TrendPlatform, string> = {
-  google: 'Google Trends',
-  youtube: 'YouTube',
-  instagram: 'Instagram',
-  linkedin: 'LinkedIn',
-  tiktok: 'TikTok',
-  twitter: 'Twitter / X',
-  reddit: 'Reddit',
-  facebook: 'Facebook',
-};
-
 export default function DashboardFilters({
   onFiltersChange,
   onRefresh,
   isRefreshing,
 }: DashboardFiltersProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['All']);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<TrendPlatform[]>([]);
   const [keyword, setKeyword] = useState('');
-  const [timeframe, setTimeframe] = useState('24h');
+  const [timeframe, setTimeframe] = useState('72h');
   const [sortBy, setSortBy] = useState<'score' | 'recent' | 'rising'>('score');
   const [bookmarksOnly, setBookmarksOnly] = useState(false);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
@@ -73,7 +60,7 @@ export default function DashboardFilters({
   ) => {
     onFiltersChange?.({
       categories: selectedCategories,
-      platforms: selectedPlatforms,
+      platforms: [],
       keyword,
       timeframe,
       bookmarksOnly,
@@ -100,24 +87,13 @@ export default function DashboardFilters({
     emitChange({ categories: next });
   };
 
-  const togglePlatform = (p: TrendPlatform) => {
-    const next = selectedPlatforms.includes(p)
-      ? selectedPlatforms.filter((x) => x !== p)
-      : [...selectedPlatforms, p];
-    setSelectedPlatforms(next);
-    emitChange({ platforms: next });
-  };
-
   const handleCountriesChange = (countries: string[]) => {
     setSelectedCountries(countries);
     emitChange({ countries });
   };
 
-  const allSourcesActive = selectedPlatforms.length === 0;
-
   return (
     <div className="card-surface flex flex-col divide-y divide-border">
-      {/* Row 1: Browse by category */}
       <div className="px-4 py-3">
         <p className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold mb-2.5">
           Browse by Category
@@ -142,7 +118,6 @@ export default function DashboardFilters({
         </div>
       </div>
 
-      {/* Row 2: Search */}
       <div className="px-4 py-3">
         <p className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold mb-2.5">
           Search Keywords
@@ -169,7 +144,7 @@ export default function DashboardFilters({
                       source: 'dashboard',
                       filters: {
                         categories: selectedCategories,
-                        platforms: selectedPlatforms,
+                        platforms: [],
                         timeframe,
                         countries: selectedCountries,
                       },
@@ -184,7 +159,7 @@ export default function DashboardFilters({
                     source: 'dashboard',
                     filters: {
                       categories: selectedCategories,
-                      platforms: selectedPlatforms,
+                      platforms: [],
                       timeframe,
                       countries: selectedCountries,
                     },
@@ -204,7 +179,7 @@ export default function DashboardFilters({
                   source: 'dashboard',
                   filters: {
                     categories: selectedCategories,
-                    platforms: selectedPlatforms,
+                    platforms: [],
                     timeframe,
                     countries: selectedCountries,
                   },
@@ -217,7 +192,6 @@ export default function DashboardFilters({
         </div>
       </div>
 
-      {/* Row 3: Location filter */}
       <div className="px-4 py-3">
         <div className="flex items-center gap-3 flex-wrap">
           <p className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold">
@@ -226,7 +200,7 @@ export default function DashboardFilters({
           <CountrySelector selectedCountries={selectedCountries} onChange={handleCountriesChange} />
           {selectedCountries.length === 0 && (
             <span className="text-sm text-foreground/55 font-sans">
-              Select up to 4 countries to filter trends by region
+              Global (all regions) — select up to 4 countries to narrow
             </span>
           )}
           {selectedCountries.length > 0 && (
@@ -238,49 +212,7 @@ export default function DashboardFilters({
         </div>
       </div>
 
-      {/* Row 4: Source filter + Time window + Bookmarks + Refresh */}
       <div className="px-4 py-3 flex flex-wrap items-center gap-x-5 gap-y-3">
-        {/* Sources */}
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold mr-1">
-            Source:
-          </p>
-          <button
-            onClick={() => {
-              setSelectedPlatforms([]);
-              emitChange({ platforms: [] });
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-sans font-semibold border transition-all ${
-              allSourcesActive
-                ? 'bg-primary text-white border-primary'
-                : 'bg-transparent text-foreground/65 border-border hover:text-foreground'
-            }`}
-          >
-            All Sources
-          </button>
-          {PLATFORMS.map((p) => {
-            const active = selectedPlatforms.includes(p);
-            return (
-              <button
-                key={`plat-filter-${p}`}
-                onClick={() => togglePlatform(p)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border transition-all ${
-                  active
-                    ? 'border-primary/40 bg-primary/10 text-primary'
-                    : 'bg-transparent border-border text-foreground/65 hover:text-foreground'
-                }`}
-              >
-                <PlatformIcon platform={p} size={14} withTile={false} />
-                {PLATFORM_LABELS[p]}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Divider */}
-        <div className="hidden sm:block w-px h-5 bg-border" />
-
-        {/* Sort */}
         <div className="flex items-center gap-1.5">
           <p className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold mr-1">
             Sort:
@@ -307,7 +239,6 @@ export default function DashboardFilters({
 
         <div className="hidden sm:block w-px h-5 bg-border" />
 
-        {/* Time window */}
         <div className="flex items-center gap-1.5">
           <p className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold mr-1">
             Window:
@@ -315,7 +246,8 @@ export default function DashboardFilters({
           <div className="flex gap-1 bg-muted rounded-lg p-0.5">
             {TIMEFRAMES.map((tf) => (
               <button
-                key={`tf-${tf}`}
+                key={tf}
+                type="button"
                 onClick={() => {
                   setTimeframe(tf);
                   emitChange({ timeframe: tf });
@@ -332,10 +264,6 @@ export default function DashboardFilters({
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="hidden sm:block w-px h-5 bg-border" />
-
-        {/* Bookmarks + Refresh */}
         <div className="flex items-center gap-2 ml-auto">
           <button
             onClick={() => {

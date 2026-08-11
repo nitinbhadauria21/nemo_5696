@@ -28,12 +28,11 @@ export default function DashboardContent() {
     categories: ['All'],
     platforms: [],
     keyword: '',
-    timeframe: '24h',
+    timeframe: '72h',
     bookmarksOnly: false,
     countries: [],
     sortBy: 'score',
   });
-  const [graveyardOpen, setGraveyardOpen] = useState(false);
 
   const displayName =
     profile?.full_name?.trim() ||
@@ -107,6 +106,9 @@ export default function DashboardContent() {
     }
   };
 
+  const timeframeHours =
+    activeFilters.timeframe === '48h' ? 48 : activeFilters.timeframe === '72h' ? 72 : 24;
+
   const filteredTrends = trends.filter((t) => {
     if (activeFilters.bookmarksOnly && !t.isBookmarked) return false;
     if (!activeFilters.categories.includes('All') && !activeFilters.categories.includes(t.category))
@@ -117,17 +119,31 @@ export default function DashboardContent() {
     ) {
       return false;
     }
-    if (
-      activeFilters.keyword &&
-      !t.title.toLowerCase().includes(activeFilters.keyword.toLowerCase()) &&
-      !t.description.toLowerCase().includes(activeFilters.keyword.toLowerCase())
-    ) {
-      return false;
+    const kw = activeFilters.keyword.trim().toLowerCase();
+    if (kw) {
+      const inTitle = t.title.toLowerCase().includes(kw);
+      const inDesc = (t.description || '').toLowerCase().includes(kw);
+      const inTags = (t.hashtags || []).some((h) => h.toLowerCase().includes(kw));
+      if (!inTitle && !inDesc && !inTags) return false;
     }
+    // Global default: empty countries = show all. Only filter when user picks countries.
     if (activeFilters.countries.length > 0) {
       const trendRegions = t.geoRegions ?? [];
-      const hasMatch = activeFilters.countries.some((code) => trendRegions.includes(code));
-      if (!hasMatch) return false;
+      // Untagged live rows stay visible globally; only exclude when they have geo and don't match
+      if (trendRegions.length > 0) {
+        const hasMatch = activeFilters.countries.some(
+          (code) =>
+            trendRegions.includes(code) ||
+            (code === 'GB' && trendRegions.includes('UK')) ||
+            (code === 'UK' && trendRegions.includes('GB'))
+        );
+        if (!hasMatch) return false;
+      }
+    }
+    const detected = Date.parse(t.firstDetectedAt || '');
+    if (Number.isFinite(detected) && detected > 0) {
+      const ageMs = Date.now() - detected;
+      if (ageMs > timeframeHours * 3600 * 1000) return false;
     }
     return true;
   });
@@ -140,11 +156,12 @@ export default function DashboardContent() {
     return b.nemoScore - a.nemoScore;
   });
 
-  const featuredTrends = sortedTrends.filter((t) => t.nemoScore >= 80).slice(0, 3);
-  const activeTrends = sortedTrends.filter((t) => t.status !== 'fading');
-  const graveyardTrends = sortedTrends.filter((t) => t.status === 'fading');
-  const hotCount = activeTrends.filter((t) => t.status === 'hot').length;
-  const risingCount = activeTrends.filter((t) => t.status === 'rising').length;
+  // Main grid shows ALL filtered trends (including lower scores). Hiding "fading"
+  // previously caused "16 detected" + empty grid when scores were under 50.
+  const featuredTrends = sortedTrends.filter((t) => t.nemoScore >= 70).slice(0, 3);
+  const displayTrends = sortedTrends;
+  const hotCount = displayTrends.filter((t) => t.status === 'hot').length;
+  const risingCount = displayTrends.filter((t) => t.status === 'rising').length;
 
   const sortLabel =
     activeFilters.sortBy === 'rising'
@@ -255,48 +272,24 @@ export default function DashboardContent() {
               </span>
             </div>
 
-            {activeTrends.length === 0 ? (
+            {displayTrends.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <p className="font-display font-bold text-foreground text-xl mb-2">
                   No trends found
                 </p>
                 <p className="text-base text-foreground/65 font-sans">
-                  Try selecting different countries or clear the location filter
+                  {activeFilters.countries.length > 0
+                    ? 'Try clearing the location filter or picking different countries'
+                    : activeFilters.keyword
+                      ? 'Try a different keyword, or clear search'
+                      : 'Refresh trends or widen the time window (48h / 72h)'}
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {activeTrends.map((trend) => (
+                {displayTrends.map((trend) => (
                   <TrendCard key={trend.id} trend={trend} onBookmarkToggle={handleBookmarkToggle} />
                 ))}
-              </div>
-            )}
-
-            {graveyardTrends.length > 0 && (
-              <div className="border border-border rounded-2xl overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setGraveyardOpen((v) => !v)}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-muted/50 text-left"
-                >
-                  <span className="font-display font-semibold">
-                    Trend Graveyard ({graveyardTrends.length})
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {graveyardOpen ? 'Hide' : 'Show'}
-                  </span>
-                </button>
-                {graveyardOpen && (
-                  <div className="p-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {graveyardTrends.map((trend) => (
-                      <TrendCard
-                        key={`grave-${trend.id}`}
-                        trend={trend}
-                        onBookmarkToggle={handleBookmarkToggle}
-                      />
-                    ))}
-                  </div>
-                )}
               </div>
             )}
           </div>
