@@ -24,6 +24,8 @@ interface DashboardFiltersProps {
   /** Refetch /api/trends (does not apply draft filters). */
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  /** Seed draft/applied from user prefs or parent. */
+  initialFilters?: DashboardFilterState;
 }
 
 const TIMEFRAMES = ['24h', '48h', '72h'];
@@ -49,7 +51,7 @@ const DEFAULT_DRAFT: DashboardFilterState = {
   categories: ['All'],
   platforms: [],
   keyword: '',
-  timeframe: '72h',
+  timeframe: '24h',
   bookmarksOnly: false,
   countries: [],
   sortBy: 'score',
@@ -59,10 +61,20 @@ export default function DashboardFilters({
   onFiltersChange,
   onRefresh,
   isRefreshing,
+  initialFilters,
 }: DashboardFiltersProps) {
-  const [draft, setDraft] = useState<DashboardFilterState>(DEFAULT_DRAFT);
-  const [applied, setApplied] = useState<DashboardFilterState>(DEFAULT_DRAFT);
+  const [draft, setDraft] = useState<DashboardFilterState>(initialFilters || DEFAULT_DRAFT);
+  const [applied, setApplied] = useState<DashboardFilterState>(initialFilters || DEFAULT_DRAFT);
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const seeded = useRef(false);
+
+  useEffect(() => {
+    if (initialFilters && !seeded.current) {
+      seeded.current = true;
+      setDraft(initialFilters);
+      setApplied(initialFilters);
+    }
+  }, [initialFilters]);
 
   useEffect(() => {
     return () => {
@@ -123,7 +135,7 @@ export default function DashboardFilters({
     <div className="card-surface flex flex-col divide-y divide-border">
       <div className="px-4 py-3">
         <p className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold mb-2.5">
-          Browse by Category
+          Browse by Niche
         </p>
         <div className="flex flex-wrap gap-1.5">
           {CATEGORIES.map((cat) => {

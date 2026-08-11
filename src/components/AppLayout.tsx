@@ -6,6 +6,8 @@ import AIChatPanel from './AIChatPanel';
 import Icon from './ui/AppIcon';
 import TopNavbar from './TopNavbar';
 import AuthGate from './AuthGate';
+import MobileBottomNav from './MobileBottomNav';
+import OfflineBanner from './OfflineBanner';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -18,13 +20,18 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <AuthGate>
       <div className="min-h-screen bg-background flex">
-        <AppSidebar
-          collapsed={collapsed}
-          onToggle={() => setCollapsed((c) => !c)}
-          onOpenChat={() => setChatOpen(true)}
-        />
+        <OfflineBanner />
+        <div className="hidden md:block">
+          <AppSidebar
+            collapsed={collapsed}
+            onToggle={() => setCollapsed((c) => !c)}
+            onOpenChat={() => setChatOpen(true)}
+          />
+        </div>
         <main
-          className={`flex-1 min-w-0 min-h-screen sidebar-transition ${collapsed ? 'ml-[68px]' : 'ml-64'}`}
+          className={`flex-1 min-w-0 min-h-screen sidebar-transition pb-20 md:pb-0 ${
+            collapsed ? 'md:ml-[68px]' : 'md:ml-64'
+          }`}
         >
           <TopNavbar />
           {children}
@@ -32,7 +39,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
         <button
           onClick={() => setChatOpen(true)}
-          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-2xl flame-gradient shadow-lg flex items-center justify-center hover:opacity-90 hover:scale-105 transition-all duration-200 group"
+          className="fixed bottom-20 md:bottom-6 right-6 z-40 w-14 h-14 rounded-2xl flame-gradient shadow-lg flex items-center justify-center hover:opacity-90 hover:scale-105 transition-all duration-200 group"
           title="Open Nemo AI Chat"
           aria-label="Open AI Chat"
         >
@@ -41,6 +48,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </button>
 
         <AIChatPanel isOpen={chatOpen} onClose={() => setChatOpen(false)} />
+        <MobileBottomNav />
       </div>
     </AuthGate>
   );

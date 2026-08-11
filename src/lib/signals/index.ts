@@ -33,6 +33,24 @@ export type {
 
 export { PLATFORM_WEIGHTS, NEMO_SCORE_WEIGHTS, SCORING_TIME_RULES } from './types';
 
+export {
+  DEFAULT_BRIEF_WEIGHTS,
+  HARD_REJECT_HOURS,
+  SEVEN_DAY_PENALTY_HOURS,
+  computeMultiWindowSpike,
+  computeCreatorVelocityWindows,
+  computeAcceleration,
+  computeNoveltyScore as computeBriefNoveltyScore,
+  isEvergreenTopic,
+  normalizeClusterKey,
+  classifyLifecycle,
+  applyBriefScore,
+  buildWhyTrending,
+  clusterTrends,
+  pickCanonical,
+} from './briefScoring';
+export type { BriefWeights, LifecycleStatus as BriefLifecycleStatus } from './briefScoring';
+
 // Scoring Engine — Four Formulas + Final Nemo Score
 export {
   computeCreatorVelocityScore,

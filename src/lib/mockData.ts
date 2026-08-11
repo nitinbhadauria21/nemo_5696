@@ -1,7 +1,14 @@
+/** Legacy UI status (mapped from lifecycle). */
 export type TrendStatus = 'hot' | 'rising' | 'fading';
 
+/** Brief lifecycle statuses. */
+export type LifecycleStatus =
+  'emerging' | 'rising' | 'breakout' | 'trending' | 'stable' | 'fading' | 'recycled';
+
+export type ConfidenceLevel = 'High' | 'Moderate' | 'Low';
+
 /**
- * Extended platform list — all 7 platforms tracked by Nemo.
+ * Extended platform list — all platforms tracked by Nemo.
  * Platform weights (Cross-Platform Score): TikTok 22%, Instagram 20%, YouTube 20%,
  * Google Trends 18%, Twitter/X 12%, Reddit 5%, LinkedIn 3%.
  */
@@ -22,8 +29,13 @@ export interface TrendItem {
   id: string;
   title: string;
   category: string;
+  /** Multi-niche labels (brief 10 + All). */
+  niches?: string[];
   status: TrendStatus;
+  lifecycle?: LifecycleStatus;
   nemoScore: number;
+  confidenceScore?: number;
+  confidence?: ConfidenceLevel;
 
   /**
    * Sub-scores aligned with Nemo Backend Data Signals & Trend Scoring Review v1.0
@@ -34,6 +46,11 @@ export interface TrendItem {
   cps: number; // Cross-Platform Score 0–100 (was missing — now required)
   freshness: number; // Freshness Score 0–100 (was 0–1 range — corrected)
   freshnessMultiplier: number; // 0.1–1.0 final multiplier applied to composite score
+  acceleration?: number;
+  engagementScore?: number;
+  noveltyScore?: number;
+  persistenceScore?: number;
+  breakoutScore?: number;
 
   platforms: TrendPlatform[];
   creatorsCount: number;
@@ -45,6 +62,7 @@ export interface TrendItem {
   sparklineData: number[];
   timeAgo: string;
   firstDetectedAt: string; // ISO timestamp — required for Freshness Multiplier
+  latestActivityAt?: string;
   hashtags: string[];
   description: string;
   isBookmarked: boolean;
@@ -52,6 +70,8 @@ export interface TrendItem {
   spike: number;
   contentType: TrendContentType;
   trendingAudio?: string;
+  sourceUrl?: string;
+  whyTrending?: string[];
 
   // New signals from document
   geoRegions?: string[];
@@ -66,7 +86,7 @@ export const MOCK_TRENDS: TrendItem[] = [
   {
     id: 'trend-001',
     title: 'Claude AI Tool Integrations',
-    category: 'AI & Tech',
+    category: 'AI',
     status: 'hot',
     nemoScore: 91,
     cvs: 88,
@@ -97,7 +117,7 @@ export const MOCK_TRENDS: TrendItem[] = [
   {
     id: 'trend-002',
     title: 'Instagram Broadcast Channels',
-    category: 'Marketing',
+    category: 'Startups',
     status: 'hot',
     nemoScore: 84,
     cvs: 76,
@@ -129,7 +149,7 @@ export const MOCK_TRENDS: TrendItem[] = [
   {
     id: 'trend-003',
     title: 'Agentic AI Workflows',
-    category: 'AI & Tech',
+    category: 'AI',
     status: 'hot',
     nemoScore: 88,
     cvs: 91,
@@ -161,7 +181,7 @@ export const MOCK_TRENDS: TrendItem[] = [
   {
     id: 'trend-004',
     title: 'YouTube Shorts Monetization Update',
-    category: 'Marketing',
+    category: 'Startups',
     status: 'rising',
     nemoScore: 72,
     cvs: 65,
@@ -192,7 +212,7 @@ export const MOCK_TRENDS: TrendItem[] = [
   {
     id: 'trend-005',
     title: 'IPL 2026 Fantasy League',
-    category: 'Sports',
+    category: 'Fitness',
     status: 'hot',
     nemoScore: 79,
     cvs: 72,
@@ -223,7 +243,7 @@ export const MOCK_TRENDS: TrendItem[] = [
   {
     id: 'trend-006',
     title: 'LinkedIn Thought Leadership Pods',
-    category: 'Marketing',
+    category: 'Startups',
     status: 'rising',
     nemoScore: 61,
     cvs: 54,
@@ -285,7 +305,7 @@ export const MOCK_TRENDS: TrendItem[] = [
   {
     id: 'trend-008',
     title: 'AI-Generated Music Controversy',
-    category: 'AI & Tech',
+    category: 'AI',
     status: 'fading',
     nemoScore: 38,
     cvs: 32,
@@ -316,7 +336,7 @@ export const MOCK_TRENDS: TrendItem[] = [
   {
     id: 'trend-009',
     title: 'Notion AI 3.0 Features',
-    category: 'Productivity',
+    category: 'Education',
     status: 'rising',
     nemoScore: 68,
     cvs: 61,
@@ -378,7 +398,7 @@ export const MOCK_TRENDS: TrendItem[] = [
   {
     id: 'trend-011',
     title: 'Reel Hooks Psychology',
-    category: 'Marketing',
+    category: 'Startups',
     status: 'rising',
     nemoScore: 73,
     cvs: 66,
@@ -410,7 +430,7 @@ export const MOCK_TRENDS: TrendItem[] = [
   {
     id: 'trend-012',
     title: 'EV Charging Infrastructure India',
-    category: 'Business',
+    category: 'Startups',
     status: 'rising',
     nemoScore: 54,
     cvs: 48,
@@ -440,21 +460,22 @@ export const MOCK_TRENDS: TrendItem[] = [
   },
 ];
 
+/** Brief niches (+ All). */
 export const CATEGORIES = [
   'All',
-  'AI & Tech',
-  'Marketing',
-  'Sports',
-  'Gaming',
-  'Finance',
-  'Business',
-  'Productivity',
+  'AI',
   'Fitness',
+  'Finance',
   'Fashion',
-  'Food',
-  'Travel',
+  'Gaming',
+  'Movies',
   'Education',
+  'Startups',
+  'Travel',
+  'Food',
 ];
+
+export const BRIEF_NICHES = CATEGORIES.filter((c) => c !== 'All');
 
 /** Dashboard Source chips order — empty selection = All Sources. */
 export const PLATFORMS: TrendPlatform[] = [

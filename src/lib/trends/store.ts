@@ -1,34 +1,35 @@
-import type { TrendItem, TrendStatus } from '@/lib/mockData';
+import type { TrendItem, TrendStatus, LifecycleStatus, ConfidenceLevel } from '@/lib/mockData';
 import { MOCK_TRENDS } from '@/lib/mockData';
 import { collectMvpTrends } from './collectors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { persistTrendsToSupabase } from './persist';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { applyTrendFilters, type TrendQueryFilters } from './filters';
 
 let memoryStore: TrendItem[] = [];
 let lastCollectedAt = 0;
 
-/** Map DB trend_niche_enum → Dashboard UI category labels. */
+/** Map DB trend_niche_enum → brief Dashboard niche labels. */
 function nicheToUiCategory(niche: string): string {
   const map: Record<string, string> = {
-    AI: 'AI & Tech',
+    AI: 'AI',
     fitness: 'Fitness',
     finance: 'Finance',
     fashion: 'Fashion',
     gaming: 'Gaming',
-    movies: 'other',
+    movies: 'Movies',
     education: 'Education',
-    startups: 'Business',
+    startups: 'Startups',
     travel: 'Travel',
     food: 'Food',
-    sports: 'Sports',
-    marketing: 'Marketing',
-    productivity: 'Productivity',
-    business: 'Business',
-    other: 'other',
+    sports: 'Fitness',
+    marketing: 'Startups',
+    productivity: 'Education',
+    business: 'Startups',
+    other: 'AI',
   };
-  return map[niche] || niche || 'other';
+  return map[niche] || niche || 'AI';
 }
 
 function mapDbPlatformToUi(p: string): string {
@@ -38,6 +39,11 @@ function mapDbPlatformToUi(p: string): string {
 
 /** Prefer DB status, fall back to score bands (aligned with collectors). */
 function statusFromScores(statusRaw: string, nemo: number, cvs: number, ss: number): TrendStatus {
+  const lc = statusRaw.toLowerCase();
+  if (lc === 'expired' || lc === 'declining' || lc === 'fading' || lc === 'recycled')
+    return 'fading';
+  if (lc === 'peaking' || lc === 'breakout' || lc === 'trending') return 'hot';
+  if (lc === 'rising' || lc === 'emerging') return 'rising';
   if (statusRaw === 'EXPIRED' || statusRaw === 'DECLINING') return 'fading';
   if (statusRaw === 'PEAKING') return 'hot';
   if (statusRaw === 'RISING') return 'rising';
@@ -46,14 +52,64 @@ function statusFromScores(statusRaw: string, nemo: number, cvs: number, ss: numb
   return 'fading';
 }
 
+function lifecycleFromRow(
+  row: Record<string, unknown>,
+  status: TrendStatus,
+  nemo: number
+): LifecycleStatus {
+  const raw = String(row.lifecycle_status || row.lifecycle || '').toLowerCase();
+  const allowed: LifecycleStatus[] = [
+    'emerging',
+    'rising',
+    'breakout',
+    'trending',
+    'stable',
+    'fading',
+    'recycled',
+  ];
+  if (allowed.includes(raw as LifecycleStatus)) return raw as LifecycleStatus;
+  if (row.breakout_boolean || Number(row.breakout_score) >= 70) return 'breakout';
+  if (status === 'hot') return nemo >= 80 ? 'trending' : 'breakout';
+  if (status === 'rising') return nemo < 45 ? 'emerging' : 'rising';
+  return 'fading';
+}
+
+function confidenceFromScore(score: number): ConfidenceLevel {
+  if (score >= 70) return 'High';
+  if (score >= 40) return 'Moderate';
+  return 'Low';
+}
+
 function rowToTrend(row: Record<string, unknown>): TrendItem {
   const raw = row.raw_platform_data as TrendItem | null;
   const geoFromRow = (row.geo_regions as string[] | null) || [];
+  const nichesFromRow = (row.niches as string[] | null) || [];
+  const category = nicheToUiCategory(String(row.niche || nichesFromRow[0] || 'other'));
   if (raw?.id) {
+    const status =
+      raw.status ||
+      statusFromScores(String(row.status || 'RISING'), raw.nemoScore, raw.cvs, raw.ss);
+    const conf =
+      Number(row.confidence_score ?? raw.confidenceScore) ||
+      Math.min(100, raw.cps + raw.freshness / 2);
     return {
       ...raw,
       geoRegions: raw.geoRegions?.length ? raw.geoRegions : geoFromRow,
-      category: raw.category || nicheToUiCategory(String(row.niche || 'other')),
+      category: raw.category || category,
+      niches: raw.niches?.length
+        ? raw.niches
+        : nichesFromRow.length
+          ? nichesFromRow.map(nicheToUiCategory)
+          : [raw.category || category],
+      lifecycle: raw.lifecycle || lifecycleFromRow(row, status, raw.nemoScore),
+      confidenceScore: conf,
+      confidence: raw.confidence || confidenceFromScore(conf),
+      acceleration: (raw.acceleration ?? Number(row.acceleration_score)) || 0,
+      engagementScore: (raw.engagementScore ?? Number(row.engagement_score)) || 0,
+      noveltyScore: (raw.noveltyScore ?? Number(row.novelty_score)) || 0,
+      persistenceScore: (raw.persistenceScore ?? Number(row.persistence_score)) || 0,
+      breakoutScore: (raw.breakoutScore ?? Number(row.breakout_score)) || 0,
+      latestActivityAt: raw.latestActivityAt || String(row.last_seen_at || row.collected_at || ''),
     };
   }
   const statusRaw = String(row.status || 'RISING');
@@ -71,11 +127,16 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
       ? platformsPresent.map(mapDbPlatformToUi)
       : [mapDbPlatformToUi(String(row.platform || 'google'))]
   ) as TrendItem['platforms'];
+  const status = statusFromScores(statusRaw, nemo, cvs, ss);
+  const conf =
+    Number(row.confidence_score) ||
+    Math.min(100, (Number(row.cross_platform_score) || 0) + (Number(row.freshness_score) || 0) / 2);
   return {
     id: String(row.trend_id),
     title: String(row.topic_text || 'Untitled'),
     description: '',
-    category: nicheToUiCategory(String(row.niche || 'other')),
+    category,
+    niches: nichesFromRow.length ? nichesFromRow.map(nicheToUiCategory) : [category],
     platforms,
     contentType: 'KEYWORD',
     nemoScore: nemo,
@@ -84,9 +145,17 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
     cps: Number(row.cross_platform_score) || 0,
     freshness: Number(row.freshness_score) || 0,
     freshnessMultiplier: Number(row.freshness_multiplier) || 1,
-    velocity: ss,
+    velocity: Number(row.velocity_score) || ss,
     spike: ss,
-    status: statusFromScores(statusRaw, nemo, cvs, ss),
+    acceleration: Number(row.acceleration_score) || 0,
+    engagementScore: Number(row.engagement_score) || 0,
+    noveltyScore: Number(row.novelty_score) || 0,
+    persistenceScore: Number(row.persistence_score) || 0,
+    breakoutScore: Number(row.breakout_score) || 0,
+    status,
+    lifecycle: lifecycleFromRow(row, status, nemo),
+    confidenceScore: conf,
+    confidence: confidenceFromScore(conf),
     mentions24h,
     mentionsPrev24h: Number(row.mentions_prev_24h) || Math.max(1, Math.round(mentions24h * 0.6)),
     creatorsCount: creators72,
@@ -95,10 +164,13 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
     creatorsLast72h: creators72,
     hashtags: [],
     firstDetectedAt,
+    latestActivityAt: String(row.last_seen_at || row.collected_at || firstDetectedAt),
     sparklineData: [],
     timeAgo: '',
     isBookmarked: false,
     geoRegions: geoFromRow,
+    geoSpreadScore: Number(row.geo_spread_score) || geoFromRow.length,
+    breakoutBoolean: Boolean(row.breakout_boolean),
   };
 }
 
@@ -190,43 +262,77 @@ async function logCollectorRun(
   }
 }
 
-export async function getTrends(options?: { refresh?: boolean }): Promise<{
+export async function getTrends(options?: {
+  refresh?: boolean;
+  filters?: TrendQueryFilters;
+  /** Fetch more rows before filtering (default 200). */
+  fetchLimit?: number;
+}): Promise<{
   trends: TrendItem[];
   source: 'supabase' | 'memory' | 'mock';
   collectedAt: string | null;
+  lastIngestAt?: string | null;
+  totalBeforeFilter?: number;
 }> {
   // refresh is ignored — public reads must never trigger collectors (DoS / API quota).
   void options?.refresh;
   const now = Date.now();
   const supabaseConfigured = isSupabaseConfigured();
+  const fetchLimit = options?.fetchLimit ?? 200;
+  let lastIngestAt: string | null = null;
+
+  const finalize = (
+    trends: TrendItem[],
+    source: 'supabase' | 'memory' | 'mock',
+    collectedAt: string | null
+  ) => {
+    const totalBeforeFilter = trends.length;
+    const filtered = options?.filters
+      ? applyTrendFilters(trends, options.filters)
+      : applyTrendFilters(trends, { timeframeHours: 24, neverBlankTopK: true });
+    return {
+      trends: filtered,
+      source,
+      collectedAt,
+      lastIngestAt,
+      totalBeforeFilter,
+    };
+  };
 
   try {
     const supabase = await createClient();
     if (supabase) {
+      try {
+        const { data: runs } = await supabase
+          .from('collector_runs')
+          .select('finished_at')
+          .order('finished_at', { ascending: false })
+          .limit(1);
+        lastIngestAt = runs?.[0]?.finished_at ? String(runs[0].finished_at) : null;
+      } catch {
+        // optional
+      }
+
       const { data, error } = await supabase
         .from('trend_records')
         .select('*')
         .order('nemo_score', { ascending: false })
-        .limit(40);
+        .limit(fetchLimit);
 
       if (!error && data?.length) {
-        return {
-          trends: data.map((row) => rowToTrend(row as Record<string, unknown>)),
-          source: 'supabase',
-          collectedAt: new Date(lastCollectedAt || now).toISOString(),
-        };
+        return finalize(
+          data.map((row) => rowToTrend(row as Record<string, unknown>)),
+          'supabase',
+          lastIngestAt || new Date(lastCollectedAt || now).toISOString()
+        );
       }
 
       if (supabaseConfigured && !error) {
         // Honest empty: do not serve MOCK_TRENDS when DB is live but empty
         if (memoryStore.length) {
-          return {
-            trends: memoryStore,
-            source: 'memory',
-            collectedAt: new Date(lastCollectedAt || now).toISOString(),
-          };
+          return finalize(memoryStore, 'memory', new Date(lastCollectedAt || now).toISOString());
         }
-        return { trends: [], source: 'supabase', collectedAt: new Date().toISOString() };
+        return finalize([], 'supabase', new Date().toISOString());
       }
     }
   } catch {
@@ -234,18 +340,14 @@ export async function getTrends(options?: { refresh?: boolean }): Promise<{
   }
 
   if (memoryStore.length) {
-    return {
-      trends: memoryStore,
-      source: 'memory',
-      collectedAt: new Date(lastCollectedAt).toISOString(),
-    };
+    return finalize(memoryStore, 'memory', new Date(lastCollectedAt).toISOString());
   }
 
   if (supabaseConfigured || process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
-    return { trends: [], source: 'supabase', collectedAt: null };
+    return finalize([], 'supabase', null);
   }
 
-  return { trends: MOCK_TRENDS, source: 'mock', collectedAt: null };
+  return finalize(MOCK_TRENDS, 'mock', null);
 }
 
 export async function getRelatedTrends(

@@ -17,6 +17,10 @@ export type UserProfile = {
   onboarding_complete?: boolean;
   ai_usage_count?: number;
   ai_usage_period?: string;
+  default_niche?: string | null;
+  default_time_window?: string | null;
+  default_region?: string | null;
+  notifications_enabled?: boolean;
 };
 
 type AuthContextValue = {
@@ -97,6 +101,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         onboarding_complete: data.onboarding_complete,
         ai_usage_count: data.ai_usage_count,
         ai_usage_period: data.ai_usage_period,
+        default_niche: data.default_niche ?? null,
+        default_time_window: data.default_time_window ?? '24h',
+        default_region: data.default_region ?? 'GLOBAL',
+        notifications_enabled: data.notifications_enabled ?? false,
       });
       // DB plan wins — clear stale local demo plan
       try {

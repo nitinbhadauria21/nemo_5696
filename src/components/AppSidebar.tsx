@@ -19,6 +19,10 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: 'HomeIcon', group: 'main' },
+  { label: 'Explore', href: '/explore', icon: 'MagnifyingGlassIcon', group: 'main' },
+  { label: 'Saved', href: '/saved', icon: 'BookmarkIcon', group: 'main' },
+  { label: 'Alerts', href: '/alerts', icon: 'BellIcon', group: 'main' },
+  { label: 'History', href: '/history', icon: 'ClockIcon', group: 'main' },
   { label: 'Content Queue', href: '/queue', icon: 'QueueListIcon', group: 'create' },
   { label: 'Carousel Studio', href: '/carousel', icon: 'RectangleGroupIcon', group: 'create' },
   {
@@ -32,6 +36,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Reports', href: '/reports', icon: 'ChartBarIcon', group: 'insights' },
   { label: 'Pricing', href: '/pricing', icon: 'CreditCardIcon', group: 'account' },
   { label: 'Settings', href: '/settings', icon: 'Cog6ToothIcon', group: 'account' },
+  { label: 'Admin', href: '/admin', icon: 'ShieldCheckIcon', group: 'account' },
 ];
 
 const NAV_GROUPS = [

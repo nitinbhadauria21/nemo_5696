@@ -1,6 +1,10 @@
-import { redirect } from 'next/navigation';
+import AppLayout from '@/components/AppLayout';
+import ExploreContent from './components/ExploreContent';
 
-/** Explore is retired — Dashboard is the single trends surface. */
 export default function ExplorePage() {
-  redirect('/dashboard');
+  return (
+    <AppLayout>
+      <ExploreContent />
+    </AppLayout>
+  );
 }

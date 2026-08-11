@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import LiveBadge from './LiveBadge';
 import DashboardKPICards from './DashboardKPICards';
 import DashboardFilters, { type DashboardFilterState } from './DashboardFilters';
 import DashboardSidebar from './DashboardSidebar';
 import TrendCard from './TrendCard';
+import RealtimeStatus from './RealtimeStatus';
+import DataSourceStatus from './DataSourceStatus';
 import type { TrendItem } from '@/lib/mockData';
 import { COUNTRIES } from '@/lib/countries';
 import { useAuth } from '@/context/AuthContext';
-import { selectDashboardTrends } from '@/lib/trends/trendingGate';
 
 /** Prefer real age from firstDetectedAt so cards aren't stuck on collector stub "1h/2h/3h". */
 function formatTimeAgo(firstDetectedAt: string, fallback: string): string {
@@ -25,16 +25,10 @@ function formatTimeAgo(firstDetectedAt: string, fallback: string): string {
   return `${days}d ago`;
 }
 
-function withinTimeframe(t: TrendItem, timeframeHours: number): boolean {
-  const detected = Date.parse(t.firstDetectedAt || '');
-  if (!Number.isFinite(detected) || detected <= 0) return true;
-  return Date.now() - detected <= timeframeHours * 3600 * 1000;
-}
-
 function emptyStateCopy(filters: DashboardFilterState, opts: { rawCount: number }): string {
   const { rawCount } = opts;
   if (rawCount === 0) {
-    return `No trends loaded yet. Use Reload data, or wait for the next ingest.`;
+    return `No trends loaded yet. Use Refresh, or wait for the next ingest.`;
   }
 
   const parts: string[] = [];
@@ -42,7 +36,7 @@ function emptyStateCopy(filters: DashboardFilterState, opts: { rawCount: number 
     parts.push(`sources: ${filters.platforms.join(', ')}`);
   }
   if (!filters.categories.includes('All')) {
-    parts.push(`categories: ${filters.categories.join(', ')}`);
+    parts.push(`niches: ${filters.categories.join(', ')}`);
   }
   if (filters.keyword.trim()) {
     parts.push(`keyword “${filters.keyword.trim()}”`);
@@ -64,19 +58,60 @@ function emptyStateCopy(filters: DashboardFilterState, opts: { rawCount: number 
   if (filters.platforms.length > 0) {
     return `No trends match ${parts.join(' · ')}. Try All Sources or a wider window, then Submit.`;
   }
-  return `No trends in the last ${filters.timeframe}. Reload data or widen the window (48h / 72h), then Submit.`;
+  return `No trends in the last ${filters.timeframe}. Refresh or widen the window (48h / 72h), then Submit.`;
+}
+
+function prefsToFilters(
+  profile: {
+    niches?: string[];
+    platforms?: string[];
+    default_time_window?: string | null;
+    default_region?: string | null;
+  } | null
+): DashboardFilterState {
+  const niches = (profile?.niches || []).filter(Boolean);
+  const platforms = (profile?.platforms || []) as DashboardFilterState['platforms'];
+  const tf = profile?.default_time_window || '24h';
+  const region = profile?.default_region;
+  return {
+    categories: niches.length ? niches : ['All'],
+    platforms: Array.isArray(platforms) ? platforms.filter(Boolean) : [],
+    keyword: '',
+    timeframe: tf === '48h' || tf === '72h' ? tf : '24h',
+    bookmarksOnly: false,
+    countries: region && region !== 'GLOBAL' ? [region] : [],
+    sortBy: 'score',
+  };
+}
+
+function buildQuery(filters: DashboardFilterState): string {
+  const params = new URLSearchParams();
+  if (!filters.categories.includes('All') && filters.categories.length) {
+    params.set('niche', filters.categories.join(','));
+  }
+  if (filters.platforms.length) params.set('platforms', filters.platforms.join(','));
+  if (filters.countries.length) params.set('geo', filters.countries.join(','));
+  if (filters.keyword.trim()) params.set('q', filters.keyword.trim());
+  params.set('timeframe', filters.timeframe || '24h');
+  params.set('sortBy', filters.sortBy);
+  return params.toString();
 }
 
 export default function DashboardContent() {
   const { profile, user } = useAuth();
   const [trends, setTrends] = useState<TrendItem[]>([]);
+  const [totalBeforeFilter, setTotalBeforeFilter] = useState(0);
   const [source, setSource] = useState<string>('loading');
+  const [lastIngestAt, setLastIngestAt] = useState<string | null>(null);
+  const [sourcesActive, setSourcesActive] = useState(0);
+  const [sourcesUnavailable, setSourcesUnavailable] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [prefsReady, setPrefsReady] = useState(false);
   const [activeFilters, setActiveFilters] = useState<DashboardFilterState>({
     categories: ['All'],
     platforms: [],
     keyword: '',
-    timeframe: '72h',
+    timeframe: '24h',
     bookmarksOnly: false,
     countries: [],
     sortBy: 'score',
@@ -91,28 +126,73 @@ export default function DashboardContent() {
   const planLabel =
     profile?.plan === 'agency' ? 'Agency' : profile?.plan === 'pro' ? 'Pro' : 'Free';
 
-  const loadTrends = async (refresh = false) => {
-    try {
-      const res = await fetch(`/api/trends${refresh ? '?refresh=1' : ''}`);
-      if (!res.ok) {
-        setSource('error');
-        return;
-      }
-      const data = await res.json();
-      if (Array.isArray(data.trends)) {
-        setTrends(data.trends);
-        setSource(data.source || 'api');
-      }
-    } catch {
-      setSource('error');
+  useEffect(() => {
+    if (prefsReady) return;
+    if (profile) {
+      setActiveFilters(prefsToFilters(profile as Parameters<typeof prefsToFilters>[0]));
+      setPrefsReady(true);
+    } else if (user === null || profile === null) {
+      // Wait briefly for profile; fall through with 24h defaults
+      const t = setTimeout(() => setPrefsReady(true), 400);
+      return () => clearTimeout(t);
     }
-  };
+  }, [profile, user, prefsReady]);
+
+  const loadTrends = useCallback(
+    async (refresh = false, filters = activeFilters) => {
+      try {
+        const qs = buildQuery(filters);
+        const res = await fetch(`/api/trends?${qs}${refresh ? '&refresh=1' : ''}`);
+        if (!res.ok) {
+          setSource('error');
+          return;
+        }
+        const data = await res.json();
+        if (Array.isArray(data.trends)) {
+          setTrends(data.trends);
+          setSource(data.source || 'api');
+          setLastIngestAt(data.lastIngestAt || data.collectedAt || null);
+          setTotalBeforeFilter(Number(data.totalBeforeFilter) || data.trends.length);
+        }
+      } catch {
+        setSource('error');
+      }
+    },
+    [activeFilters]
+  );
+
+  const loadSourceStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/data-sources/status');
+      if (!res.ok) return;
+      const data = await res.json();
+      const list = Array.isArray(data.sources) ? data.sources : [];
+      setSourcesActive(
+        list.filter((s: { status?: string }) => s.status === 'active' || s.status === 'live').length
+      );
+      setSourcesUnavailable(
+        list.filter((s: { status?: string }) =>
+          ['unavailable', 'error', 'disabled', 'estimated'].includes(String(s.status))
+        ).length
+      );
+    } catch {
+      // optional endpoint
+    }
+  }, []);
 
   useEffect(() => {
-    loadTrends(false);
-    const interval = setInterval(() => loadTrends(true), 10 * 60 * 1000);
+    if (!prefsReady) return;
+    loadTrends(false, activeFilters);
+    loadSourceStatus();
+    const interval = setInterval(
+      () => {
+        loadTrends(true, activeFilters);
+        loadSourceStatus();
+      },
+      10 * 60 * 1000
+    );
     return () => clearInterval(interval);
-  }, []);
+  }, [prefsReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetch('/api/bookmarks')
@@ -127,9 +207,17 @@ export default function DashboardContent() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await loadTrends(true);
+    await loadTrends(true, activeFilters);
+    await loadSourceStatus();
     setIsRefreshing(false);
-    toast.success('Trends reloaded from API');
+    toast.success('Trends refreshed');
+  };
+
+  const handleFiltersChange = async (filters: DashboardFilterState) => {
+    setActiveFilters(filters);
+    setIsRefreshing(true);
+    await loadTrends(false, filters);
+    setIsRefreshing(false);
   };
 
   const handleBookmarkToggle = async (id: string) => {
@@ -144,81 +232,43 @@ export default function DashboardContent() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ trendId: id }),
         });
+        await fetch('/api/saved', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trendId: id }),
+        }).catch(() => {});
       } else {
         await fetch(`/api/bookmarks/${id}`, { method: 'DELETE' });
+        await fetch(`/api/saved/${id}`, { method: 'DELETE' }).catch(() => {});
       }
-      toast(next ? 'Trend saved to bookmarks' : 'Bookmark removed');
+      toast(next ? 'Trend saved' : 'Removed from saved');
     } catch {
       setTrends((prev) => prev.map((t) => (t.id === id ? { ...t, isBookmarked: !next } : t)));
       toast.error('Could not update bookmark');
     }
   };
 
-  const timeframeHours =
-    activeFilters.timeframe === '48h' ? 48 : activeFilters.timeframe === '72h' ? 72 : 24;
+  // Client bookmarksOnly is the only client-side filter (server handles the rest).
+  let displayTrends = activeFilters.bookmarksOnly ? trends.filter((t) => t.isBookmarked) : trends;
 
-  // Never-blank top-K-per-platform selection (soft gate boost only).
-  const selectedTrends = selectDashboardTrends(trends);
+  displayTrends = displayTrends.map((t) => ({
+    ...t,
+    timeAgo: formatTimeAgo(t.firstDetectedAt, t.timeAgo),
+  }));
 
-  let filteredTrends = selectedTrends.filter((t) => {
-    if (activeFilters.bookmarksOnly && !t.isBookmarked) return false;
-    if (!activeFilters.categories.includes('All') && !activeFilters.categories.includes(t.category))
-      return false;
-    if (
-      activeFilters.platforms.length > 0 &&
-      !activeFilters.platforms.some((p) => t.platforms.includes(p))
-    ) {
-      return false;
-    }
-    const kw = activeFilters.keyword.trim().toLowerCase();
-    if (kw) {
-      const inTitle = t.title.toLowerCase().includes(kw);
-      const inDesc = (t.description || '').toLowerCase().includes(kw);
-      const inTags = (t.hashtags || []).some((h) => h.toLowerCase().includes(kw));
-      if (!inTitle && !inDesc && !inTags) return false;
-    }
-    // Empty countries = Global: show all (including untagged geoRegions).
-    // When countries are selected: keep matching geo OR untagged rows so the grid
-    // doesn't go blank until collectors stamp geo on every trend.
-    if (activeFilters.countries.length > 0) {
-      const trendRegions = t.geoRegions ?? [];
-      if (trendRegions.length > 0) {
-        const hasMatch = activeFilters.countries.some(
-          (code) =>
-            trendRegions.includes(code) ||
-            (code === 'GB' && trendRegions.includes('UK')) ||
-            (code === 'UK' && trendRegions.includes('GB'))
-        );
-        if (!hasMatch) return false;
-      }
-    }
-    if (!withinTimeframe(t, timeframeHours)) return false;
-    return true;
-  });
-
-  // User filters yielded nothing but we have a selected set → show tops for the window.
-  if (filteredTrends.length === 0 && selectedTrends.length > 0) {
-    const inWindow = selectedTrends.filter((t) => withinTimeframe(t, timeframeHours));
-    filteredTrends = inWindow.length > 0 ? inWindow : selectedTrends;
-  }
-
-  const sortedTrends = [...filteredTrends]
-    .map((t) => ({
-      ...t,
-      timeAgo: formatTimeAgo(t.firstDetectedAt, t.timeAgo),
-    }))
-    .sort((a, b) => {
-      if (activeFilters.sortBy === 'rising') return b.velocity - a.velocity;
-      if (activeFilters.sortBy === 'recent') {
-        return new Date(b.firstDetectedAt).getTime() - new Date(a.firstDetectedAt).getTime();
-      }
-      return b.nemoScore - a.nemoScore;
-    });
-
-  const featuredTrends = sortedTrends.filter((t) => t.nemoScore >= 70).slice(0, 3);
-  const displayTrends = sortedTrends;
-  const hotCount = displayTrends.filter((t) => t.status === 'hot').length;
-  const risingCount = displayTrends.filter((t) => t.status === 'rising').length;
+  const fadingTrends = displayTrends.filter(
+    (t) => t.lifecycle === 'fading' || (!t.lifecycle && t.status === 'fading')
+  );
+  const primaryTrends = displayTrends.filter(
+    (t) => t.lifecycle !== 'fading' && t.lifecycle !== 'recycled' && t.status !== 'fading'
+  );
+  const featuredTrends = primaryTrends.filter((t) => t.nemoScore >= 70).slice(0, 3);
+  const emergingCount = primaryTrends.filter(
+    (t) => t.lifecycle === 'emerging' || t.lifecycle === 'breakout' || t.status === 'hot'
+  ).length;
+  const risingCount = primaryTrends.filter(
+    (t) => t.lifecycle === 'rising' || t.status === 'rising'
+  ).length;
 
   const sortLabel =
     activeFilters.sortBy === 'rising'
@@ -240,13 +290,12 @@ export default function DashboardContent() {
               Hey {displayName.split(' ')[0]} — Live trends
             </h1>
             <p className="text-base text-foreground/65 font-sans truncate mt-0.5">
-              {planLabel} plan · source: {source}
+              {planLabel} plan · Near real-time · source: {source}
             </p>
           </div>
-          <LiveBadge />
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button className="btn-flame px-5 py-2.5 whitespace-nowrap rounded-xl">
+          <button type="button" className="btn-flame px-5 py-2.5 whitespace-nowrap rounded-xl">
             + Add to Queue
           </button>
         </div>
@@ -255,11 +304,22 @@ export default function DashboardContent() {
       <div className="px-4 sm:px-5 py-4 max-w-screen-2xl mx-auto">
         <div className="flex gap-5">
           <div className="flex-1 min-w-0 flex flex-col gap-4">
-            <DashboardKPICards trends={selectedTrends} />
+            <RealtimeStatus
+              lastIngestAt={lastIngestAt}
+              trendCount={displayTrends.length}
+              sourcesActive={sourcesActive}
+              sourcesUnavailable={sourcesUnavailable}
+              isRefreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              sourceLabel={source}
+            />
+            <DataSourceStatus compact />
+            <DashboardKPICards trends={primaryTrends.length ? primaryTrends : displayTrends} />
             <DashboardFilters
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
-              onFiltersChange={setActiveFilters}
+              onFiltersChange={handleFiltersChange}
+              initialFilters={activeFilters}
             />
 
             {selectedCountryNames.length > 0 && (
@@ -271,29 +331,10 @@ export default function DashboardContent() {
               </div>
             )}
 
-            <div className="rounded-2xl border-2 border-primary/25 bg-primary/5 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <div>
-                <p className="text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-primary">
-                  Daily digest
-                </p>
-                <p className="text-sm text-foreground font-sans mt-1 leading-relaxed">
-                  {hotCount + risingCount} trends need your attention today —{' '}
-                  {featuredTrends[0]?.title ?? 'refresh for latest picks'} leads the pack.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleRefresh}
-                className="text-sm font-semibold text-primary hover:underline self-start sm:self-center"
-              >
-                Reload digest →
-              </button>
-            </div>
-
             {featuredTrends.length > 0 && (
               <div>
                 <h2 className="font-semibold tracking-tight text-lg mb-3 text-foreground">
-                  Top 3 Featured Trends
+                  Top Featured Trends
                 </h2>
                 <div className="grid sm:grid-cols-3 gap-3">
                   {featuredTrends.map((trend) => (
@@ -315,16 +356,16 @@ export default function DashboardContent() {
                   activeFilters.keyword ||
                   !activeFilters.categories.includes('All')
                     ? 'Filtered Trends'
-                    : 'All Trends'}{' '}
+                    : 'Active Trends'}{' '}
                   <span className="text-primary font-semibold">
-                    {filteredTrends.length} detected
+                    {primaryTrends.length} detected
                   </span>
                 </h2>
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[0.75rem] font-semibold uppercase tracking-[0.06em]">
-                    {hotCount} Hot
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 text-[0.75rem] font-semibold uppercase tracking-[0.06em]">
+                    {emergingCount} Emerging/Hot
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/15 text-[#8a5a00] dark:text-amber-200 text-[0.75rem] font-semibold uppercase tracking-[0.06em]">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-800 dark:text-blue-300 text-[0.75rem] font-semibold uppercase tracking-[0.06em]">
                     {risingCount} Rising
                   </span>
                 </div>
@@ -334,26 +375,44 @@ export default function DashboardContent() {
               </span>
             </div>
 
-            {trends.length === 0 ? (
+            {displayTrends.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <p className="font-display font-bold text-foreground text-xl mb-2">
                   No trends found
                 </p>
                 <p className="text-base text-foreground/65 font-sans max-w-lg">
-                  {emptyStateCopy(activeFilters, { rawCount: trends.length })}
+                  {emptyStateCopy(activeFilters, { rawCount: totalBeforeFilter })}
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {displayTrends.map((trend) => (
+                {(primaryTrends.length ? primaryTrends : displayTrends).map((trend) => (
                   <TrendCard key={trend.id} trend={trend} onBookmarkToggle={handleBookmarkToggle} />
                 ))}
+              </div>
+            )}
+
+            {fadingTrends.length > 0 && (
+              <div className="mt-4">
+                <h2 className="font-semibold tracking-tight text-foreground text-lg mb-3">
+                  Fading{' '}
+                  <span className="text-foreground/50 font-medium">{fadingTrends.length}</span>
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 opacity-90">
+                  {fadingTrends.map((trend) => (
+                    <TrendCard
+                      key={`fading-${trend.id}`}
+                      trend={trend}
+                      onBookmarkToggle={handleBookmarkToggle}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
           <div className="w-64 xl:w-72 flex-shrink-0 hidden lg:block">
-            <DashboardSidebar trends={selectedTrends} />
+            <DashboardSidebar trends={primaryTrends.length ? primaryTrends : displayTrends} />
           </div>
         </div>
       </div>

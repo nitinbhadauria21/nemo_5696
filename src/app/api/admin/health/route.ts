@@ -5,12 +5,24 @@ import { requireAdminSession } from '@/lib/admin/auth';
 import { resolveAiProvider } from '@/lib/ai/runPrompt';
 import { getTrendCollectorEnvStatus } from '@/lib/trends/collectorEnv';
 import { canSealConnectionTokens } from '@/lib/crypto/sealTokens';
+import { validateEnv } from '@/lib/env/validate';
 
 export async function GET() {
   const adminAuth = await requireAdminSession();
   if (adminAuth !== true) return adminAuth;
 
   const checks: { id: string; name: string; status: string; detail: string }[] = [];
+  const envCheck = validateEnv();
+  checks.push({
+    id: 'env',
+    name: 'Env validation',
+    status: envCheck.ok ? 'operational' : 'down',
+    detail: envCheck.ok
+      ? envCheck.missingRecommended.length
+        ? `OK (optional missing: ${envCheck.missingRecommended.join(', ')})`
+        : 'All critical + recommended present'
+      : `Missing critical: ${envCheck.missingCritical.join(', ')}`,
+  });
 
   if (isSupabaseConfigured()) {
     const admin = createAdminClient();

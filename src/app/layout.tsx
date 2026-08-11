@@ -8,6 +8,8 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
 import AuthRecoveryRedirect from '@/components/AuthRecoveryRedirect';
 import SessionHeartbeat from '@/components/SessionHeartbeat';
+import PwaRegister from '@/components/PwaRegister';
+import OfflineBanner from '@/components/OfflineBanner';
 
 const fredoka = Fredoka({
   subsets: ['latin'],
@@ -39,7 +41,13 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: 'NEMO — Catch Every Trend Before It Peaks',
   description:
-    'Real-time trend detection across Google Trends, YouTube Shorts, Instagram Reels, and LinkedIn. AI-powered analysis and content ideas for creators.',
+    'Near real-time trend detection across Google Trends, YouTube, Instagram, Reddit, and more. AI-powered analysis for creators.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'NEMO',
+  },
   icons: {
     icon: [{ url: '/assets/images/1-1783875917780.png', type: 'image/png' }],
     apple: '/assets/images/1-1783875917780.png',
@@ -54,6 +62,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <AuthProvider>
             <AuthRecoveryRedirect />
             <SessionHeartbeat />
+            <PwaRegister />
+            <OfflineBanner />
             {children}
             <Toaster
               position="bottom-right"

@@ -46,36 +46,36 @@ export function collectionGeoRegions(override?: string | null): string[] {
 
 const UI_CATEGORY_SET = new Set(CATEGORIES.filter((c) => c !== 'All'));
 
-/** Map free-text / DB niche toward Dashboard UI categories. */
+/** Map free-text / DB niche toward brief Dashboard niches. */
 export function mapToUiCategory(raw: string | undefined | null, titleHint = ''): string {
   const text = `${raw || ''} ${titleHint}`.trim();
-  if (!text) return 'other';
+  if (!text) return 'AI';
   if (UI_CATEGORY_SET.has(text)) return text;
 
   const c = text.toLowerCase();
   if (/\b(ai|artificial|tech|gpt|claude|llm|software|coding|robot)\b/.test(c) || c === 'ai')
-    return 'AI & Tech';
-  if (/\b(market|seo|ads|brand|growth|content market)\b/.test(c) || c === 'marketing')
-    return 'Marketing';
-  if (/\b(sport|cricket|ipl|football|nba|soccer|tennis)\b/.test(c) || c === 'sports')
-    return 'Sports';
-  if (/\b(game|gaming|esport|steam|xbox|playstation)\b/.test(c) || c === 'gaming') return 'Gaming';
+    return 'AI';
+  if (/\b(fit|gym|workout|health|wellness|sport|cricket|ipl|football)\b/.test(c) || c === 'fitness')
+    return 'Fitness';
   if (/\b(financ|crypto|stock|invest|upi|bank|money)\b/.test(c) || c === 'finance')
     return 'Finance';
-  if (
-    /\b(business|startup|entrepreneur|saas|b2b)\b/.test(c) ||
-    c === 'business' ||
-    c === 'startups'
-  )
-    return 'Business';
-  if (/\b(productiv|notion|workflow|habits|focus)\b/.test(c) || c === 'productivity')
-    return 'Productivity';
-  if (/\b(fit|gym|workout|health|wellness)\b/.test(c) || c === 'fitness') return 'Fitness';
   if (/\b(fashion|beauty|style|outfit|luxury)\b/.test(c) || c === 'fashion') return 'Fashion';
-  if (/\b(food|cook|recipe|restaurant|cuisine)\b/.test(c) || c === 'food') return 'Food';
+  if (/\b(game|gaming|esport|steam|xbox|playstation|minecraft)\b/.test(c) || c === 'gaming')
+    return 'Gaming';
+  if (/\b(movie|film|cinema|netflix|hollywood|series|trailer)\b/.test(c) || c === 'movies')
+    return 'Movies';
+  if (/\b(educat|learn|course|school|study|productiv|notion)\b/.test(c) || c === 'education')
+    return 'Education';
+  if (
+    /\b(startup|entrepreneur|saas|b2b|business|market|seo|ads|brand)\b/.test(c) ||
+    c === 'startups' ||
+    c === 'business' ||
+    c === 'marketing'
+  )
+    return 'Startups';
   if (/\b(travel|tourism|flight|hotel|vacation)\b/.test(c) || c === 'travel') return 'Travel';
-  if (/\b(educat|learn|course|school|study)\b/.test(c) || c === 'education') return 'Education';
-  return 'other';
+  if (/\b(food|cook|recipe|restaurant|cuisine)\b/.test(c) || c === 'food') return 'Food';
+  return 'AI';
 }
 
 /** Discard at ingest when older than 30 days. */
@@ -627,10 +627,10 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
   }
 
   const seeds = [
-    { title: 'AI agents for creators', niche: 'AI & Tech', growth: 420 },
+    { title: 'AI agents for creators', niche: 'AI', growth: 420 },
     { title: 'UPI credit cards India', niche: 'Finance', growth: 280 },
-    { title: 'Short-form SEO 2026', niche: 'Marketing', growth: 210 },
-    { title: 'IPL highlight hooks', niche: 'Sports', growth: 350 },
+    { title: 'Short-form SEO 2026', niche: 'Startups', growth: 210 },
+    { title: 'IPL highlight hooks', niche: 'Fitness', growth: 350 },
     { title: 'Quiet luxury reels', niche: 'Fashion', growth: 160 },
   ];
 
@@ -827,7 +827,7 @@ export async function collectLinkedInTrends(): Promise<TrendItem[]> {
       elements.map((_: unknown, idx: number) =>
         toTrendItem({
           topic: `LinkedIn trending topic ${idx + 1}`,
-          niche: 'Business',
+          niche: 'Startups',
           platforms: ['linkedin'],
           creators6h: 20 + idx * 4,
           creators24h: 70 + idx * 8,
