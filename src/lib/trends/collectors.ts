@@ -9,15 +9,6 @@ import {
   scoreRedditSignals,
   scoreYouTubeSignals,
 } from '@/lib/signals';
-import {
-  extractHashtags,
-  getScrapeCreatorsApiKey,
-  scrapeCreatorsGet,
-  topicsFromTrendBotText,
-  type ScTikTokAweme,
-  type ScTweet,
-  type ScYoutubeShort,
-} from '@/lib/trends/scrapeCreators';
 
 function hashId(input: string): string {
   let h = 0;
@@ -639,11 +630,7 @@ export async function collectTikTokTrends(): Promise<TrendItem[]> {
   }
 
   const { scrapeCreatorsGet } = await import('./scrapeCreators');
-  const region = (
-    process.env.SCRAPECREATORS_TIKTOK_REGION ||
-    process.env.GOOGLE_TRENDS_GEO ||
-    'US'
-  )
+  const region = (process.env.SCRAPECREATORS_TIKTOK_REGION || process.env.GOOGLE_TRENDS_GEO || 'US')
     .trim()
     .toUpperCase()
     .slice(0, 2);
@@ -681,7 +668,9 @@ export async function collectTikTokTrends(): Promise<TrendItem[]> {
     const desc = String(item.desc || '').trim();
     const topic =
       desc.split(/[#\n]/)[0]?.trim().slice(0, 100) ||
-      (item.author?.nickname ? `TikTok @${item.author.unique_id || item.author.nickname}` : `TikTok trend ${idx + 1}`);
+      (item.author?.nickname
+        ? `TikTok @${item.author.unique_id || item.author.nickname}`
+        : `TikTok trend ${idx + 1}`);
     const hashtags = Array.from(desc.matchAll(/#([\w]+)/g))
       .slice(0, 3)
       .map((m) => `#${m[1]}`);

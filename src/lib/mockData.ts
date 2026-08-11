@@ -6,14 +6,7 @@ export type TrendStatus = 'hot' | 'rising' | 'fading';
  * Google Trends 18%, Twitter/X 12%, Reddit 5%, LinkedIn 3%.
  */
 export type TrendPlatform =
-  | 'google'
-  | 'youtube'
-  | 'instagram'
-  | 'linkedin'
-  | 'tiktok'
-  | 'twitter'
-  | 'reddit'
-  | 'facebook';
+  'google' | 'youtube' | 'instagram' | 'linkedin' | 'tiktok' | 'twitter' | 'reddit' | 'facebook';
 
 export type TrendContentType = 'TOPIC' | 'HOOK' | 'CONCEPT' | 'KEYWORD';
 

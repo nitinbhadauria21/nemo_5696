@@ -9,7 +9,9 @@ export type CollectorKeyStatus = {
 };
 
 export function getTrendCollectorEnvStatus(): CollectorKeyStatus[] {
-  const scrapeCreators = Boolean(process.env.SCRAPECREATORS_API_KEY?.trim());
+  const scrapeCreators = Boolean(
+    process.env.SCRAPECREATORS_API_KEY?.trim() || process.env.SCRAPE_CREATORS_API_KEY?.trim()
+  );
   return [
     { platform: 'reddit', key: '(public JSON — no key)', present: true },
     {
@@ -22,9 +24,9 @@ export function getTrendCollectorEnvStatus(): CollectorKeyStatus[] {
       key: 'SERPAPI_KEY | SEARCHAPI_KEY | GOOGLE_TRENDS_PROXY_URL',
       present: Boolean(
         process.env.SERPAPI_KEY?.trim() ||
-          process.env.SEARCHAPI_KEY?.trim() ||
-          process.env.SEARCHAPI_API_KEY?.trim() ||
-          process.env.GOOGLE_TRENDS_PROXY_URL?.trim()
+        process.env.SEARCHAPI_KEY?.trim() ||
+        process.env.SEARCHAPI_API_KEY?.trim() ||
+        process.env.GOOGLE_TRENDS_PROXY_URL?.trim()
       ),
     },
     {
