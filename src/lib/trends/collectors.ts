@@ -233,48 +233,80 @@ export async function collectYouTubeTrends(): Promise<TrendItem[]> {
   }
 }
 
+function mapGoogleTrendRows(items: any[], sourceLabel: string): TrendItem[] {
+  return items.slice(0, 8).map((item: any, idx: number) => {
+    const title = String(item.query || item.title || item.story_title || `Trend ${idx}`).slice(
+      0,
+      120
+    );
+    const growth = Number(
+      item.increase_percentage ?? item.percentage_increase ?? item.growth ?? 100 + idx * 10
+    );
+    const nicheRaw = item.category ?? item.categories?.[0] ?? 'other';
+    const niche = Array.isArray(nicheRaw) ? String(nicheRaw[0] || 'other') : String(nicheRaw);
+    return toTrendItem({
+      topic: title,
+      niche,
+      platforms: ['google'],
+      creators6h: 20 + idx * 3,
+      creators24h: 60 + idx * 8,
+      creators72h: 150 + idx * 12,
+      mentions24h: Math.max(100, Math.round(growth * 10)),
+      mentionsPrev24h: Math.max(100, Math.round(growth * 10)),
+      ageHours: 2 + idx,
+      description: `Google Trends (${sourceLabel}): ${title}`,
+      hashtags: ['#googletrends'],
+    });
+  });
+}
+
 /**
- * Google Trends via SERPAPI_KEY (preferred) or GOOGLE_TRENDS_PROXY_URL.
- * Production never fabricates seeds.
+ * Google Trends via SERPAPI_KEY (preferred), then SEARCHAPI_KEY / SEARCHAPI_API_KEY
+ * (searchapi.io), then GOOGLE_TRENDS_PROXY_URL. Production never fabricates seeds.
  */
 export async function collectGoogleTrends(): Promise<TrendItem[]> {
+  const geo = process.env.GOOGLE_TRENDS_GEO || 'IN';
   const serpKey = process.env.SERPAPI_KEY?.trim();
   if (serpKey) {
     try {
       const url = new URL('https://serpapi.com/search.json');
       url.searchParams.set('engine', 'google_trends_trending_now');
-      url.searchParams.set('geo', process.env.GOOGLE_TRENDS_GEO || 'IN');
+      url.searchParams.set('geo', geo);
       url.searchParams.set('api_key', serpKey);
       const res = await fetch(url.toString(), { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         const items = (data.trending_searches || data.trends || data.news_results || []) as any[];
         if (Array.isArray(items) && items.length) {
-          return items.slice(0, 8).map((item: any, idx: number) => {
-            const title = String(
-              item.query || item.title || item.story_title || `Trend ${idx}`
-            ).slice(0, 120);
-            const growth = Number(item.increase_percentage ?? item.growth ?? 100 + idx * 10);
-            return toTrendItem({
-              topic: title,
-              niche: String(item.category || 'other'),
-              platforms: ['google'],
-              creators6h: 20 + idx * 3,
-              creators24h: 60 + idx * 8,
-              creators72h: 150 + idx * 12,
-              mentions24h: Math.max(100, Math.round(growth * 10)),
-              mentionsPrev24h: Math.max(100, Math.round(growth * 10)),
-              ageHours: 2 + idx,
-              description: `Google Trends (live): ${title}`,
-              hashtags: ['#googletrends'],
-            });
-          });
+          return mapGoogleTrendRows(items, 'SerpAPI');
         }
       } else {
         console.error('SerpAPI Google Trends HTTP', res.status);
       }
     } catch (err) {
       console.error('SerpAPI Google Trends failed', err);
+    }
+  }
+
+  const searchApiKey = process.env.SEARCHAPI_KEY?.trim() || process.env.SEARCHAPI_API_KEY?.trim();
+  if (searchApiKey) {
+    try {
+      const url = new URL('https://www.searchapi.io/api/v1/search');
+      url.searchParams.set('engine', 'google_trends_trending_now');
+      url.searchParams.set('geo', geo);
+      url.searchParams.set('api_key', searchApiKey);
+      const res = await fetch(url.toString(), { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        const items = (data.trends || data.trending_searches || data.trending_now || []) as any[];
+        if (Array.isArray(items) && items.length) {
+          return mapGoogleTrendRows(items, 'SearchAPI.io');
+        }
+      } else {
+        console.error('SearchAPI.io Google Trends HTTP', res.status);
+      }
+    } catch (err) {
+      console.error('SearchAPI.io Google Trends failed', err);
     }
   }
 

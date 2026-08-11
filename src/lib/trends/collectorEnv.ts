@@ -18,9 +18,12 @@ export function getTrendCollectorEnvStatus(): CollectorKeyStatus[] {
     },
     {
       platform: 'google_trends',
-      key: 'SERPAPI_KEY | GOOGLE_TRENDS_PROXY_URL',
+      key: 'SERPAPI_KEY | SEARCHAPI_KEY | GOOGLE_TRENDS_PROXY_URL',
       present: Boolean(
-        process.env.SERPAPI_KEY?.trim() || process.env.GOOGLE_TRENDS_PROXY_URL?.trim()
+        process.env.SERPAPI_KEY?.trim() ||
+        process.env.SEARCHAPI_KEY?.trim() ||
+        process.env.SEARCHAPI_API_KEY?.trim() ||
+        process.env.GOOGLE_TRENDS_PROXY_URL?.trim()
       ),
     },
     {
