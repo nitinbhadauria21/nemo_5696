@@ -10,6 +10,7 @@ import TrendCard from './TrendCard';
 import type { TrendItem } from '@/lib/mockData';
 import { COUNTRIES } from '@/lib/countries';
 import { useAuth } from '@/context/AuthContext';
+import { isTrendingTopic, TRENDING_GATE } from '@/lib/trends/trendingGate';
 
 /** Prefer real age from firstDetectedAt so cards aren't stuck on collector stub "1h/2h/3h". */
 function formatTimeAgo(firstDetectedAt: string, fallback: string): string {
@@ -24,7 +25,18 @@ function formatTimeAgo(firstDetectedAt: string, fallback: string): string {
   return `${days}d ago`;
 }
 
-function emptyStateCopy(filters: DashboardFilterState): string {
+function emptyStateCopy(
+  filters: DashboardFilterState,
+  opts: { gatedCount: number; rawCount: number }
+): string {
+  const { gatedCount, rawCount } = opts;
+  if (rawCount === 0) {
+    return `No trends loaded yet. Use Reload data, or wait for the next ingest.`;
+  }
+  if (gatedCount === 0) {
+    return `No topics currently meet the trending bar (Score ≥${TRENDING_GATE.nemoScore}, Velocity ≥${TRENDING_GATE.cvs}, Spike ≥${TRENDING_GATE.ss}). Widen the window or Reload data, then Submit.`;
+  }
+
   const parts: string[] = [];
   if (filters.platforms.length > 0) {
     parts.push(`sources: ${filters.platforms.join(', ')}`);
@@ -41,10 +53,10 @@ function emptyStateCopy(filters: DashboardFilterState): string {
   if (filters.bookmarksOnly) {
     parts.push('saved only');
   }
-  parts.push(`window ${filters.timeframe}`);
+  parts.push(`in last ${filters.timeframe}`);
 
   if (filters.countries.length > 0) {
-    return `No trends match ${parts.join(' · ')}. Try clearing location or widening the window.`;
+    return `No trends match ${parts.join(' · ')}. Try clearing location or widening the window, then Submit.`;
   }
   if (filters.keyword.trim()) {
     return `No trends match ${parts.join(' · ')}. Try a different keyword or clear search, then Submit.`;
@@ -145,7 +157,10 @@ export default function DashboardContent() {
   const timeframeHours =
     activeFilters.timeframe === '48h' ? 48 : activeFilters.timeframe === '72h' ? 72 : 24;
 
-  const filteredTrends = trends.filter((t) => {
+  // Quality gate first — Dashboard only shows trending-bar passers.
+  const gatedTrends = trends.filter(isTrendingTopic);
+
+  const filteredTrends = gatedTrends.filter((t) => {
     if (activeFilters.bookmarksOnly && !t.isBookmarked) return false;
     if (!activeFilters.categories.includes('All') && !activeFilters.categories.includes(t.category))
       return false;
@@ -198,8 +213,6 @@ export default function DashboardContent() {
       return b.nemoScore - a.nemoScore;
     });
 
-  // Main grid shows ALL filtered trends (including lower scores). Hiding "fading"
-  // previously caused "16 detected" + empty grid when scores were under 50.
   const featuredTrends = sortedTrends.filter((t) => t.nemoScore >= 70).slice(0, 3);
   const displayTrends = sortedTrends;
   const hotCount = displayTrends.filter((t) => t.status === 'hot').length;
@@ -240,7 +253,7 @@ export default function DashboardContent() {
       <div className="px-4 sm:px-5 py-4 max-w-screen-2xl mx-auto">
         <div className="flex gap-5">
           <div className="flex-1 min-w-0 flex flex-col gap-4">
-            <DashboardKPICards trends={trends} />
+            <DashboardKPICards trends={gatedTrends} />
             <DashboardFilters
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
@@ -315,17 +328,22 @@ export default function DashboardContent() {
                 </div>
               </div>
               <span className="text-base text-foreground/60 font-sans font-medium hidden sm:block">
-                Sorted by {sortLabel} · {activeFilters.timeframe}
+                Sorted by {sortLabel} · In last {activeFilters.timeframe}
               </span>
             </div>
 
             {displayTrends.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <p className="font-display font-bold text-foreground text-xl mb-2">
-                  No trends found
+                  {trends.length > 0 && gatedTrends.length === 0
+                    ? 'Nothing meets the trending bar'
+                    : 'No trends found'}
                 </p>
                 <p className="text-base text-foreground/65 font-sans max-w-lg">
-                  {emptyStateCopy(activeFilters)}
+                  {emptyStateCopy(activeFilters, {
+                    gatedCount: gatedTrends.length,
+                    rawCount: trends.length,
+                  })}
                 </p>
               </div>
             ) : (
@@ -338,7 +356,7 @@ export default function DashboardContent() {
           </div>
 
           <div className="w-64 xl:w-72 flex-shrink-0 hidden lg:block">
-            <DashboardSidebar trends={trends} />
+            <DashboardSidebar trends={gatedTrends} />
           </div>
         </div>
       </div>

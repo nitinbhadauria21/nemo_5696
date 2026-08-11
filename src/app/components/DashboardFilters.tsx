@@ -299,7 +299,7 @@ export default function DashboardFilters({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-sans font-semibold bg-muted text-foreground/65 border border-border hover:text-foreground transition-all duration-150 disabled:opacity-50"
           >
             <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-            <span className="hidden sm:inline">Reload</span>
+            <span className="hidden sm:inline">Reload data</span>
           </button>
           <button
             type="button"

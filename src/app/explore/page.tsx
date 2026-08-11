@@ -1,14 +1,6 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import AppLayout from '@/components/AppLayout';
-import ExploreContent from './components/ExploreContent';
-import { useTrackPageView } from '@/lib/analytics/client';
-
+/** Explore is retired — Dashboard is the single trends surface. */
 export default function ExplorePage() {
-  useTrackPageView('explore');
-  return (
-    <AppLayout>
-      <ExploreContent />
-    </AppLayout>
-  );
+  redirect('/dashboard');
 }

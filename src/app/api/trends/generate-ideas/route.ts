@@ -24,7 +24,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_trend_title' }, { status: 400 });
   }
 
-  const prompt = `Generate 5 viral content ideas for the trend "${body.trendTitle}"${body.platform ? ` on ${String(body.platform).slice(0, 40)}` : ''}. For each: hook, format (reel/short/post), and CTA. Numbered list.`;
+  const prompt = `Generate exactly 5 viral content ideas for the trend "${body.trendTitle}"${body.platform ? ` on ${String(body.platform).slice(0, 40)}` : ''}.
+
+Return ONLY valid JSON (no markdown fences, no prose outside JSON) with this exact shape:
+{
+  "ideas": [
+    {
+      "title": "short idea name",
+      "hook": "opening line or hook",
+      "format": "reel" | "short" | "post" | "carousel",
+      "cta": "call to action"
+    }
+  ]
+}
+Exactly 5 ideas. Be concise and platform-ready.`;
 
   const startedAt = Date.now();
   try {

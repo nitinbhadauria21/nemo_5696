@@ -20,11 +20,31 @@ import { COUNTRIES } from '@/lib/countries';
 import { MOCK_TRENDS, type TrendItem } from '@/lib/mockData';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 
+/** Coerce niche/category payloads that may arrive as objects from collectors. */
+function formatCategoryLabel(category: unknown): string {
+  if (category == null) return 'General';
+  if (typeof category === 'string') {
+    const trimmed = category.trim();
+    return trimmed && trimmed !== '[object Object]' ? trimmed : 'General';
+  }
+  if (typeof category === 'number' || typeof category === 'boolean') return String(category);
+  if (Array.isArray(category)) {
+    const first = category.find((c) => c != null);
+    return first != null ? formatCategoryLabel(first) : 'General';
+  }
+  if (typeof category === 'object') {
+    const o = category as Record<string, unknown>;
+    const candidate = o.name ?? o.label ?? o.title ?? o.niche ?? o.category;
+    if (candidate != null) return formatCategoryLabel(candidate);
+  }
+  return 'General';
+}
+
 function toUiTrend(t: TrendItem) {
   return {
     id: t.id,
     title: t.title,
-    category: t.category,
+    category: formatCategoryLabel(t.category),
     status: t.status,
     nemoScore: t.nemoScore,
     cvs: t.cvs,
@@ -344,12 +364,21 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
             {TREND.id && <TrendFeedbackControl trendId={TREND.id} />}
 
             <div className="space-y-3">
-              <h3 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                AI-Powered Analysis
-              </h3>
-              <AIAnalysisSection type="analysis" trendTitle={TREND.title} />
-              <AIAnalysisSection type="sentiment" trendTitle={TREND.title} />
-              <AIAnalysisSection type="ideas" trendTitle={TREND.title} />
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <h3 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    AI-Powered Analysis
+                  </h3>
+                  <p className="text-xs font-sans text-muted-foreground mt-1">
+                    Structured insights for {TREND.category} · {TREND.title}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3 rounded-2xl border border-border/80 bg-muted/20 p-3 sm:p-4">
+                <AIAnalysisSection type="analysis" trendTitle={TREND.title} />
+                <AIAnalysisSection type="sentiment" trendTitle={TREND.title} />
+                <AIAnalysisSection type="ideas" trendTitle={TREND.title} />
+              </div>
             </div>
           </div>
 

@@ -24,7 +24,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_trend_title' }, { status: 400 });
   }
 
-  const prompt = `Brand safety and sentiment analysis for trend "${body.trendTitle}". Return JSON with keys: sentiment (positive|neutral|negative|mixed), brandSafety (safe|caution|risky), summary (2 sentences), risks (array of strings).`;
+  const prompt = `Brand safety and sentiment analysis for trend "${body.trendTitle}".
+
+Return ONLY valid JSON (no markdown fences, no prose outside JSON) with this exact shape:
+{
+  "sentiment": "positive" | "neutral" | "negative" | "mixed",
+  "brandSafety": "safe" | "caution" | "risky",
+  "summary": "2 sentences on audience tone and brand fit",
+  "risks": ["short risk 1", "short risk 2"]
+}
+Be concise. If risks are none, use an empty array.`;
 
   const startedAt = Date.now();
   try {

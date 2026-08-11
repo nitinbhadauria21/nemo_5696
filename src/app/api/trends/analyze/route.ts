@@ -29,7 +29,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_trend_title' }, { status: 400 });
   }
 
-  const prompt = `Analyze why "${trendTitle}" is trending${trendDescription ? `: ${String(trendDescription).slice(0, 1000)}` : ''}. Provide: 1) Why it's trending (3 bullets), 2) Predicted trajectory (next 48-72h), 3) Best platforms to act on. Be concise.`;
+  const prompt = `Analyze why "${trendTitle}" is trending${trendDescription ? `: ${String(trendDescription).slice(0, 1000)}` : ''}.
+
+Return ONLY valid JSON (no markdown fences, no prose outside JSON) with this exact shape:
+{
+  "summary": "1-2 sentence overview",
+  "whyTrending": ["reason 1", "reason 2", "reason 3"],
+  "trajectory": "predicted trajectory for the next 48-72 hours",
+  "bestPlatforms": ["platform1", "platform2"]
+}
+Be concise and practical for creators.`;
 
   const startedAt = Date.now();
   try {
