@@ -68,6 +68,9 @@ function trendAgeHours(firstDetectedAt: string | undefined): number {
   return Math.max(0, (Date.now() - ms) / 3600000);
 }
 
+/** Product rule: never persist evergreen content older than 30 days. */
+const MAX_PERSIST_AGE_HOURS = 30 * 24;
+
 function mapTrendToRecord(t: TrendItem) {
   const statusMap: Record<string, string> = {
     hot: 'PEAKING',
@@ -148,12 +151,15 @@ export async function persistTrendsToSupabase(
 ): Promise<void> {
   if (!trends.length) return;
 
+  const eligible = trends.filter((t) => trendAgeHours(t.firstDetectedAt) <= MAX_PERSIST_AGE_HOURS);
+  if (!eligible.length) return;
+
   const collectedAt = new Date().toISOString();
-  const records = trends.map(mapTrendToRecord);
+  const records = eligible.map(mapTrendToRecord);
 
   await supabase.from('trend_records').upsert(records, { onConflict: 'trend_id' });
 
-  const snapshots = trends.map((t) => ({
+  const snapshots = eligible.map((t) => ({
     trend_id: t.id,
     collected_at: collectedAt,
     nemo_score: t.nemoScore,
@@ -168,7 +174,17 @@ export async function persistTrendsToSupabase(
 
   await purgeStaleTrendRecords(
     supabase,
-    trends.map((t) => t.id),
+    eligible.map((t) => t.id),
     Number(process.env.TREND_STALE_MAX_AGE_HOURS || 72)
   );
+
+  // Purge any lingering rows whose first_detected_at is older than 30 days
+  const discardCutoff = new Date(Date.now() - MAX_PERSIST_AGE_HOURS * 3600 * 1000).toISOString();
+  const { error: agePurgeErr } = await supabase
+    .from('trend_records')
+    .delete()
+    .lt('first_detected_at', discardCutoff);
+  if (agePurgeErr) {
+    console.error('persistTrendsToSupabase 30d age purge failed', agePurgeErr.message);
+  }
 }
