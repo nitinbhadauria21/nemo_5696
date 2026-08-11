@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { TrendItem, TrendPlatform } from '@/lib/mockData';
+import { normalizeUiNiche } from './publicCopy';
 
 /** DB platform_enum values (incl. google_trends + youtube_shorts). */
 type DbPlatform =
@@ -84,15 +85,20 @@ function mapTrendToRecord(t: TrendItem) {
       : ['GLOBAL'];
 
   const uiNiches = Array.from(
-    new Set((t.niches?.length ? t.niches : [t.category || 'AI']).map((n) => String(n)))
+    new Set(
+      (t.niches?.length ? t.niches : [t.category || 'AI'])
+        .map((n) => normalizeUiNiche(String(n), t.title))
+        .filter((n) => n && n.toLowerCase() !== 'other')
+    )
   );
+  const uiCategory = normalizeUiNiche(t.category || uiNiches[0] || 'AI', t.title);
 
   return {
     trend_id: t.id,
     topic_text: t.title,
     platform: platforms[0],
-    niche: mapCategoryToNiche(t.category),
-    niches: uiNiches,
+    niche: mapCategoryToNiche(uiCategory),
+    niches: uiNiches.length ? uiNiches : [uiCategory],
     first_detected_at: t.firstDetectedAt,
     collected_at: new Date().toISOString(),
     last_seen_at: t.latestActivityAt || new Date().toISOString(),

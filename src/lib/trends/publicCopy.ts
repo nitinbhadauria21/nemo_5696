@@ -3,6 +3,8 @@
  * Keep logs and server comments free to mention internals; never leak to UI.
  */
 
+import { BRIEF_NICHES } from '@/lib/mockData';
+
 const VENDOR_PATTERNS: RegExp[] = [
   /\bscrapecreators?\b/gi,
   /\bscrape\s*creators?\b/gi,
@@ -24,55 +26,105 @@ const VENDOR_PATTERNS: RegExp[] = [
   /\bvia\s+scrape[^\s.]*/gi,
 ];
 
+const BRIEF = BRIEF_NICHES as readonly string[];
+
+type NicheRule = { niche: string; re: RegExp };
+
+const NICHE_RULES: NicheRule[] = [
+  {
+    niche: 'AI',
+    re: /\b(ai|artificial intelligence|chatgpt|gpt-?\d|claude|llm|machine learning|deep learning|neural|openai|anthropic|midjourney|stable diffusion|robot|coding|software|tech|saas)\b/i,
+  },
+  {
+    niche: 'Fitness',
+    re: /\b(fit(ness)?|gym|workout|health|wellness|sport|cricket|ipl|football|soccer|nba|nfl|athlete|yoga|run(ning)?|muscle|cardio)\b/i,
+  },
+  {
+    niche: 'Finance',
+    re: /\b(financ|crypto|bitcoin|ethereum|stock|invest|upi|bank|money|trading|nft|fintech|budget|tax|rupee|dollar)\b/i,
+  },
+  {
+    niche: 'Fashion',
+    re: /\b(fashion|beauty|style|outfit|luxury|makeup|skincare|sneaker|streetwear|model|runway|couture)\b/i,
+  },
+  {
+    niche: 'Gaming',
+    re: /\b(game|gaming|esport|steam|xbox|playstation|minecraft|fortnite|roblox|twitch|nintendo|valorant|gta)\b/i,
+  },
+  {
+    niche: 'Movies',
+    re: /\b(movie|film|cinema|netflix|disney|trailer|series|tv\s?show|television|bollywood|hollywoodlywood|oscar|actor|actress|anime)\b/i,
+  },
+  {
+    niche: 'Education',
+    re: /\b(educat|learn|course|school|study|productiv|notion|tutorial|exam|university|college|lesson|teach)\b/i,
+  },
+  {
+    niche: 'Startups',
+    re: /\b(startup|entrepreneur|saas|b2b|business|market(ing)?|seo|ads|brand|founder|vc|venture|growth hack)\b/i,
+  },
+  {
+    niche: 'Travel',
+    re: /\b(travel|tourism|flight|hotel|vacation|trip|airline|passport|visa|backpack|resort|beach holiday)\b/i,
+  },
+  {
+    niche: 'Food',
+    re: /\b(food|cook|recipe|restaurant|cuisine|chef|baking|meal|street food|pizza|burger|coffee|cafe)\b/i,
+  },
+];
+
+const DUMP_BUCKETS = new Set(['other', 'unknown', 'general', 'misc', 'miscellaneous', 'uncategorized', '']);
+
+/**
+ * Classify a trend into a brief UI niche from title + caption + hashtags + raw niche.
+ * Never returns the dump bucket "other" when any text is present — defaults to AI.
+ */
+export function classifyTrendNiche(input: {
+  title?: string | null;
+  caption?: string | null;
+  description?: string | null;
+  hashtags?: string[] | null;
+  rawNiche?: string | null;
+}): string {
+  const raw = String(input.rawNiche || '').trim();
+  if (raw && BRIEF.includes(raw)) return raw;
+
+  const rawLower = raw.toLowerCase();
+  if (raw && !DUMP_BUCKETS.has(rawLower)) {
+    for (const rule of NICHE_RULES) {
+      if (rule.re.test(raw)) return rule.niche;
+    }
+  }
+
+  const tags = (input.hashtags || []).map((h) => String(h || '')).join(' ');
+  const blob = [input.title, input.caption, input.description, tags, raw]
+    .map((s) => String(s || '').trim())
+    .filter(Boolean)
+    .join(' \n ');
+
+  if (!blob) return 'AI';
+
+  for (const rule of NICHE_RULES) {
+    if (rule.re.test(blob)) return rule.niche;
+  }
+
+  // Subreddit / platform-ish hints
+  if (/\br\/?(fitness|bodybuilding|running|sports)\b/i.test(blob)) return 'Fitness';
+  if (/\br\/?(cryptocurrency|personalfinance|investing|stocks)\b/i.test(blob)) return 'Finance';
+  if (/\br\/?(gaming|games|pcgaming)\b/i.test(blob)) return 'Gaming';
+  if (/\br\/?(movies|television|netflix)\b/i.test(blob)) return 'Movies';
+  if (/\br\/?(food|cooking|recipes)\b/i.test(blob)) return 'Food';
+  if (/\br\/?(travel|solotravel)\b/i.test(blob)) return 'Travel';
+  if (/\br\/?(learnprogramming|education|getdisciplined)\b/i.test(blob)) return 'Education';
+  if (/\br\/?(startups|entrepreneur|marketing)\b/i.test(blob)) return 'Startups';
+  if (/\br\/?(machinelearning|artificial|chatgpt|singularity|technology)\b/i.test(blob)) return 'AI';
+
+  return 'AI';
+}
+
 /** Map stale / DB niches onto brief UI labels. */
 export function normalizeUiNiche(raw: string | undefined | null, titleHint = ''): string {
-  const text = `${raw || ''} ${titleHint}`.trim();
-  if (!text) return 'AI';
-
-  const exact = text.trim();
-  const brief = [
-    'AI',
-    'Fitness',
-    'Finance',
-    'Fashion',
-    'Gaming',
-    'Movies',
-    'Education',
-    'Startups',
-    'Travel',
-    'Food',
-  ];
-  if (brief.includes(exact)) return exact;
-
-  const c = text.toLowerCase();
-  if (c === 'other' || c === 'unknown' || c === 'general') {
-    // Classify from title when niche is a dump bucket
-    return normalizeUiNiche(titleHint || 'AI');
-  }
-  if (/\b(ai|artificial|tech|gpt|claude|llm|software|coding|robot)\b/.test(c) || c === 'ai')
-    return 'AI';
-  if (/\b(fit|gym|workout|health|wellness|sport)\b/.test(c) || c === 'fitness' || c === 'sports')
-    return 'Fitness';
-  if (/\b(financ|crypto|stock|invest|upi|bank|money)\b/.test(c) || c === 'finance')
-    return 'Finance';
-  if (/\b(fashion|beauty|style|outfit|luxury)\b/.test(c) || c === 'fashion') return 'Fashion';
-  if (/\b(game|gaming|esport)\b/.test(c) || c === 'gaming') return 'Gaming';
-  if (/\b(movie|film|cinema|netflix|trailer)\b/.test(c) || c === 'movies') return 'Movies';
-  if (/\b(educat|learn|course|school|study|productiv)\b/.test(c) || c === 'education')
-    return 'Education';
-  if (
-    /\b(startup|entrepreneur|saas|b2b|business|market|seo|ads|brand)\b/.test(c) ||
-    c === 'startups' ||
-    c === 'business' ||
-    c === 'marketing' ||
-    c === 'productivity'
-  )
-    return 'Startups';
-  if (/\b(travel|tourism|flight|hotel|vacation)\b/.test(c) || c === 'travel') return 'Travel';
-  if (/\b(food|cook|recipe|restaurant|cuisine)\b/.test(c) || c === 'food') return 'Food';
-  // Last resort: if raw was only "other", fall through title; else Startups-safe default AI
-  if (!titleHint) return 'AI';
-  return 'AI';
+  return classifyTrendNiche({ rawNiche: raw, title: titleHint });
 }
 
 export function sanitizePublicText(input: string | undefined | null, fallback = ''): string {

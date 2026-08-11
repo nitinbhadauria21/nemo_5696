@@ -1,12 +1,13 @@
 import type { TrendItem, TrendStatus, LifecycleStatus, ConfidenceLevel } from '@/lib/mockData';
 import { MOCK_TRENDS } from '@/lib/mockData';
-import { collectMvpTrends } from './collectors';
+import { collectMvpTrendsDetailed } from './collectors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { persistTrendsToSupabase } from './persist';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { applyTrendFilters, type TrendQueryFilters } from './filters';
-import { normalizeUiNiche, sanitizePublicText } from './publicCopy';
+import { classifyTrendNiche, normalizeUiNiche, sanitizePublicText } from './publicCopy';
+import { upsertDataSourceStatusFromIngest } from './sourceStatus';
 
 let memoryStore: TrendItem[] = [];
 let lastCollectedAt = 0;
@@ -35,14 +36,34 @@ function resolveNiches(
 }
 
 function scrubTrend(t: TrendItem): TrendItem {
+  const category = classifyTrendNiche({
+    rawNiche: t.category,
+    title: t.title,
+    description: t.description,
+    hashtags: t.hashtags,
+  });
+  const niches = Array.from(
+    new Set(
+      (t.niches?.length ? t.niches : [t.category])
+        .map((n) =>
+          classifyTrendNiche({
+            rawNiche: n,
+            title: t.title,
+            description: t.description,
+            hashtags: t.hashtags,
+          })
+        )
+        .filter(Boolean)
+    )
+  );
   return {
     ...t,
     description: sanitizePublicText(
       t.description,
       `${t.title} is gaining attention across ${(t.platforms || []).join(', ') || 'social'} right now.`
     ),
-    category: nicheToUiCategory(t.category, t.title),
-    niches: (t.niches?.length ? t.niches : [t.category]).map((n) => nicheToUiCategory(n, t.title)),
+    category,
+    niches: niches.length ? niches : [category],
   };
 }
 
@@ -203,10 +224,22 @@ export async function runTrendIngestion(options?: { useServiceRole?: boolean }):
   error?: string | null;
 }> {
   const started = Date.now();
-  const collected = await collectMvpTrends();
+  const { trends: collectedRaw, stats } = await collectMvpTrendsDetailed();
+  const collected = collectedRaw.map(scrubTrend);
   const collectedAt = new Date().toISOString();
   const now = Date.now();
   let persistError: string | null = null;
+
+  const persistAndStatus = async (
+    client: NonNullable<ReturnType<typeof createAdminClient>>
+  ) => {
+    await persistTrendsToSupabase(client, collected);
+    try {
+      await upsertDataSourceStatusFromIngest(client, collected, stats);
+    } catch (e) {
+      console.error('data_source_status upsert failed', e);
+    }
+  };
 
   if (collected.length) {
     memoryStore = collected;
@@ -216,7 +249,7 @@ export async function runTrendIngestion(options?: { useServiceRole?: boolean }):
       const admin = createAdminClient();
       if (admin) {
         try {
-          await persistTrendsToSupabase(admin, collected);
+          await persistAndStatus(admin);
           await logCollectorRun(admin, {
             source: 'supabase',
             count: collected.length,
@@ -234,10 +267,20 @@ export async function runTrendIngestion(options?: { useServiceRole?: boolean }):
     const supabase = await createClient();
     if (supabase) {
       try {
-        await persistTrendsToSupabase(supabase, collected);
+        await persistAndStatus(supabase);
         return { trends: collected, source: 'supabase', collectedAt };
       } catch (e) {
         persistError = e instanceof Error ? e.message : 'persist failed';
+      }
+    }
+  } else if (options?.useServiceRole) {
+    // Still record honest 0-count status when every collector returned empty
+    const admin = createAdminClient();
+    if (admin) {
+      try {
+        await upsertDataSourceStatusFromIngest(admin, [], stats);
+      } catch (e) {
+        console.error('data_source_status upsert failed', e);
       }
     }
   }
@@ -345,6 +388,10 @@ export async function getTrends(options?: {
         .select('*')
         .order('nemo_score', { ascending: false })
         .limit(fetchLimit);
+
+      if (error) {
+        console.error('getTrends trend_records select failed', error.message);
+      }
 
       if (!error && data?.length) {
         return finalize(

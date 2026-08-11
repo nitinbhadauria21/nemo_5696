@@ -4,6 +4,7 @@ export const redditProvider: TrendProvider = {
   id: 'reddit',
   displayName: 'Reddit',
   async getHealth() {
+    // Public JSON endpoints — capability is always available; live status comes from last ingest counts.
     return {
       status: 'active',
       metricMode: 'available' as MetricAvailability,

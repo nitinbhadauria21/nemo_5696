@@ -3,26 +3,62 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { collectProviderHealth } from '@/lib/providers';
 import { userFacingPlatformStatus } from '@/lib/trends/publicCopy';
+import type { ProviderHealthStatus } from '@/lib/providers/types';
+
+function reconcileStatus(
+  platform: string,
+  providerStatus: string,
+  row?: Record<string, unknown>
+): string {
+  if (row?.enabled === false) return 'disabled';
+  const records = Number(row?.records_last_run ?? 0);
+  const fromDb = row?.status ? String(row.status) : '';
+
+  if (platform === 'linkedin') return 'unavailable';
+
+  // Prefer last-run truth: never show Live when last ingest returned 0 rows
+  if (fromDb) {
+    if (records <= 0 && (fromDb === 'active' || fromDb === 'live')) {
+      return platform === 'twitter' ? 'estimated' : 'unavailable';
+    }
+    return fromDb;
+  }
+
+  if (records > 0) {
+    if (platform === 'twitter') return 'partial';
+    if (providerStatus === 'partial' || providerStatus === 'estimated') return providerStatus;
+    return 'active';
+  }
+
+  // No DB row / no records this run
+  if (providerStatus === 'unavailable' || providerStatus === 'error') return 'unavailable';
+  if (platform === 'twitter') return 'estimated';
+  if (providerStatus === 'partial' || providerStatus === 'estimated') return 'partial';
+  // Key may be present but no successful records yet
+  return 'unavailable';
+}
 
 export async function GET() {
   const providers = await collectProviderHealth();
 
-  const mapSource = (p: {
-    platform: string;
-    displayName: string;
-    status: string;
-    metricMode?: string;
-  }, row?: Record<string, unknown>) => {
-    const status = row?.enabled === false ? 'disabled' : String(row?.status || p.status);
+  const mapSource = (
+    p: {
+      platform: string;
+      displayName: string;
+      status: string;
+      metricMode?: string;
+    },
+    row?: Record<string, unknown>
+  ) => {
+    const status = reconcileStatus(p.platform, p.status, row) as ProviderHealthStatus;
     return {
       platform: p.platform,
       displayName: p.displayName,
       status,
       label: userFacingPlatformStatus(status),
-      // Do not expose internal notes / vendor strings to the client
       enabled: row?.enabled ?? true,
       lastSuccessAt: row?.last_success_at ?? null,
-      recordsLastRun: row?.records_last_run ?? 0,
+      recordsLastRun: Number(row?.records_last_run ?? 0),
     };
   };
 

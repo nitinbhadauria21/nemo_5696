@@ -1,5 +1,4 @@
 import type { TrendItem, TrendPlatform, TrendStatus } from '@/lib/mockData';
-import { CATEGORIES } from '@/lib/mockData';
 import type { Platform } from '@/lib/signals';
 import {
   computeFullNemoScore,
@@ -10,6 +9,7 @@ import {
   scoreRedditSignals,
   scoreYouTubeSignals,
 } from '@/lib/signals';
+import { classifyTrendNiche } from './publicCopy';
 
 function hashId(input: string): string {
   let h = 0;
@@ -44,38 +44,9 @@ export function collectionGeoRegions(override?: string | null): string[] {
   return [raw.slice(0, 2)];
 }
 
-const UI_CATEGORY_SET = new Set(CATEGORIES.filter((c) => c !== 'All'));
-
 /** Map free-text / DB niche toward brief Dashboard niches. */
 export function mapToUiCategory(raw: string | undefined | null, titleHint = ''): string {
-  const text = `${raw || ''} ${titleHint}`.trim();
-  if (!text) return 'AI';
-  if (UI_CATEGORY_SET.has(text)) return text;
-
-  const c = text.toLowerCase();
-  if (/\b(ai|artificial|tech|gpt|claude|llm|software|coding|robot)\b/.test(c) || c === 'ai')
-    return 'AI';
-  if (/\b(fit|gym|workout|health|wellness|sport|cricket|ipl|football)\b/.test(c) || c === 'fitness')
-    return 'Fitness';
-  if (/\b(financ|crypto|stock|invest|upi|bank|money)\b/.test(c) || c === 'finance')
-    return 'Finance';
-  if (/\b(fashion|beauty|style|outfit|luxury)\b/.test(c) || c === 'fashion') return 'Fashion';
-  if (/\b(game|gaming|esport|steam|xbox|playstation|minecraft)\b/.test(c) || c === 'gaming')
-    return 'Gaming';
-  if (/\b(movie|film|cinema|netflix|hollywood|series|trailer)\b/.test(c) || c === 'movies')
-    return 'Movies';
-  if (/\b(educat|learn|course|school|study|productiv|notion)\b/.test(c) || c === 'education')
-    return 'Education';
-  if (
-    /\b(startup|entrepreneur|saas|b2b|business|market|seo|ads|brand)\b/.test(c) ||
-    c === 'startups' ||
-    c === 'business' ||
-    c === 'marketing'
-  )
-    return 'Startups';
-  if (/\b(travel|tourism|flight|hotel|vacation)\b/.test(c) || c === 'travel') return 'Travel';
-  if (/\b(food|cook|recipe|restaurant|cuisine)\b/.test(c) || c === 'food') return 'Food';
-  return 'AI';
+  return classifyTrendNiche({ rawNiche: raw, title: titleHint });
 }
 
 /** Discard at ingest when older than 30 days. */
@@ -165,7 +136,12 @@ function toTrendItem(input: {
   const stale = ageHours > STALE_AGE_HOURS;
   const scoringAgeHours = stale ? STALE_AGE_HOURS - 0.5 : ageHours;
   const scoringDetectedAt = new Date(Date.now() - scoringAgeHours * 3600 * 1000).toISOString();
-  const category = mapToUiCategory(input.niche, input.topic);
+  const category = classifyTrendNiche({
+    rawNiche: input.niche,
+    title: input.topic,
+    description: input.description,
+    hashtags: input.hashtags,
+  });
   const geoRegions = input.geoRegions?.length ? input.geoRegions : collectionGeoRegions();
   const score = computeFullNemoScore({
     creatorVelocityInputs: {
@@ -242,37 +218,40 @@ function compactTrends(items: Array<TrendItem | null | undefined>): TrendItem[] 
 /** Reddit public JSON — no API key required. Platforms tag is honest: reddit only. */
 export async function collectRedditTrends(): Promise<TrendItem[]> {
   const urls = [
-    'https://www.reddit.com/r/popular/hot.json?limit=12',
-    'https://old.reddit.com/r/popular/hot.json?limit=12',
-    'https://www.reddit.com/r/popular/rising.json?limit=12',
-    'https://old.reddit.com/r/popular/rising.json?limit=12',
+    'https://www.reddit.com/r/popular/hot.json?limit=15',
+    'https://old.reddit.com/r/popular/hot.json?limit=15',
+    'https://www.reddit.com/r/popular/rising.json?limit=15',
+    'https://old.reddit.com/r/popular/rising.json?limit=15',
+    'https://www.reddit.com/r/all/hot.json?limit=12',
+    'https://old.reddit.com/r/all/hot.json?limit=12',
   ];
   const headers = {
-    'User-Agent': 'NemoTrends/1.0 (trend intelligence; contact: support@nemo.app)',
+    'User-Agent': 'NemoTrends/1.1 (creator trend intelligence; +https://nemo-5696.vercel.app)',
     Accept: 'application/json',
   };
   const geo = collectionGeoRegions('GLOBAL');
 
   async function fetchRedditJson(url: string): Promise<any | null> {
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 12000);
+        const timer = setTimeout(() => controller.abort(), 15000);
         const res = await fetch(url, {
           headers,
           cache: 'no-store',
           signal: controller.signal,
+          redirect: 'follow',
         });
         clearTimeout(timer);
         if (!res.ok) {
           console.error('Reddit collector HTTP', res.status, url, `attempt=${attempt + 1}`);
-          if (attempt === 0) await new Promise((r) => setTimeout(r, 400 + attempt * 200));
+          if (attempt < 2) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
           continue;
         }
         return await res.json();
       } catch (err) {
         console.error('Reddit collector fetch failed', url, `attempt=${attempt + 1}`, err);
-        if (attempt === 0) await new Promise((r) => setTimeout(r, 400));
+        if (attempt < 2) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
       }
     }
     return null;
@@ -291,7 +270,7 @@ export async function collectRedditTrends(): Promise<TrendItem[]> {
 
     const posts = json.data.children;
     return compactTrends(
-      posts.slice(0, 8).map((child: any, idx: number) => {
+      posts.slice(0, 10).map((child: any, idx: number) => {
         const p = child.data;
         const score = typeof p.score === 'number' ? p.score : 100;
         const comments = typeof p.num_comments === 'number' ? p.num_comments : 10;
@@ -318,9 +297,15 @@ export async function collectRedditTrends(): Promise<TrendItem[]> {
 
         const mentions24h = Math.max(50, score);
         const title = String(p.title || `Reddit trend ${idx}`).slice(0, 120);
+        const hashtags = [`#${p.subreddit}`, '#reddit'];
         return toTrendItem({
           topic: title,
-          niche: mapToUiCategory(String(p.subreddit || ''), title),
+          niche: classifyTrendNiche({
+            rawNiche: String(p.subreddit || ''),
+            title,
+            description: String(p.selftext || '').slice(0, 240),
+            hashtags,
+          }),
           platforms: ['reddit'],
           creators6h: Math.max(5, Math.round(comments / 8)),
           creators24h: Math.max(20, Math.round(comments / 2)),
@@ -329,7 +314,7 @@ export async function collectRedditTrends(): Promise<TrendItem[]> {
           mentionsPrev24h: estimateMentionsPrev24h(mentions24h),
           ageHours: Math.max(0.25, ageHours),
           description: `Trending on r/${p.subreddit}: ${String(p.title || '').slice(0, 160)}`,
-          hashtags: [`#${p.subreddit}`, '#reddit'],
+          hashtags,
           geoRegions: geo,
         });
       })
@@ -1149,28 +1134,60 @@ export async function collectFacebookTrends(): Promise<TrendItem[]> {
 }
 
 export async function collectMvpTrends(): Promise<TrendItem[]> {
-  const [reddit, youtube, google, instagram, linkedin, twitter, tiktok, facebook] =
-    await Promise.all([
-      collectRedditTrends(),
-      collectYouTubeTrends(),
-      collectGoogleTrends(),
-      collectInstagramTrends(),
-      collectLinkedInTrends(),
-      collectTwitterTrends(),
-      collectTikTokTrends(),
-      collectFacebookTrends(),
-    ]);
+  const result = await collectMvpTrendsDetailed();
+  return result.trends;
+}
 
-  const merged = [
-    ...google,
-    ...youtube,
-    ...reddit,
-    ...instagram,
-    ...linkedin,
-    ...twitter,
-    ...tiktok,
-    ...facebook,
-  ];
+export type ProviderCollectStat = {
+  platform: string;
+  count: number;
+  error: string | null;
+  startedAt: string;
+  finishedAt: string;
+};
+
+async function runProvider(
+  platform: string,
+  fn: () => Promise<TrendItem[]>
+): Promise<{ items: TrendItem[]; stat: ProviderCollectStat }> {
+  const startedAt = new Date().toISOString();
+  console.info(`[ingest] ${platform} started`);
+  try {
+    const items = await fn();
+    const finishedAt = new Date().toISOString();
+    console.info(`[ingest] ${platform} count=${items.length}`);
+    return {
+      items,
+      stat: { platform, count: items.length, error: null, startedAt, finishedAt },
+    };
+  } catch (err) {
+    const finishedAt = new Date().toISOString();
+    const message = err instanceof Error ? err.message : 'collector failed';
+    console.error(`[ingest] ${platform} failed`, message);
+    return {
+      items: [],
+      stat: { platform, count: 0, error: message, startedAt, finishedAt },
+    };
+  }
+}
+
+export async function collectMvpTrendsDetailed(): Promise<{
+  trends: TrendItem[];
+  stats: ProviderCollectStat[];
+}> {
+  const results = await Promise.all([
+    runProvider('reddit', collectRedditTrends),
+    runProvider('youtube', collectYouTubeTrends),
+    runProvider('google_trends', collectGoogleTrends),
+    runProvider('instagram', collectInstagramTrends),
+    runProvider('linkedin', collectLinkedInTrends),
+    runProvider('twitter', collectTwitterTrends),
+    runProvider('tiktok', collectTikTokTrends),
+    runProvider('facebook', collectFacebookTrends),
+  ]);
+
+  const stats = results.map((r) => r.stat);
+  const merged = results.flatMap((r) => r.items);
   const byTitle = new Map<string, TrendItem>();
   for (const t of merged) {
     const key = t.title.toLowerCase();
@@ -1178,5 +1195,7 @@ export async function collectMvpTrends(): Promise<TrendItem[]> {
     if (!existing || t.nemoScore > existing.nemoScore) byTitle.set(key, t);
   }
 
-  return [...byTitle.values()].sort((a, b) => b.nemoScore - a.nemoScore);
+  const trends = [...byTitle.values()].sort((a, b) => b.nemoScore - a.nemoScore);
+  console.info(`[ingest] merged total=${trends.length}`);
+  return { trends, stats };
 }
