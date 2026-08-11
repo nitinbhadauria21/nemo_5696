@@ -250,20 +250,38 @@ async function collectYouTubeNative(): Promise<TrendItem[]> {
   }
 }
 
-/** Scrape Creators — trending YouTube Shorts. */
+/** Scrape Creators — trending YouTube Shorts (merged with native mostPopular). */
 async function collectYouTubeScrapeCreators(): Promise<TrendItem[]> {
+  const { getScrapeCreatorsApiKey, scrapeCreatorsGet } = await import('./scrapeCreators');
   if (!getScrapeCreatorsApiKey()) return [];
-  const data = await scrapeCreatorsGet<{ shorts?: ScYoutubeShort[] }>(
-    '/v1/youtube/shorts/trending'
-  );
-  const shorts = (data?.shorts ?? []).slice(0, 12);
+
+  const result = await scrapeCreatorsGet<{
+    shorts?: Array<{
+      id?: string;
+      title?: string;
+      description?: string | null;
+      viewCountInt?: number | null;
+      likeCountInt?: number | null;
+      commentCountInt?: number | null;
+      publishDate?: string | null;
+      keywords?: string[];
+    }>;
+  }>('/v1/youtube/shorts/trending', {}, { timeoutMs: 45000 });
+
+  if (!result.ok) {
+    console.error('YouTube ScrapeCreators shorts HTTP', result.status, result.error);
+    return [];
+  }
+
+  const shorts = (result.data.shorts ?? []).slice(0, 12);
   if (!shorts.length) return [];
 
   return shorts.map((item, idx) => {
     const views = Number(item.viewCountInt || 1000);
     const comments = Number(item.commentCountInt || 50);
-    const likes = Number(item.likeCountInt || 100);
-    const keywords = (item.keywords ?? []).slice(0, 4).map((k) => `#${String(k).replace(/\s+/g, '')}`);
+    const keywords = (item.keywords ?? [])
+      .slice(0, 4)
+      .map((k) => `#${String(k).replace(/\s+/g, '')}`);
     const mentions24h = Math.max(100, Math.round(views / 100));
     return toTrendItem({
       topic: String(item.title || `YouTube Short ${idx}`).slice(0, 120),
@@ -463,9 +481,8 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
 
 export async function collectInstagramTrends(): Promise<TrendItem[]> {
   // Prefer ScrapeCreators public trending reels (no IG Business Account required)
-  const scKey = process.env.SCRAPECREATORS_API_KEY?.trim();
-  if (scKey) {
-    const { scrapeCreatorsGet } = await import('./scrapeCreators');
+  const { getScrapeCreatorsApiKey, scrapeCreatorsGet } = await import('./scrapeCreators');
+  if (getScrapeCreatorsApiKey()) {
     const result = await scrapeCreatorsGet<{
       reels?: Array<{
         caption?: string;
@@ -624,62 +641,148 @@ export async function collectLinkedInTrends(): Promise<TrendItem[]> {
   }
 }
 
-/** X / Twitter — ScrapeCreators has no native trends endpoint; parse live topics from trends24 via Google search. */
+/**
+ * X / Twitter trends.
+ * ScrapeCreators has no /twitter/trends endpoint — only profile/tweets/community.
+ * Path: SCRAPECREATORS_API_KEY → Google Search (getdaytrends SERP) + public getdaytrends HTML.
+ */
 export async function collectTwitterTrends(): Promise<TrendItem[]> {
-  const scKey = process.env.SCRAPECREATORS_API_KEY?.trim();
+  const { getScrapeCreatorsApiKey, scrapeCreatorsGet, parseTrendTokensFromText } =
+    await import('./scrapeCreators');
+  const scKey = getScrapeCreatorsApiKey();
+  const bearer = process.env.TWITTER_BEARER_TOKEN?.trim();
+  if (!scKey && !bearer) return [];
+
+  if (bearer) {
+    console.info(
+      'Twitter collector: TWITTER_BEARER_TOKEN present; official Trends API not wired — using getdaytrends path'
+    );
+  }
+
+  const topics: string[] = [];
+  const geoEnv = (process.env.SCRAPECREATORS_TWITTER_GEO || '').trim();
+  const trendsGeo = (process.env.GOOGLE_TRENDS_GEO || 'IN').toUpperCase();
+  // Map IN → india, US → united-states, etc. Override with SCRAPECREATORS_TWITTER_GEO.
+  const countryPath =
+    geoEnv ||
+    ({
+      IN: 'india',
+      US: 'united-states',
+      GB: 'united-kingdom',
+      UK: 'united-kingdom',
+      CA: 'canada',
+      AU: 'australia',
+    }[trendsGeo] ??
+      'india');
+
   if (scKey) {
-    const { scrapeCreatorsGet, parseTrendTokensFromText } = await import('./scrapeCreators');
-    const geo = (process.env.SCRAPECREATORS_TWITTER_GEO || 'united-states').trim();
-    const query = `X Twitter trending topics site:trends24.in/${geo}`;
     const result = await scrapeCreatorsGet<{
       results?: Array<{ title?: string; description?: string; url?: string }>;
-    }>('/v1/google/search', { query }, { timeoutMs: 45000 });
+    }>(
+      '/v1/google/search',
+      { query: `site:getdaytrends.com/${countryPath}`, region: trendsGeo.slice(0, 2) },
+      { timeoutMs: 45000 }
+    );
 
     if (!result.ok) {
       console.error('Twitter ScrapeCreators google/search HTTP', result.status, result.error);
     } else {
-      const results = result.data.results || [];
-      const trends24 = results.find((r) => /trends24\.in/i.test(String(r.url || ''))) || results[0];
-      const blob = `${trends24?.title || ''} ${trends24?.description || ''}`;
-      const topics = parseTrendTokensFromText(blob, 10);
-      if (topics.length) {
-        return topics.slice(0, 8).map((topic, idx) => {
-          const mentions24h = 800 + (8 - idx) * 120;
-          return toTrendItem({
-            topic: topic.replace(/^#/, '').slice(0, 120),
-            niche: 'other',
-            platforms: ['twitter'],
-            creators6h: 20 + idx * 3,
-            creators24h: 60 + idx * 8,
-            creators72h: 140 + idx * 12,
-            mentions24h,
-            mentionsPrev24h: mentions24h,
-            ageHours: 1 + idx,
-            description: `X/Twitter trending topic via ScrapeCreators (trends24 aggregator snippet)`,
-            hashtags: [topic.startsWith('#') ? topic : `#${topic.replace(/\s+/g, '')}`, '#twitter'],
-          });
-        });
+      for (const row of result.data.results || []) {
+        const blob = `${row.title || ''} ${row.description || ''}`;
+        for (const t of parseTrendTokensFromText(blob, 12)) {
+          topics.push(t.replace(/^#/, ''));
+        }
+        const hot = blob.match(/HOT RIGHT NOW:\s*([^.]+)/i);
+        if (hot?.[1]) {
+          for (const part of hot[1].split(/,/)) {
+            const t = part.trim().replace(/^#/, '');
+            if (t.length >= 2 && t.length <= 80) topics.push(t);
+          }
+        }
+        const m = String(row.url || '').match(/\/trend\/([^/?#]+)/i);
+        if (m?.[1]) {
+          try {
+            const decoded = decodeURIComponent(m[1]).replace(/^#/, '').trim();
+            if (decoded.length >= 2 && decoded.length <= 80) topics.push(decoded);
+          } catch {
+            /* ignore */
+          }
+        }
       }
-      console.warn(
-        'Twitter collector: ScrapeCreators Google search returned no parseable trend tokens',
-        blob.slice(0, 200)
-      );
     }
   }
 
-  const token = process.env.TWITTER_BEARER_TOKEN?.trim();
-  if (token) {
-    console.info(
-      'Twitter collector: TWITTER_BEARER_TOKEN present but official Trends API not wired; ScrapeCreators path preferred'
-    );
+  // Live HTML fallback (public aggregator — same class as Reddit JSON)
+  if (topics.length < 6) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 12000);
+      const res = await fetch(`https://getdaytrends.com/${countryPath}/`, {
+        headers: {
+          'User-Agent': 'NemoTrends/1.0 (trend intelligence; contact: support@nemo.app)',
+          Accept: 'text/html',
+        },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      if (res.ok) {
+        const html = await res.text();
+        const noise = /^(collapsible|moreTrends|about|terms|4b)$/i;
+        for (const m of html.matchAll(/href="\/[^"]*\/trend\/([^"/]+)\//gi)) {
+          try {
+            const decoded = decodeURIComponent(m[1]).replace(/^#/, '').trim();
+            if (decoded.length >= 2 && decoded.length <= 80 && !noise.test(decoded)) {
+              topics.push(decoded);
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Twitter getdaytrends HTML fallback failed', err);
+    }
   }
-  return [];
+
+  const unique = [
+    ...new Set(
+      topics
+        .map((t) => t.replace(/\s+/g, ' ').trim())
+        .filter((t) => t.length >= 2 && !/^[A-D]\.\s/i.test(t))
+    ),
+  ].slice(0, 12);
+
+  if (!unique.length) {
+    console.warn(
+      'Twitter collector: no topics (ScrapeCreators has no /twitter/trends; getdaytrends empty)'
+    );
+    return [];
+  }
+
+  return unique.map((topic, idx) => {
+    const tag = topic.startsWith('#') ? topic : `#${topic.replace(/\s+/g, '')}`;
+    const mentions24h = 800 + (12 - idx) * 90;
+    return toTrendItem({
+      topic: topic.replace(/^#/, '').slice(0, 120),
+      niche: 'other',
+      platforms: ['twitter'],
+      creators6h: 20 + idx * 3,
+      creators24h: 60 + idx * 8,
+      creators72h: 140 + idx * 12,
+      mentions24h,
+      mentionsPrev24h: mentions24h,
+      ageHours: 1 + idx * 0.4,
+      description: `X/Twitter trending via getdaytrends (ScrapeCreators discovery; no native SC Twitter trends API)`,
+      hashtags: [tag, '#twitter'],
+    });
+  });
 }
 
 /** TikTok — ScrapeCreators trending feed (region required). */
 export async function collectTikTokTrends(): Promise<TrendItem[]> {
-  const scKey = process.env.SCRAPECREATORS_API_KEY?.trim();
-  if (!scKey) {
+  const { getScrapeCreatorsApiKey, scrapeCreatorsGet } = await import('./scrapeCreators');
+  if (!getScrapeCreatorsApiKey()) {
     const key = process.env.TIKTOK_CLIENT_KEY?.trim();
     if (key) {
       console.info(
@@ -689,8 +792,7 @@ export async function collectTikTokTrends(): Promise<TrendItem[]> {
     return [];
   }
 
-  const { scrapeCreatorsGet } = await import('./scrapeCreators');
-  const region = (process.env.SCRAPECREATORS_TIKTOK_REGION || process.env.GOOGLE_TRENDS_GEO || 'US')
+  const region = (process.env.SCRAPECREATORS_TIKTOK_REGION || process.env.GOOGLE_TRENDS_GEO || 'IN')
     .trim()
     .toUpperCase()
     .slice(0, 2);
@@ -759,10 +861,9 @@ export async function collectTikTokTrends(): Promise<TrendItem[]> {
  * Collect recent high-view public page reels (configurable page URLs).
  */
 export async function collectFacebookTrends(): Promise<TrendItem[]> {
-  const scKey = process.env.SCRAPECREATORS_API_KEY?.trim();
-  if (!scKey) return [];
+  const { getScrapeCreatorsApiKey, scrapeCreatorsGet } = await import('./scrapeCreators');
+  if (!getScrapeCreatorsApiKey()) return [];
 
-  const { scrapeCreatorsGet } = await import('./scrapeCreators');
   const pagesRaw =
     process.env.FACEBOOK_TREND_PAGE_URLS?.trim() ||
     'https://www.facebook.com/whatstrending,https://www.facebook.com/CNN';

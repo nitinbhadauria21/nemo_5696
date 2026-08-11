@@ -8,12 +8,12 @@
 
 ## Your job vs the agent's job
 
-| You do | The agent (Cursor) does |
-|--------|-------------------------|
-| Open websites and create accounts | Write the code that uses the keys |
-| Copy API keys (secret text strings) | Connect Reddit / YouTube / Trends to the app |
-| Paste keys into **Vercel** (or send them in chat) | Fix ingest, scoring, cron, and deploy |
-| Tell the agent when keys are ready | Run **Phase A / B / C** from the real-trends plan |
+| You do                                            | The agent (Cursor) does                           |
+| ------------------------------------------------- | ------------------------------------------------- |
+| Open websites and create accounts                 | Write the code that uses the keys                 |
+| Copy API keys (secret text strings)               | Connect Reddit / YouTube / Trends to the app      |
+| Paste keys into **Vercel** (or send them in chat) | Fix ingest, scoring, cron, and deploy             |
+| Tell the agent when keys are ready                | Run **Phase A / B / C** from the real-trends plan |
 
 You do **not** need to "fetch trends" yourself. Creating keys + pasting them is enough.
 
@@ -44,8 +44,8 @@ Always use **Production + Preview** so live site and preview deploys both work.
 
 Social Connect stores OAuth tokens encrypted. Add this **once** on Vercel:
 
-| Name | Value |
-|------|--------|
+| Name                         | Value                                     |
+| ---------------------------- | ----------------------------------------- |
 | `CONNECTIONS_ENCRYPTION_KEY` | 64 hex characters (run the command below) |
 
 ```bash
@@ -113,9 +113,9 @@ Skip ahead to Part 2 for the first key you create.
 
 ### Paste into Vercel
 
-| Name | Value |
-|------|--------|
-| `YOUTUBE_API_KEY` | *(paste the key you copied)* |
+| Name              | Value                        |
+| ----------------- | ---------------------------- |
+| `YOUTUBE_API_KEY` | _(paste the key you copied)_ |
 
 Environments: **Production** + **Preview** → Save.
 
@@ -143,9 +143,9 @@ Easiest path for you: **SerpAPI** — a service that fetches Google Trends data 
 
 ### Paste into Vercel
 
-| Name | Value |
-|------|--------|
-| `SERPAPI_KEY` | *(paste your SerpAPI key)* |
+| Name          | Value                      |
+| ------------- | -------------------------- |
+| `SERPAPI_KEY` | _(paste your SerpAPI key)_ |
 
 Environments: **Production** + **Preview** → Save.
 
@@ -161,19 +161,23 @@ Then message the agent: **"SerpAPI key is on Vercel."**
 **Cost:** pay-as-you-go credits ([scrapecreators.com](https://scrapecreators.com/))  
 **Goal:** one environment variable named exactly `SCRAPECREATORS_API_KEY`
 
-1. Sign up at https://app.scrapecreators.com  
-2. Copy your API key  
+1. Sign up at https://app.scrapecreators.com
+2. Copy your API key
 3. Paste into Vercel as `SCRAPECREATORS_API_KEY` (Production + Preview)
 
 Optional helpers:
 
-| Name | Purpose |
-|------|---------|
-| `SCRAPECREATORS_TIKTOK_REGION` | TikTok feed region (default `US`) |
-| `SCRAPECREATORS_TWITTER_GEO` | trends24 path segment (default `united-states`) |
-| `FACEBOOK_TREND_PAGE_URLS` | Comma-separated public FB page URLs for reels |
+| Name                           | Purpose                                                                    |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| `SCRAPECREATORS_TIKTOK_REGION` | TikTok feed region (default `IN`)                                          |
+| `SCRAPECREATORS_TWITTER_GEO`   | getdaytrends country path (default from `GOOGLE_TRENDS_GEO`, e.g. `india`) |
+| `FACEBOOK_TREND_PAGE_URLS`     | Comma-separated public FB page URLs for reels                              |
+
+Also accepted: `SCRAPE_CREATORS_API_KEY` as an alias.
 
 Auth header used by Nemo: `x-api-key`.
+
+**Note:** ScrapeCreators has no native `/twitter/trends` endpoint. Nemo discovers X topics via ScrapeCreators Google Search + public getdaytrends HTML. YouTube Shorts use `/v1/youtube/shorts/trending` merged with the native YouTube Data API.
 
 ---
 
@@ -183,11 +187,11 @@ Do **not** start these for the first demo. Reddit + YouTube + SerpAPI + ScrapeCr
 
 When you have spare time later:
 
-| Platform | Where you sign up | What you'll eventually give the agent |
-|----------|-------------------|----------------------------------------|
-| Instagram Business (fallback) | https://developers.facebook.com/ | Meta Graph token + Business IG id |
-| LinkedIn | https://www.linkedin.com/developers/ | Client ID, Client Secret, and access token |
-| X official API | https://developer.x.com/ | Bearer token (usually **paid**) |
+| Platform                      | Where you sign up                    | What you'll eventually give the agent      |
+| ----------------------------- | ------------------------------------ | ------------------------------------------ |
+| Instagram Business (fallback) | https://developers.facebook.com/     | Meta Graph token + Business IG id          |
+| LinkedIn                      | https://www.linkedin.com/developers/ | Client ID, Client Secret, and access token |
+| X official API                | https://developer.x.com/             | Bearer token (usually **paid**)            |
 
 ---
 

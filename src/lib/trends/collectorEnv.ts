@@ -16,8 +16,8 @@ export function getTrendCollectorEnvStatus(): CollectorKeyStatus[] {
     { platform: 'reddit', key: '(public JSON — no key)', present: true },
     {
       platform: 'youtube',
-      key: 'YOUTUBE_API_KEY',
-      present: Boolean(process.env.YOUTUBE_API_KEY?.trim()),
+      key: 'YOUTUBE_API_KEY | SCRAPECREATORS_API_KEY',
+      present: Boolean(process.env.YOUTUBE_API_KEY?.trim()) || scrapeCreators,
     },
     {
       platform: 'google_trends',
