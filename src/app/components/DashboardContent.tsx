@@ -15,7 +15,11 @@ import { useAuth } from '@/context/AuthContext';
 import { normalizeUiNiche } from '@/lib/trends/publicCopy';
 
 /** Prefer real age from latest activity so 24h cards reflect what's hot now. */
-function formatTimeAgo(firstDetectedAt: string, fallback: string, latestActivityAt?: string): string {
+function formatTimeAgo(
+  firstDetectedAt: string,
+  fallback: string,
+  latestActivityAt?: string
+): string {
   const detected = Date.parse(latestActivityAt || firstDetectedAt || '');
   if (!Number.isFinite(detected) || detected <= 0) return fallback || '—';
   const ageMs = Math.max(0, Date.now() - detected);
