@@ -10,7 +10,7 @@ import TrendCard from './TrendCard';
 import type { TrendItem } from '@/lib/mockData';
 import { COUNTRIES } from '@/lib/countries';
 import { useAuth } from '@/context/AuthContext';
-import { isTrendingTopic, TRENDING_GATE } from '@/lib/trends/trendingGate';
+import { selectDashboardTrends } from '@/lib/trends/trendingGate';
 
 /** Prefer real age from firstDetectedAt so cards aren't stuck on collector stub "1h/2h/3h". */
 function formatTimeAgo(firstDetectedAt: string, fallback: string): string {
@@ -25,16 +25,16 @@ function formatTimeAgo(firstDetectedAt: string, fallback: string): string {
   return `${days}d ago`;
 }
 
-function emptyStateCopy(
-  filters: DashboardFilterState,
-  opts: { gatedCount: number; rawCount: number }
-): string {
-  const { gatedCount, rawCount } = opts;
+function withinTimeframe(t: TrendItem, timeframeHours: number): boolean {
+  const detected = Date.parse(t.firstDetectedAt || '');
+  if (!Number.isFinite(detected) || detected <= 0) return true;
+  return Date.now() - detected <= timeframeHours * 3600 * 1000;
+}
+
+function emptyStateCopy(filters: DashboardFilterState, opts: { rawCount: number }): string {
+  const { rawCount } = opts;
   if (rawCount === 0) {
     return `No trends loaded yet. Use Reload data, or wait for the next ingest.`;
-  }
-  if (gatedCount === 0) {
-    return `No topics currently meet the trending bar (Score ≥${TRENDING_GATE.nemoScore}, Velocity ≥${TRENDING_GATE.cvs}, Spike ≥${TRENDING_GATE.ss}). Widen the window or Reload data, then Submit.`;
   }
 
   const parts: string[] = [];
@@ -157,10 +157,10 @@ export default function DashboardContent() {
   const timeframeHours =
     activeFilters.timeframe === '48h' ? 48 : activeFilters.timeframe === '72h' ? 72 : 24;
 
-  // Quality gate first — Dashboard only shows trending-bar passers.
-  const gatedTrends = trends.filter(isTrendingTopic);
+  // Never-blank top-K-per-platform selection (soft gate boost only).
+  const selectedTrends = selectDashboardTrends(trends);
 
-  const filteredTrends = gatedTrends.filter((t) => {
+  let filteredTrends = selectedTrends.filter((t) => {
     if (activeFilters.bookmarksOnly && !t.isBookmarked) return false;
     if (!activeFilters.categories.includes('All') && !activeFilters.categories.includes(t.category))
       return false;
@@ -192,13 +192,15 @@ export default function DashboardContent() {
         if (!hasMatch) return false;
       }
     }
-    const detected = Date.parse(t.firstDetectedAt || '');
-    if (Number.isFinite(detected) && detected > 0) {
-      const ageMs = Date.now() - detected;
-      if (ageMs > timeframeHours * 3600 * 1000) return false;
-    }
+    if (!withinTimeframe(t, timeframeHours)) return false;
     return true;
   });
+
+  // User filters yielded nothing but we have a selected set → show tops for the window.
+  if (filteredTrends.length === 0 && selectedTrends.length > 0) {
+    const inWindow = selectedTrends.filter((t) => withinTimeframe(t, timeframeHours));
+    filteredTrends = inWindow.length > 0 ? inWindow : selectedTrends;
+  }
 
   const sortedTrends = [...filteredTrends]
     .map((t) => ({
@@ -253,7 +255,7 @@ export default function DashboardContent() {
       <div className="px-4 sm:px-5 py-4 max-w-screen-2xl mx-auto">
         <div className="flex gap-5">
           <div className="flex-1 min-w-0 flex flex-col gap-4">
-            <DashboardKPICards trends={gatedTrends} />
+            <DashboardKPICards trends={selectedTrends} />
             <DashboardFilters
               onRefresh={handleRefresh}
               isRefreshing={isRefreshing}
@@ -332,18 +334,13 @@ export default function DashboardContent() {
               </span>
             </div>
 
-            {displayTrends.length === 0 ? (
+            {trends.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <p className="font-display font-bold text-foreground text-xl mb-2">
-                  {trends.length > 0 && gatedTrends.length === 0
-                    ? 'Nothing meets the trending bar'
-                    : 'No trends found'}
+                  No trends found
                 </p>
                 <p className="text-base text-foreground/65 font-sans max-w-lg">
-                  {emptyStateCopy(activeFilters, {
-                    gatedCount: gatedTrends.length,
-                    rawCount: trends.length,
-                  })}
+                  {emptyStateCopy(activeFilters, { rawCount: trends.length })}
                 </p>
               </div>
             ) : (
@@ -356,7 +353,7 @@ export default function DashboardContent() {
           </div>
 
           <div className="w-64 xl:w-72 flex-shrink-0 hidden lg:block">
-            <DashboardSidebar trends={gatedTrends} />
+            <DashboardSidebar trends={selectedTrends} />
           </div>
         </div>
       </div>
