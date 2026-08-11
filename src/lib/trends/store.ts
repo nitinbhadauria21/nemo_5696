@@ -18,12 +18,18 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
   const creators24 = Number(row.creators_last_24h) || creators72;
   const creators6 = Number(row.creators_last_6h) || Math.max(1, Math.round(creators24 / 4));
   const firstDetectedAt = String(row.first_detected_at || new Date().toISOString());
+  const platformsPresent = (row.platforms_present as string[] | null) || [];
+  const platforms = (
+    platformsPresent.length
+      ? platformsPresent.map((p) => (p === 'google_trends' ? 'google' : p))
+      : [String(row.platform || 'google') === 'google_trends' ? 'google' : String(row.platform || 'google')]
+  ) as TrendItem['platforms'];
   return {
     id: String(row.trend_id),
     title: String(row.topic_text || 'Untitled'),
     description: '',
     category: String(row.niche || 'other'),
-    platforms: ['google'],
+    platforms,
     contentType: 'KEYWORD',
     nemoScore: Number(row.nemo_score) || 0,
     cvs: Number(row.creator_velocity_score) || 0,

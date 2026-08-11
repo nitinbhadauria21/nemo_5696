@@ -102,20 +102,34 @@ function toTrendItem(input: {
   };
 }
 
-/** Reddit public JSON — no API key required */
+/** Reddit public JSON — no API key required. Platforms tag is honest: reddit only. */
 export async function collectRedditTrends(): Promise<TrendItem[]> {
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
     const res = await fetch('https://www.reddit.com/r/popular/hot.json?limit=12', {
-      headers: { 'User-Agent': 'nemo-trends/1.0' },
-      next: { revalidate: 300 },
+      headers: {
+        'User-Agent': 'NemoTrends/1.0 (trend intelligence; contact: support@nemo.app)',
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+      signal: controller.signal,
     });
-    if (!res.ok) return [];
+    clearTimeout(timer);
+    if (!res.ok) {
+      console.error('Reddit collector HTTP', res.status);
+      return [];
+    }
     const json = await res.json();
     const posts = json?.data?.children ?? [];
     return posts.slice(0, 8).map((child: any, idx: number) => {
       const p = child.data;
       const score = typeof p.score === 'number' ? p.score : 100;
       const comments = typeof p.num_comments === 'number' ? p.num_comments : 10;
+      const ageHours = Math.max(
+        0.25,
+        (Date.now() / 1000 - (p.created_utc || Date.now() / 1000)) / 3600
+      );
       const signals = collectRedditSignals({
         score_velocity_5min: Math.max(1, Math.round(score / 40)),
         score_velocity_15min: Math.max(1, Math.round(score / 25)),
@@ -123,29 +137,29 @@ export async function collectRedditTrends(): Promise<TrendItem[]> {
         comment_velocity: Math.max(1, Math.round(comments / 8)),
         cross_subreddit_count: 1,
         sort_positions: ['hot', 'rising'],
-        post_age_hours: Math.max(
-          0.5,
-          (Date.now() / 1000 - (p.created_utc || Date.now() / 1000)) / 3600
-        ),
-        subreddit_subscriber_count: 100000,
+        post_age_hours: ageHours,
+        subreddit_subscriber_count: Number(p.subreddit_subscribers || 100000),
         upvote_ratio: p.upvote_ratio ?? 0.9,
         nsfw_flag: Boolean(p.over_18),
         subreddit_names: [p.subreddit],
         post_ids_sample: [p.id],
         collected_at: new Date().toISOString(),
       });
+      // Use platform scorer for relative weight (snapshot-based until we have history)
       scoreRedditSignals(signals, { max_score_velocity: 200, max_comment_velocity: 100 });
 
+      // mentionsPrev24h omitted invention: use same-window floor so spike is conservative
+      const mentions24h = Math.max(50, score);
       return toTrendItem({
         topic: String(p.title || `Reddit trend ${idx}`).slice(0, 120),
         niche: 'other',
-        platforms: ['reddit', 'google'],
+        platforms: ['reddit'],
         creators6h: Math.max(5, Math.round(comments / 8)),
         creators24h: Math.max(20, Math.round(comments / 2)),
         creators72h: Math.max(40, comments),
-        mentions24h: Math.max(50, score),
-        mentionsPrev24h: Math.max(20, Math.round(score * 0.4)),
-        ageHours: Math.max(1, (Date.now() / 1000 - (p.created_utc || Date.now() / 1000)) / 3600),
+        mentions24h,
+        mentionsPrev24h: mentions24h,
+        ageHours: Math.max(1, ageHours),
         description: `Trending on r/${p.subreddit}: ${String(p.title || '').slice(0, 160)}`,
         hashtags: [`#${p.subreddit}`, '#reddit'],
       });
@@ -198,15 +212,16 @@ export async function collectYouTubeTrends(): Promise<TrendItem[]> {
         max_likes_per_1000: 200,
       });
 
+      const mentions24h = Math.max(100, Math.round(views / 100));
       return toTrendItem({
         topic: String(item.snippet?.title || `YouTube trend ${idx}`).slice(0, 120),
         niche: 'AI',
-        platforms: ['youtube', 'google'],
+        platforms: ['youtube'],
         creators6h: Math.max(10, Math.round(comments / 15)),
         creators24h: Math.max(30, Math.round(comments / 5)),
         creators72h: Math.max(60, comments),
-        mentions24h: Math.max(100, Math.round(views / 100)),
-        mentionsPrev24h: Math.max(40, Math.round(views / 250)),
+        mentions24h,
+        mentionsPrev24h: mentions24h,
         ageHours: 6 + idx,
         description: String(item.snippet?.description || '').slice(0, 220),
         hashtags: ['#youtube', '#shorts'],
@@ -219,9 +234,50 @@ export async function collectYouTubeTrends(): Promise<TrendItem[]> {
 }
 
 /**
- * Google Trends via optional proxy, otherwise scored seed rising queries.
+ * Google Trends via SERPAPI_KEY (preferred) or GOOGLE_TRENDS_PROXY_URL.
+ * Production never fabricates seeds.
  */
 export async function collectGoogleTrends(): Promise<TrendItem[]> {
+  const serpKey = process.env.SERPAPI_KEY?.trim();
+  if (serpKey) {
+    try {
+      const url = new URL('https://serpapi.com/search.json');
+      url.searchParams.set('engine', 'google_trends_trending_now');
+      url.searchParams.set('geo', process.env.GOOGLE_TRENDS_GEO || 'IN');
+      url.searchParams.set('api_key', serpKey);
+      const res = await fetch(url.toString(), { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        const items = (data.trending_searches || data.trends || data.news_results || []) as any[];
+        if (Array.isArray(items) && items.length) {
+          return items.slice(0, 8).map((item: any, idx: number) => {
+            const title = String(
+              item.query || item.title || item.story_title || `Trend ${idx}`
+            ).slice(0, 120);
+            const growth = Number(item.increase_percentage ?? item.growth ?? 100 + idx * 10);
+            return toTrendItem({
+              topic: title,
+              niche: String(item.category || 'other'),
+              platforms: ['google'],
+              creators6h: 20 + idx * 3,
+              creators24h: 60 + idx * 8,
+              creators72h: 150 + idx * 12,
+              mentions24h: Math.max(100, Math.round(growth * 10)),
+              mentionsPrev24h: Math.max(100, Math.round(growth * 10)),
+              ageHours: 2 + idx,
+              description: `Google Trends (live): ${title}`,
+              hashtags: ['#googletrends'],
+            });
+          });
+        }
+      } else {
+        console.error('SerpAPI Google Trends HTTP', res.status);
+      }
+    } catch (err) {
+      console.error('SerpAPI Google Trends failed', err);
+    }
+  }
+
   const proxy = process.env.GOOGLE_TRENDS_PROXY_URL;
   if (proxy) {
     try {
@@ -254,12 +310,12 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
           return toTrendItem({
             topic: title,
             niche: String(item.niche || 'other'),
-            platforms: ['google', 'youtube'],
+            platforms: ['google'],
             creators6h: 40 + idx * 5,
             creators24h: 120 + idx * 12,
             creators72h: 300 + idx * 20,
             mentions24h: 2000 + idx * 300,
-            mentionsPrev24h: 800 + idx * 50,
+            mentionsPrev24h: 2000 + idx * 300,
             ageHours: 3 + idx,
           });
         });
@@ -301,12 +357,12 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
     return toTrendItem({
       topic: s.title,
       niche: s.niche,
-      platforms: ['google', 'youtube', 'instagram'],
+      platforms: ['google'],
       creators6h: 50 + idx * 8,
       creators24h: 140 + idx * 15,
       creators72h: 320 + idx * 25,
       mentions24h: 2500 + s.growth * 4,
-      mentionsPrev24h: 900 + idx * 80,
+      mentionsPrev24h: 2500 + s.growth * 4,
       ageHours: 2 + idx,
       hashtags: [`#${s.niche}`, '#trends'],
     });
@@ -314,43 +370,63 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
 }
 
 export async function collectInstagramTrends(): Promise<TrendItem[]> {
-  const token = process.env.INSTAGRAM_ACCESS_TOKEN;
-  if (!token) {
-    if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') return [];
-    return [
-      toTrendItem({
-        topic: 'Reel transitions trend pack',
-        niche: 'fashion',
-        platforms: ['instagram', 'tiktok'],
-        creators6h: 120,
-        creators24h: 480,
-        creators72h: 1200,
-        mentions24h: 8400,
-        mentionsPrev24h: 2100,
-        ageHours: 4,
-        hashtags: ['#reels', '#transition'],
-      }),
-    ];
-  }
+  const token = process.env.INSTAGRAM_ACCESS_TOKEN?.trim();
+  if (!token) return [];
 
   try {
+    // Prefer explicit IG user id; else resolve via linked Facebook Page → Instagram Business Account
+    let igUserId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID?.trim() || '';
+    if (!igUserId) {
+      const pagesRes = await fetch(
+        `https://graph.facebook.com/v19.0/me/accounts?fields=id,name,instagram_business_account&access_token=${encodeURIComponent(token)}`,
+        { cache: 'no-store' }
+      );
+      if (pagesRes.ok) {
+        const pagesJson = (await pagesRes.json()) as {
+          data?: Array<{ instagram_business_account?: { id?: string } }>;
+        };
+        igUserId = pagesJson.data?.find((p) => p.instagram_business_account?.id)
+          ?.instagram_business_account?.id || '';
+      }
+    }
+
+    if (!igUserId) {
+      console.warn(
+        'Instagram collector: token present but no Instagram Business Account linked to a Facebook Page. Set INSTAGRAM_BUSINESS_ACCOUNT_ID or link Page + IG Professional in Meta.'
+      );
+      return [];
+    }
+
     const res = await fetch(
-      `https://graph.facebook.com/v19.0/me/media?fields=id,caption,like_count,comments_count,timestamp&access_token=${token}`
+      `https://graph.facebook.com/v19.0/${igUserId}/media?fields=id,caption,like_count,comments_count,timestamp,permalink&limit=8&access_token=${encodeURIComponent(token)}`,
+      { cache: 'no-store' }
     );
-    if (!res.ok) throw new Error('Instagram API error');
+    if (!res.ok) {
+      const body = await res.text();
+      console.error('Instagram collector HTTP', res.status, body.slice(0, 300));
+      return [];
+    }
     const data = await res.json();
-    const items = (data.data ?? []).slice(0, 8) as Array<{ caption?: string; like_count?: number }>;
+    const items = (data.data ?? []).slice(0, 8) as Array<{
+      caption?: string;
+      like_count?: number;
+      comments_count?: number;
+    }>;
+    if (!items.length) return [];
+
     return items.map((item, idx) =>
       toTrendItem({
-        topic: (item.caption ?? 'Instagram trend').slice(0, 80),
+        topic: (item.caption ?? 'Instagram post').slice(0, 80),
         niche: 'fashion',
         platforms: ['instagram'],
         creators6h: 30 + idx * 5,
         creators24h: 90 + idx * 10,
         creators72h: 200 + idx * 20,
         mentions24h: (item.like_count ?? 500) + idx * 100,
-        mentionsPrev24h: 200 + idx * 40,
+        mentionsPrev24h: Math.max(50, Math.round((item.like_count ?? 500) * 0.4)),
         ageHours: 2 + idx,
+        description: `Instagram media from connected business account`,
+        hashtags: ['#instagram'],
       })
     );
   } catch (err) {
@@ -362,21 +438,7 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
 export async function collectLinkedInTrends(): Promise<TrendItem[]> {
   const token = process.env.LINKEDIN_ACCESS_TOKEN;
   if (!token) {
-    if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') return [];
-    return [
-      toTrendItem({
-        topic: 'AI productivity for founders',
-        niche: 'business',
-        platforms: ['linkedin'],
-        creators6h: 45,
-        creators24h: 180,
-        creators72h: 420,
-        mentions24h: 3200,
-        mentionsPrev24h: 900,
-        ageHours: 6,
-        hashtags: ['#startups', '#AI'],
-      }),
-    ];
+    return [];
   }
 
   try {
@@ -408,16 +470,43 @@ export async function collectLinkedInTrends(): Promise<TrendItem[]> {
   }
 }
 
+/** X / Twitter — requires TWITTER_BEARER_TOKEN (usually paid). Stub until key arrives. */
+export async function collectTwitterTrends(): Promise<TrendItem[]> {
+  const token = process.env.TWITTER_BEARER_TOKEN?.trim();
+  if (!token) return [];
+  // Wire real Trends / search once founder provides API access — no fake rows.
+  console.info('Twitter collector: bearer present; full Trends API wiring pending founder API package');
+  return [];
+}
+
+/** TikTok — partner / Research API. Stub until credentials arrive. */
+export async function collectTikTokTrends(): Promise<TrendItem[]> {
+  const key = process.env.TIKTOK_CLIENT_KEY?.trim();
+  if (!key) return [];
+  console.info('TikTok collector: client key present; Trends partner API wiring pending');
+  return [];
+}
+
 export async function collectMvpTrends(): Promise<TrendItem[]> {
-  const [reddit, youtube, google, instagram, linkedin] = await Promise.all([
+  const [reddit, youtube, google, instagram, linkedin, twitter, tiktok] = await Promise.all([
     collectRedditTrends(),
     collectYouTubeTrends(),
     collectGoogleTrends(),
     collectInstagramTrends(),
     collectLinkedInTrends(),
+    collectTwitterTrends(),
+    collectTikTokTrends(),
   ]);
 
-  const merged = [...google, ...youtube, ...reddit, ...instagram, ...linkedin];
+  const merged = [
+    ...google,
+    ...youtube,
+    ...reddit,
+    ...instagram,
+    ...linkedin,
+    ...twitter,
+    ...tiktok,
+  ];
   const byTitle = new Map<string, TrendItem>();
   for (const t of merged) {
     const key = t.title.toLowerCase();

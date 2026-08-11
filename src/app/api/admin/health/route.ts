@@ -3,6 +3,8 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { requireAdminSession } from '@/lib/admin/auth';
 import { resolveAiProvider } from '@/lib/ai/runPrompt';
+import { getTrendCollectorEnvStatus } from '@/lib/trends/collectorEnv';
+import { canSealConnectionTokens } from '@/lib/crypto/sealTokens';
 
 export async function GET() {
   const adminAuth = await requireAdminSession();
@@ -42,8 +44,6 @@ export async function GET() {
     });
   }
 
-  const youtube = Boolean(process.env.YOUTUBE_API_KEY);
-  const googleProxy = Boolean(process.env.GOOGLE_TRENDS_PROXY_URL);
   const cron = Boolean(process.env.CRON_SECRET);
   const aiProvider = resolveAiProvider(process.env.AI_PROVIDER);
   const keyByProvider: Record<string, boolean> = {
@@ -64,24 +64,25 @@ export async function GET() {
       : `Missing key for ${aiProvider} (set OPENROUTER_API_KEY / ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY / PERPLEXITY_API_KEY)`,
   });
 
+  for (const row of getTrendCollectorEnvStatus()) {
+    checks.push({
+      id: `collector_${row.platform}`,
+      name: `${row.platform} collector`,
+      status: row.present ? 'operational' : 'degraded',
+      detail: row.present ? `${row.key} ready` : `Missing ${row.key}`,
+    });
+  }
+
+  const vaultOk = canSealConnectionTokens();
   checks.push({
-    id: 'reddit',
-    name: 'Reddit collector',
-    status: 'operational',
-    detail: 'Public JSON',
+    id: 'oauth_vault',
+    name: 'Social Connect encryption',
+    status: vaultOk ? 'operational' : 'degraded',
+    detail: vaultOk
+      ? 'CONNECTIONS_ENCRYPTION_KEY available'
+      : 'Set CONNECTIONS_ENCRYPTION_KEY (64 hex chars) before OAuth Connect works in production',
   });
-  checks.push({
-    id: 'youtube',
-    name: 'YouTube collector',
-    status: youtube ? 'operational' : 'degraded',
-    detail: youtube ? 'API key set' : 'Missing YOUTUBE_API_KEY',
-  });
-  checks.push({
-    id: 'google',
-    name: 'Google Trends',
-    status: googleProxy ? 'operational' : 'degraded',
-    detail: googleProxy ? 'Proxy configured' : 'Seeds / no proxy',
-  });
+
   checks.push({
     id: 'cron',
     name: 'Cron secret',

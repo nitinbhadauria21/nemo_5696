@@ -14,10 +14,14 @@ export async function GET() {
     if (supabase) {
       const { data } = await supabase
         .from('user_connections')
-        .select('platform, metadata, created_at')
+        .select('platform, metadata, connected_at, status, token_expires_at, scopes')
         .eq('user_id', userId);
       const connections = (data ?? []).map((row) => ({
-        ...row,
+        platform: row.platform,
+        connected_at: row.connected_at,
+        status: row.status ?? 'active',
+        token_expires_at: row.token_expires_at ?? null,
+        scopes: row.scopes ?? [],
         metadata: sanitizeConnectionMetadata((row.metadata ?? {}) as Record<string, unknown>),
       }));
       return NextResponse.json({ connections });
@@ -55,9 +59,20 @@ export async function DELETE(request: NextRequest) {
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
     if (supabase) {
+      // Soft-revoke: clear vault, keep audit row
       await supabase
         .from('user_connections')
-        .delete()
+        .update({
+          status: 'revoked',
+          encrypted_tokens: null,
+          token_expires_at: null,
+          scopes: [],
+          metadata: {
+            connected: false,
+            token_status: 'revoked',
+            disconnected_at: new Date().toISOString(),
+          },
+        })
         .eq('user_id', userId)
         .eq('platform', platform);
 

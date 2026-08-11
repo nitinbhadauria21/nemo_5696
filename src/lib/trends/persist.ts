@@ -32,6 +32,44 @@ function mapTrendToRecord(t: TrendItem) {
   };
 }
 
+/**
+ * Drop records that were not refreshed in this ingest and are older than maxAgeHours.
+ * Keeps the dashboard from showing stale seed / dead-platform rows forever.
+ * Never runs when the current batch is empty (failed collectors must not wipe live data).
+ */
+export async function purgeStaleTrendRecords(
+  supabase: SupabaseClient,
+  keepTrendIds: string[],
+  maxAgeHours = 72
+): Promise<number> {
+  if (!keepTrendIds.length) return 0;
+  const cutoff = new Date(Date.now() - maxAgeHours * 3600 * 1000).toISOString();
+  const keep = new Set(keepTrendIds);
+
+  const { data: stale, error } = await supabase
+    .from('trend_records')
+    .select('trend_id')
+    .lt('collected_at', cutoff)
+    .limit(500);
+
+  if (error) {
+    console.error('purgeStaleTrendRecords select failed', error.message);
+    return 0;
+  }
+
+  const toDelete = (stale ?? [])
+    .map((r) => String(r.trend_id))
+    .filter((id) => !keep.has(id));
+  if (!toDelete.length) return 0;
+
+  const { error: delErr } = await supabase.from('trend_records').delete().in('trend_id', toDelete);
+  if (delErr) {
+    console.error('purgeStaleTrendRecords delete failed', delErr.message);
+    return 0;
+  }
+  return toDelete.length;
+}
+
 export async function persistTrendsToSupabase(
   supabase: SupabaseClient,
   trends: TrendItem[]
@@ -55,4 +93,10 @@ export async function persistTrendsToSupabase(
   }));
 
   await supabase.from('trend_snapshots').insert(snapshots);
+
+  await purgeStaleTrendRecords(
+    supabase,
+    trends.map((t) => t.id),
+    Number(process.env.TREND_STALE_MAX_AGE_HOURS || 72)
+  );
 }

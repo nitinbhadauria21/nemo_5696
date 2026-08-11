@@ -6,16 +6,17 @@ import { toast } from 'sonner';
 import PlatformIcon from '@/components/ui/PlatformIcon';
 
 const SOCIAL_PLATFORMS = [
-  { id: 'google', label: 'Google', description: 'Sign in & trend signals' },
-  { id: 'youtube', label: 'YouTube', description: 'Shorts & video performance' },
-  { id: 'instagram', label: 'Instagram', description: 'Reels & creator metrics' },
-  { id: 'linkedin', label: 'LinkedIn', description: 'Professional content trends' },
-  { id: 'twitter', label: 'Twitter / X', description: 'Real-time topic signals' },
+  { id: 'google', label: 'Google', description: 'Sign-in profile for personalization' },
+  { id: 'youtube', label: 'YouTube', description: 'Your channel insights (not global Trends)' },
+  { id: 'instagram', label: 'Instagram', description: 'Your media insights (not IG Explore Trends)' },
+  { id: 'linkedin', label: 'LinkedIn', description: 'Your professional profile / pages' },
+  { id: 'twitter', label: 'Twitter / X', description: 'Your X account (requires paid API app)' },
 ];
 
 type ConnectionRow = {
   platform: string;
-  metadata?: { connected_at?: string; token_status?: string };
+  status?: string;
+  metadata?: { connected_at?: string; token_status?: string; has_refresh?: boolean };
 };
 
 export default function SocialConnectTab() {
@@ -31,7 +32,7 @@ export default function SocialConnectTab() {
         setConnections(data.connections ?? []);
       }
     } catch {
-      // local demo mode
+      // offline
     } finally {
       setLoading(false);
     }
@@ -44,12 +45,17 @@ export default function SocialConnectTab() {
   useEffect(() => {
     const connected = searchParams.get('connected');
     const oauth = searchParams.get('oauth');
+    const reason = searchParams.get('reason');
     if (connected === '1' && oauth) {
-      toast.success(`${oauth} connected successfully`);
+      toast.success(`${oauth} connected — tokens stored encrypted on the server`);
       loadConnections();
     }
     if (oauth === 'error') {
-      toast.error('OAuth connection failed — check provider credentials');
+      toast.error(
+        reason
+          ? `Connection failed: ${reason.replace(/_/g, ' ')}`
+          : 'OAuth connection failed — check client ID/secret on Vercel'
+      );
     }
   }, [searchParams, loadConnections]);
 
@@ -69,15 +75,22 @@ export default function SocialConnectTab() {
     }
   };
 
-  const isConnected = (id: string) => connections.some((c) => c.platform === id);
+  const isConnected = (id: string) =>
+    connections.some((c) => c.platform === id && c.status === 'active');
 
   return (
     <div className="space-y-4">
       <div className="card-surface p-4 border-primary/20 bg-primary/5">
         <p className="text-sm text-foreground leading-relaxed">
-          <span className="font-semibold">Social Connect</span> links your creator accounts so NEMO
-          can personalize trends and track your content performance. OAuth tokens are stored
-          server-side only.
+          <span className="font-semibold">Social Connect</span> links{' '}
+          <span className="font-semibold">your own</span> creator accounts for personalization
+          (later: your content performance). This is{' '}
+          <span className="font-semibold">not</span> how Nemo fills the global Trends dashboard.
+        </p>
+        <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+          Global trending topics come from Nemo&apos;s server collectors (Reddit, YouTube API key,
+          Google Trends / SerpAPI, etc.) on a schedule — separate from these logins. OAuth access
+          tokens are encrypted at rest and never sent to your browser.
         </p>
       </div>
 
@@ -101,6 +114,7 @@ export default function SocialConnectTab() {
                       {connected && meta?.connected_at && (
                         <p className="text-xs text-accent mt-1">
                           Connected {new Date(meta.connected_at).toLocaleDateString()}
+                          {meta.has_refresh ? ' · refresh enabled' : ''}
                         </p>
                       )}
                     </div>
@@ -117,6 +131,7 @@ export default function SocialConnectTab() {
                     </span>
                     {connected ? (
                       <button
+                        type="button"
                         onClick={() => handleDisconnect(platform.id)}
                         className="text-xs font-semibold text-muted-foreground hover:text-foreground"
                       >
@@ -124,6 +139,7 @@ export default function SocialConnectTab() {
                       </button>
                     ) : (
                       <button
+                        type="button"
                         onClick={() => handleConnect(platform.id)}
                         className="text-xs font-semibold text-primary hover:underline"
                       >
