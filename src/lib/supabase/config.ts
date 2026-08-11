@@ -3,11 +3,7 @@
  * Accepts both legacy JWT keys and newer sb_publishable_ / URL fallbacks.
  */
 export function resolveSupabaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ||
-    process.env.SUPABASE_URL?.trim() ||
-    ''
-  );
+  return process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || process.env.SUPABASE_URL?.trim() || '';
 }
 
 export function resolveSupabaseAnonKey(): string {

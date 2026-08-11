@@ -23,12 +23,9 @@ function resolveNiches(
   dbNiche: string,
   rawCategory: string | undefined
 ): { category: string; niches: string[] } {
-  const candidates = [
-    ...(rawNiches || []),
-    ...dbNiches,
-    dbNiche,
-    rawCategory || '',
-  ].filter(Boolean);
+  const candidates = [...(rawNiches || []), ...dbNiches, dbNiche, rawCategory || ''].filter(
+    Boolean
+  );
   const mapped = candidates.map((n) => nicheToUiCategory(n, title));
   const niches = Array.from(new Set(mapped.filter(Boolean)));
   const category = niches[0] || nicheToUiCategory(dbNiche || rawCategory || 'other', title);
@@ -163,7 +160,9 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
   const creators72 = Number(row.creators_last_72h) || 0;
   const creators24 = Number(row.creators_last_24h) || creators72;
   const creators6 = Number(row.creators_last_6h) || Math.max(1, Math.round(creators24 / 4));
-  const firstDetectedAt = String(row.first_detected_at || latestActivityAt || new Date().toISOString());
+  const firstDetectedAt = String(
+    row.first_detected_at || latestActivityAt || new Date().toISOString()
+  );
   const platformsPresent = (row.platforms_present as string[] | null) || [];
   const platforms = (
     platformsPresent.length
@@ -230,9 +229,7 @@ export async function runTrendIngestion(options?: { useServiceRole?: boolean }):
   const now = Date.now();
   let persistError: string | null = null;
 
-  const persistAndStatus = async (
-    client: NonNullable<ReturnType<typeof createAdminClient>>
-  ) => {
+  const persistAndStatus = async (client: NonNullable<ReturnType<typeof createAdminClient>>) => {
     await persistTrendsToSupabase(client, collected);
     try {
       await upsertDataSourceStatusFromIngest(client, collected, stats);

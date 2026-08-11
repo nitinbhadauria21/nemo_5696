@@ -6,9 +6,7 @@ export const instagramProvider: TrendProvider = {
   id: 'instagram',
   displayName: 'Instagram',
   async getHealth() {
-    const live = Boolean(
-      getScrapeCreatorsApiKey() || process.env.INSTAGRAM_ACCESS_TOKEN?.trim()
-    );
+    const live = Boolean(getScrapeCreatorsApiKey() || process.env.INSTAGRAM_ACCESS_TOKEN?.trim());
     return {
       status: live ? 'active' : 'unavailable',
       metricMode: (live ? 'available' : 'unavailable') as MetricAvailability,

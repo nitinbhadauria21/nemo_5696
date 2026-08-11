@@ -6,9 +6,9 @@ export const googleTrendsProvider: TrendProvider = {
   async getHealth() {
     const live = Boolean(
       process.env.SERPAPI_KEY?.trim() ||
-        process.env.SEARCHAPI_KEY?.trim() ||
-        process.env.SEARCHAPI_API_KEY?.trim() ||
-        process.env.GOOGLE_TRENDS_PROXY_URL?.trim()
+      process.env.SEARCHAPI_KEY?.trim() ||
+      process.env.SEARCHAPI_API_KEY?.trim() ||
+      process.env.GOOGLE_TRENDS_PROXY_URL?.trim()
     );
     return {
       status: live ? 'active' : 'unavailable',

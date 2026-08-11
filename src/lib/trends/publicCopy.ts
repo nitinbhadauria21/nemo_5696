@@ -73,7 +73,15 @@ const NICHE_RULES: NicheRule[] = [
   },
 ];
 
-const DUMP_BUCKETS = new Set(['other', 'unknown', 'general', 'misc', 'miscellaneous', 'uncategorized', '']);
+const DUMP_BUCKETS = new Set([
+  'other',
+  'unknown',
+  'general',
+  'misc',
+  'miscellaneous',
+  'uncategorized',
+  '',
+]);
 
 /**
  * Classify a trend into a brief UI niche from title + caption + hashtags + raw niche.
@@ -117,7 +125,8 @@ export function classifyTrendNiche(input: {
   if (/\br\/?(travel|solotravel)\b/i.test(blob)) return 'Travel';
   if (/\br\/?(learnprogramming|education|getdisciplined)\b/i.test(blob)) return 'Education';
   if (/\br\/?(startups|entrepreneur|marketing)\b/i.test(blob)) return 'Startups';
-  if (/\br\/?(machinelearning|artificial|chatgpt|singularity|technology)\b/i.test(blob)) return 'AI';
+  if (/\br\/?(machinelearning|artificial|chatgpt|singularity|technology)\b/i.test(blob))
+    return 'AI';
 
   return 'AI';
 }

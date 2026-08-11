@@ -52,7 +52,8 @@ export async function upsertDataSourceStatusFromIngest(
     const health = healthById.get(p.id);
     const stat = statById.get(p.id);
     const records = Math.max(counts.get(p.id) || 0, stat?.count || 0);
-    const keyOk = health?.status === 'active' || health?.status === 'live' || health?.status === 'partial';
+    const keyOk =
+      health?.status === 'active' || health?.status === 'live' || health?.status === 'partial';
     const metricMode = (health?.metricMode || 'unavailable') as MetricAvailability;
     let status: ProviderHealthStatus;
 
@@ -65,16 +66,17 @@ export async function upsertDataSourceStatusFromIngest(
       status = 'unavailable';
     } else if (records === 0) {
       // Keys present but this run returned nothing — do not claim Live
-      status = p.id === 'reddit' || p.id === 'google_trends' || p.id === 'youtube' ? 'unavailable' : 'partial';
+      status =
+        p.id === 'reddit' || p.id === 'google_trends' || p.id === 'youtube'
+          ? 'unavailable'
+          : 'partial';
     } else if (health?.status === 'partial' || health?.status === 'estimated') {
       status = health.status === 'estimated' ? 'estimated' : 'partial';
     } else {
       status = 'active';
     }
 
-    const error =
-      stat?.error ||
-      (records === 0 && keyOk ? 'No records this run' : null);
+    const error = stat?.error || (records === 0 && keyOk ? 'No records this run' : null);
 
     return upsertSourceStatusPayload({
       platform: p.id,
