@@ -48,10 +48,7 @@ export function unsealTokens(sealed: string): SealedTokens {
   if (!ivB64 || !dataB64 || !tagB64) throw new Error('Invalid sealed token format');
   const decipher = createDecipheriv(ALGO, key, Buffer.from(ivB64, 'base64url'));
   decipher.setAuthTag(Buffer.from(tagB64, 'base64url'));
-  const dec = Buffer.concat([
-    decipher.update(Buffer.from(dataB64, 'base64url')),
-    decipher.final(),
-  ]);
+  const dec = Buffer.concat([decipher.update(Buffer.from(dataB64, 'base64url')), decipher.final()]);
   return JSON.parse(dec.toString('utf8')) as SealedTokens;
 }
 

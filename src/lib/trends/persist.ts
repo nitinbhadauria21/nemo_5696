@@ -57,9 +57,7 @@ export async function purgeStaleTrendRecords(
     return 0;
   }
 
-  const toDelete = (stale ?? [])
-    .map((r) => String(r.trend_id))
-    .filter((id) => !keep.has(id));
+  const toDelete = (stale ?? []).map((r) => String(r.trend_id)).filter((id) => !keep.has(id));
   if (!toDelete.length) return 0;
 
   const { error: delErr } = await supabase.from('trend_records').delete().in('trend_id', toDelete);

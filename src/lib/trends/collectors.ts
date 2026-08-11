@@ -385,8 +385,9 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
         const pagesJson = (await pagesRes.json()) as {
           data?: Array<{ instagram_business_account?: { id?: string } }>;
         };
-        igUserId = pagesJson.data?.find((p) => p.instagram_business_account?.id)
-          ?.instagram_business_account?.id || '';
+        igUserId =
+          pagesJson.data?.find((p) => p.instagram_business_account?.id)?.instagram_business_account
+            ?.id || '';
       }
     }
 
@@ -475,7 +476,9 @@ export async function collectTwitterTrends(): Promise<TrendItem[]> {
   const token = process.env.TWITTER_BEARER_TOKEN?.trim();
   if (!token) return [];
   // Wire real Trends / search once founder provides API access — no fake rows.
-  console.info('Twitter collector: bearer present; full Trends API wiring pending founder API package');
+  console.info(
+    'Twitter collector: bearer present; full Trends API wiring pending founder API package'
+  );
   return [];
 }
 

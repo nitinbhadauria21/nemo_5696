@@ -24,8 +24,7 @@ export async function getUserPlatformTokens(
   if (data.status && data.status !== 'active') return null;
 
   const sealed =
-    data.encrypted_tokens ||
-    (data.metadata as { sealed_legacy?: string } | null)?.sealed_legacy;
+    data.encrypted_tokens || (data.metadata as { sealed_legacy?: string } | null)?.sealed_legacy;
   if (!sealed || typeof sealed !== 'string') return null;
 
   try {

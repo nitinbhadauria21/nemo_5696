@@ -22,7 +22,11 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
   const platforms = (
     platformsPresent.length
       ? platformsPresent.map((p) => (p === 'google_trends' ? 'google' : p))
-      : [String(row.platform || 'google') === 'google_trends' ? 'google' : String(row.platform || 'google')]
+      : [
+          String(row.platform || 'google') === 'google_trends'
+            ? 'google'
+            : String(row.platform || 'google'),
+        ]
   ) as TrendItem['platforms'];
   return {
     id: String(row.trend_id),

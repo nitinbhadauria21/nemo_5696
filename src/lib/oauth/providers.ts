@@ -4,12 +4,7 @@
  */
 
 export type OAuthProviderId =
-  | 'google'
-  | 'youtube'
-  | 'linkedin'
-  | 'instagram'
-  | 'twitter'
-  | 'tiktok';
+  'google' | 'youtube' | 'linkedin' | 'instagram' | 'twitter' | 'tiktok';
 
 export type ProviderOAuthConfig = {
   id: OAuthProviderId;
@@ -41,12 +36,7 @@ export const OAUTH_PROVIDERS: Record<string, ProviderOAuthConfig> = {
     tokenUrl: 'https://oauth2.googleapis.com/token',
     clientIdEnv: ['GOOGLE_CLIENT_ID', 'YOUTUBE_CLIENT_ID', 'OAUTH_CLIENT_ID'],
     clientSecretEnv: ['GOOGLE_CLIENT_SECRET', 'YOUTUBE_CLIENT_SECRET', 'OAUTH_CLIENT_SECRET'],
-    scopes: [
-      'openid',
-      'email',
-      'profile',
-      'https://www.googleapis.com/auth/youtube.readonly',
-    ],
+    scopes: ['openid', 'email', 'profile', 'https://www.googleapis.com/auth/youtube.readonly'],
     authorizeExtras: { access_type: 'offline', prompt: 'consent' },
   },
   linkedin: {

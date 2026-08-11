@@ -1,9 +1,5 @@
 import { createHash, randomBytes } from 'crypto';
-import {
-  getProviderConfig,
-  resolveEnv,
-  type ProviderOAuthConfig,
-} from '@/lib/oauth/providers';
+import { getProviderConfig, resolveEnv, type ProviderOAuthConfig } from '@/lib/oauth/providers';
 import type { SealedTokens } from '@/lib/crypto/sealTokens';
 
 export type TokenExchangeResult =
@@ -157,7 +153,9 @@ export async function exchangeAuthorizationCode(opts: {
         raw: data,
       },
       expiresAt: expiresIn ? new Date(Date.now() + expiresIn * 1000).toISOString() : null,
-      scopes: String(data.scope || cfg.scopes.join(',')).split(/[,\s]+/).filter(Boolean),
+      scopes: String(data.scope || cfg.scopes.join(','))
+        .split(/[,\s]+/)
+        .filter(Boolean),
     };
   }
 
@@ -168,7 +166,7 @@ export async function exchangeAuthorizationCode(opts: {
   // Instagram short-lived may return { access_token, user_id }
   const access =
     (json.access_token as string) ||
-    ((json.data as { access_token?: string } | undefined)?.access_token);
+    (json.data as { access_token?: string } | undefined)?.access_token;
   if (!access) return { ok: false, error: 'no_access_token_in_response' };
 
   const expiresIn = Number(json.expires_in || 0);
