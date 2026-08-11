@@ -8,7 +8,11 @@ import PlatformIcon from '@/components/ui/PlatformIcon';
 const SOCIAL_PLATFORMS = [
   { id: 'google', label: 'Google', description: 'Sign-in profile for personalization' },
   { id: 'youtube', label: 'YouTube', description: 'Your channel insights (not global Trends)' },
-  { id: 'instagram', label: 'Instagram', description: 'Your media insights (not IG Explore Trends)' },
+  {
+    id: 'instagram',
+    label: 'Instagram',
+    description: 'Your media insights (not IG Explore Trends)',
+  },
   { id: 'linkedin', label: 'LinkedIn', description: 'Your professional profile / pages' },
   { id: 'twitter', label: 'Twitter / X', description: 'Your X account (requires paid API app)' },
 ];
@@ -84,8 +88,8 @@ export default function SocialConnectTab() {
         <p className="text-sm text-foreground leading-relaxed">
           <span className="font-semibold">Social Connect</span> links{' '}
           <span className="font-semibold">your own</span> creator accounts for personalization
-          (later: your content performance). This is{' '}
-          <span className="font-semibold">not</span> how Nemo fills the global Trends dashboard.
+          (later: your content performance). This is <span className="font-semibold">not</span> how
+          Nemo fills the global Trends dashboard.
         </p>
         <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
           Global trending topics come from Nemo&apos;s server collectors (Reddit, YouTube API key,
