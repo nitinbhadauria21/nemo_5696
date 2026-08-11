@@ -467,10 +467,7 @@ export default function AdminAnalyticsContent() {
                   label="Keywords"
                   value={k ? String(k.keywordSearches ?? metrics?.keywords?.total ?? '—') : '—'}
                 />
-                <Kpi
-                  label="Page views"
-                  value={k ? String(k.pageViews ?? '—') : '—'}
-                />
+                <Kpi label="Page views" value={k ? String(k.pageViews ?? '—') : '—'} />
               </div>
               <div className="grid gap-4 lg:grid-cols-2">
                 <div className="admin-card p-4">
@@ -566,7 +563,11 @@ export default function AdminAnalyticsContent() {
                   <h3 className="mb-3 font-display text-sm font-bold">Activation funnel</h3>
                   <div className="h-52">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={metrics?.funnel ?? []} layout="vertical" margin={{ left: 24 }}>
+                      <BarChart
+                        data={metrics?.funnel ?? []}
+                        layout="vertical"
+                        margin={{ left: 24 }}
+                      >
                         <CartesianGrid stroke="rgba(255,255,255,0.06)" horizontal={false} />
                         <XAxis
                           type="number"
@@ -615,8 +616,8 @@ export default function AdminAnalyticsContent() {
                 </Link>
               </div>
               <p className="text-xs text-[var(--admin-mute)]">
-                Passwords are never stored or shown. Use Reset password to issue a one-time temporary
-                password.
+                Passwords are never stored or shown. Use Reset password to issue a one-time
+                temporary password.
               </p>
               <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
                 <div className="admin-card flex max-h-[70vh] flex-col overflow-hidden">
@@ -658,7 +659,9 @@ export default function AdminAnalyticsContent() {
                           <div className="font-display text-lg font-bold">
                             {selectedUser.name || '—'}
                           </div>
-                          <div className="text-sm text-[var(--admin-mute)]">{selectedUser.email}</div>
+                          <div className="text-sm text-[var(--admin-mute)]">
+                            {selectedUser.email}
+                          </div>
                           <div className="mt-2 flex flex-wrap gap-2">
                             {planPill(selectedUser.plan)}
                             <span className="admin-pill admin-pill-free">
@@ -941,14 +944,14 @@ export default function AdminAnalyticsContent() {
             <div className="space-y-3">
               <h2 className="font-display text-sm font-bold text-[var(--admin-soft)]">Trends</h2>
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-                <Kpi
-                  label="Interactions"
-                  value={String(metrics?.trends?.kpis.interactions ?? 0)}
-                />
+                <Kpi label="Interactions" value={String(metrics?.trends?.kpis.interactions ?? 0)} />
                 <Kpi label="Opens / analyze" value={String(metrics?.trends?.kpis.opens ?? 0)} />
                 <Kpi label="Bookmarks" value={String(metrics?.trends?.kpis.bookmarks ?? 0)} />
                 <Kpi label="Filters" value={String(metrics?.trends?.kpis.filters ?? 0)} />
-                <Kpi label="AI trend calls" value={String(metrics?.trends?.kpis.aiTrendCalls ?? 0)} />
+                <Kpi
+                  label="AI trend calls"
+                  value={String(metrics?.trends?.kpis.aiTrendCalls ?? 0)}
+                />
               </div>
               <div className="grid gap-4 lg:grid-cols-2">
                 <div className="admin-card overflow-hidden">
@@ -1078,9 +1081,7 @@ export default function AdminAnalyticsContent() {
                                 href={`/admin/users/${g.userId}`}
                                 className="hover:text-[#FF6B2B]"
                               >
-                                <div className="truncate text-xs font-medium">
-                                  {g.name || '—'}
-                                </div>
+                                <div className="truncate text-xs font-medium">{g.name || '—'}</div>
                                 <div className="truncate text-[10px] text-[var(--admin-mute)]">
                                   {g.email}
                                 </div>
@@ -1101,13 +1102,13 @@ export default function AdminAnalyticsContent() {
                             )}
                           </td>
                           <td className="font-mono text-xs">
-                            {g.durationSeconds != null ? `${g.durationSeconds}s` : g.duration || '—'}
+                            {g.durationSeconds != null
+                              ? `${g.durationSeconds}s`
+                              : g.duration || '—'}
                           </td>
                           <td className="font-mono text-xs">{g.scenesCount ?? '—'}</td>
                           <td className="text-xs">{g.language || '—'}</td>
-                          <td className="max-w-[90px] truncate text-xs">
-                            {g.audienceType || '—'}
-                          </td>
+                          <td className="max-w-[90px] truncate text-xs">{g.audienceType || '—'}</td>
                           <td className="max-w-[100px] truncate text-xs">
                             {g.frameworkLabel || '—'}
                           </td>
@@ -1234,10 +1235,7 @@ export default function AdminAnalyticsContent() {
                   label="Pages/session"
                   value={String(metrics?.browser?.sessionsSummary.pagesPerSession ?? 0)}
                 />
-                <Kpi
-                  label="Page views"
-                  value={String(metrics?.browser?.pageViews.length ?? 0)}
-                />
+                <Kpi label="Page views" value={String(metrics?.browser?.pageViews.length ?? 0)} />
               </div>
               <div className="grid gap-4 lg:grid-cols-2">
                 <div className="admin-card overflow-hidden">
