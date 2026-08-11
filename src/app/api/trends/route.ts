@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     trends: pageTrends,
-    source: result.source,
+    source: result.source === 'mock' || result.source === 'memory' ? 'cached' : 'live',
     collectedAt: result.collectedAt,
     lastIngestAt: result.lastIngestAt ?? result.collectedAt,
     total: result.trends.length,

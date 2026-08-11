@@ -160,6 +160,7 @@ function toTrendItem(input: {
   );
 
   const firstDetectedAt = new Date(Date.now() - ageHours * 3600 * 1000).toISOString();
+  const latestActivityAt = new Date().toISOString();
   // Scoring engine hard-expires at 7d. For 7–30d keep a penalized score instead of zeroing.
   const stale = ageHours > STALE_AGE_HOURS;
   const scoringAgeHours = stale ? STALE_AGE_HOURS - 0.5 : ageHours;
@@ -203,6 +204,7 @@ function toTrendItem(input: {
     id: hashId(input.topic),
     title: input.topic,
     category,
+    niches: [category],
     status: statusFromNemo(nemoScore),
     nemoScore: Math.round(nemoScore),
     cvs: Math.round(score.creator_velocity_score),
@@ -220,6 +222,7 @@ function toTrendItem(input: {
     sparklineData: spark,
     timeAgo: timeAgoFromHours(ageHours),
     firstDetectedAt,
+    latestActivityAt,
     hashtags: input.hashtags ?? [`#${input.topic.replace(/\s+/g, '')}`],
     description:
       input.description ??
@@ -512,7 +515,7 @@ function mapGoogleTrendRows(items: any[], sourceLabel: string, geo: string[]): T
         mentions24h: Math.max(100, Math.round(growth * 10)),
         mentionsPrev24h: estimateMentionsPrev24h(Math.max(100, Math.round(growth * 10))),
         ageHours: 2 + idx,
-        description: `Google Trends (${sourceLabel}): ${title}`,
+        description: `Rising search interest: ${title}`,
         hashtags: ['#googletrends'],
         geoRegions: geo,
       });
@@ -721,16 +724,14 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
               mentions24h,
               mentionsPrev24h: estimateMentionsPrev24h(mentions24h),
               ageHours: 1 + idx,
-              description: `Instagram trending reel via ScrapeCreators${
-                item.shortcode ? ` (${item.shortcode})` : ''
-              }`,
+              description: 'Trending Instagram reel',
               hashtags: ['#instagram', '#reels'],
               geoRegions: geo,
             });
           })
         );
       }
-      console.warn('Instagram ScrapeCreators trending: empty reels array');
+      console.warn('Instagram trending: empty reels array');
     }
   }
 
@@ -979,7 +980,7 @@ export async function collectTwitterTrends(): Promise<TrendItem[]> {
         mentions24h,
         mentionsPrev24h: estimateMentionsPrev24h(mentions24h),
         ageHours: 1 + idx * 0.4,
-        description: `X/Twitter trending via getdaytrends (ScrapeCreators discovery; no native SC Twitter trends API)`,
+        description: `Trending on X right now`,
         hashtags: [tag, '#twitter'],
         geoRegions: collectionGeoRegions(trendsGeo),
       });
@@ -1059,7 +1060,7 @@ export async function collectTikTokTrends(): Promise<TrendItem[]> {
         mentions24h,
         mentionsPrev24h: estimateMentionsPrev24h(mentions24h),
         ageHours,
-        description: `TikTok trending feed via ScrapeCreators (region=${region})`,
+        description: `Trending on TikTok right now`,
         hashtags: hashtags.length ? hashtags : ['#tiktok'],
         geoRegions: collectionGeoRegions(region),
       });
@@ -1139,7 +1140,7 @@ export async function collectFacebookTrends(): Promise<TrendItem[]> {
         mentions24h,
         mentionsPrev24h: estimateMentionsPrev24h(mentions24h),
         ageHours,
-        description: `Facebook public page reel via ScrapeCreators (no native FB trending API)`,
+        description: `Trending on Facebook right now`,
         hashtags: ['#facebook'],
         geoRegions: geo,
       });

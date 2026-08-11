@@ -4,10 +4,16 @@ export const googleTrendsProvider: TrendProvider = {
   id: 'google_trends',
   displayName: 'Google Trends',
   async getHealth() {
+    const live = Boolean(
+      process.env.SERPAPI_KEY?.trim() ||
+        process.env.SEARCHAPI_KEY?.trim() ||
+        process.env.SEARCHAPI_API_KEY?.trim() ||
+        process.env.GOOGLE_TRENDS_PROXY_URL?.trim()
+    );
     return {
-      status: 'active',
-      metricMode: 'available' as MetricAvailability,
-      notes: 'Distinguishes Trending Now vs rising/breakout when API allows',
+      status: live ? 'active' : 'unavailable',
+      metricMode: (live ? 'available' : 'unavailable') as MetricAvailability,
+      notes: undefined,
     };
   },
   async fetchTrends(): Promise<NormalizedTrendRecord[]> {

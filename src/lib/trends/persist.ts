@@ -83,19 +83,35 @@ function mapTrendToRecord(t: TrendItem) {
       ? t.geoRegions.map((g) => String(g).toUpperCase())
       : ['GLOBAL'];
 
+  const uiNiches = Array.from(
+    new Set((t.niches?.length ? t.niches : [t.category || 'AI']).map((n) => String(n)))
+  );
+
   return {
     trend_id: t.id,
     topic_text: t.title,
     platform: platforms[0],
     niche: mapCategoryToNiche(t.category),
+    niches: uiNiches,
     first_detected_at: t.firstDetectedAt,
     collected_at: new Date().toISOString(),
+    last_seen_at: t.latestActivityAt || new Date().toISOString(),
+    lifecycle_status:
+      t.lifecycle ||
+      (t.status === 'hot' ? 'breakout' : t.status === 'fading' ? 'fading' : 'rising'),
     trend_age_hours: trendAgeHours(t.firstDetectedAt),
     creator_velocity_score: t.cvs,
     spike_score: t.ss,
     cross_platform_score: t.cps,
     freshness_score: t.freshness,
     freshness_multiplier: t.freshnessMultiplier,
+    velocity_score: t.velocity ?? t.ss,
+    acceleration_score: t.acceleration ?? 0,
+    engagement_score: t.engagementScore ?? 0,
+    novelty_score: t.noveltyScore ?? 0,
+    persistence_score: t.persistenceScore ?? 0,
+    breakout_score: t.breakoutScore ?? 0,
+    confidence_score: t.confidenceScore ?? 0,
     nemo_score: t.nemoScore,
     status: statusMap[t.status] ?? 'RISING',
     platforms_present: platforms,

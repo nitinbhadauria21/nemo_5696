@@ -35,14 +35,14 @@ export async function GET() {
       const latency = Date.now() - t0;
       checks.push({
         id: 'supabase',
-        name: 'Supabase',
+        name: 'Database',
         status: error ? 'down' : 'operational',
         detail: error ? error.message : `${latency}ms`,
       });
     } else {
       checks.push({
         id: 'supabase',
-        name: 'Supabase',
+        name: 'Database',
         status: 'down',
         detail: 'Admin client missing service role',
       });
@@ -50,7 +50,7 @@ export async function GET() {
   } else {
     checks.push({
       id: 'supabase',
-      name: 'Supabase',
+      name: 'Database',
       status: 'degraded',
       detail: 'Not configured',
     });

@@ -7,7 +7,7 @@ export const redditProvider: TrendProvider = {
     return {
       status: 'active',
       metricMode: 'available' as MetricAvailability,
-      notes: 'Live collector',
+      notes: undefined,
     };
   },
   async fetchTrends(): Promise<NormalizedTrendRecord[]> {

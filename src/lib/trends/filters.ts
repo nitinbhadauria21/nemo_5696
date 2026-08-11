@@ -1,5 +1,7 @@
 import type { TrendItem, TrendPlatform, LifecycleStatus } from '@/lib/mockData';
+import { BRIEF_NICHES } from '@/lib/mockData';
 import { selectDashboardTrends } from './trendingGate';
+import { normalizeUiNiche } from './publicCopy';
 
 export type TrendQueryFilters = {
   niche?: string[];
@@ -16,18 +18,26 @@ export type TrendQueryFilters = {
   cap?: number;
 };
 
+/**
+ * Time window = recent activity, not merely original publish time.
+ * Uses the newest of firstDetectedAt / latestActivityAt so 24h means
+ * "active in the last 24 hours".
+ */
 function withinTimeframe(t: TrendItem, timeframeHours: number): boolean {
-  const detected = Date.parse(t.firstDetectedAt || '');
-  if (!Number.isFinite(detected) || detected <= 0) return true;
-  return Date.now() - detected <= timeframeHours * 3600 * 1000;
+  const windowMs = timeframeHours * 3600 * 1000;
+  const now = Date.now();
+  const times = [t.latestActivityAt, t.firstDetectedAt]
+    .map((s) => Date.parse(s || ''))
+    .filter((n) => Number.isFinite(n) && n > 0);
+  if (!times.length) return true;
+  const mostRecent = Math.max(...times);
+  return now - mostRecent <= windowMs;
 }
 
 function matchesGeo(t: TrendItem, countries: string[]): boolean {
   if (countries.length === 0) return true;
   const trendRegions = (t.geoRegions ?? []).map((r) => r.toUpperCase());
-  // Untagged rows are excluded when a geo filter is active (no silent keep-all).
   if (trendRegions.length === 0) return false;
-  // GLOBAL is a wildcard that matches any selected country filter.
   if (
     trendRegions.includes('GLOBAL') ||
     trendRegions.includes('WW') ||
@@ -46,8 +56,22 @@ function matchesGeo(t: TrendItem, countries: string[]): boolean {
 }
 
 function trendNiches(t: TrendItem): string[] {
-  if (t.niches?.length) return t.niches;
-  return t.category ? [t.category] : [];
+  const raw = t.niches?.length ? t.niches : t.category ? [t.category] : [];
+  const mapped = raw.map((n) => normalizeUiNiche(n, t.title));
+  return mapped.length ? Array.from(new Set(mapped)) : ['AI'];
+}
+
+/** YouTube chip includes Shorts; google aliases, etc. */
+function platformMatches(selected: TrendPlatform[], trendPlatforms: TrendPlatform[]): boolean {
+  if (selected.length === 0) return true;
+  const set = new Set(trendPlatforms);
+  return selected.some((p) => {
+    if (set.has(p)) return true;
+    if (p === 'youtube' && set.has('youtube_shorts')) return true;
+    if (p === 'youtube_shorts' && set.has('youtube')) return true;
+    if (p === 'google' && (set.has('google') as boolean)) return true;
+    return false;
+  });
 }
 
 function matchesStatus(t: TrendItem, statuses: string[]): boolean {
@@ -75,13 +99,21 @@ function matchesStatus(t: TrendItem, statuses: string[]): boolean {
   });
 }
 
+function normalizeFilterNiches(niches: string[]): string[] {
+  const brief = new Set(BRIEF_NICHES as string[]);
+  return niches
+    .filter((n) => n && n !== 'All')
+    .map((n) => normalizeUiNiche(n))
+    .filter((n) => brief.has(n));
+}
+
 /**
  * Apply user filters. Never restores unfiltered tops when empty.
  * Optional never-blank top-K runs AFTER filters only.
  */
 export function applyTrendFilters(trends: TrendItem[], filters: TrendQueryFilters): TrendItem[] {
   const timeframeHours = filters.timeframeHours ?? 24;
-  const niches = (filters.niche ?? []).filter((n) => n && n !== 'All');
+  const niches = normalizeFilterNiches(filters.niche ?? []);
   const platforms = filters.platforms ?? [];
   const geo = filters.geo ?? [];
   const statuses = filters.status ?? [];
@@ -94,7 +126,7 @@ export function applyTrendFilters(trends: TrendItem[], filters: TrendQueryFilter
       const tn = trendNiches(t);
       if (!niches.some((n) => tn.includes(n))) return false;
     }
-    if (platforms.length > 0 && !platforms.some((p) => t.platforms.includes(p))) return false;
+    if (!platformMatches(platforms, t.platforms || [])) return false;
     if (q) {
       const inTitle = t.title.toLowerCase().includes(q);
       const inDesc = (t.description || '').toLowerCase().includes(q);
@@ -107,7 +139,6 @@ export function applyTrendFilters(trends: TrendItem[], filters: TrendQueryFilter
     return true;
   });
 
-  // Never-blank top-K AFTER filters only — never restore unfiltered set.
   if (filters.neverBlankTopK !== false && filtered.length > 0) {
     filtered = selectDashboardTrends(filtered, {
       perPlatformK: filters.perPlatformK,
@@ -121,7 +152,9 @@ export function applyTrendFilters(trends: TrendItem[], filters: TrendQueryFilter
     if (sortBy === 'acceleration') return (b.acceleration ?? 0) - (a.acceleration ?? 0);
     if (sortBy === 'freshness') return b.freshness - a.freshness;
     if (sortBy === 'recent') {
-      return new Date(b.firstDetectedAt).getTime() - new Date(a.firstDetectedAt).getTime();
+      const tb = Date.parse(b.latestActivityAt || b.firstDetectedAt || '') || 0;
+      const ta = Date.parse(a.latestActivityAt || a.firstDetectedAt || '') || 0;
+      return tb - ta;
     }
     return b.nemoScore - a.nemoScore;
   });

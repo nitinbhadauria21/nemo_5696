@@ -9,12 +9,14 @@ import TrendCard from './TrendCard';
 import RealtimeStatus from './RealtimeStatus';
 import DataSourceStatus from './DataSourceStatus';
 import type { TrendItem } from '@/lib/mockData';
+import { BRIEF_NICHES } from '@/lib/mockData';
 import { COUNTRIES } from '@/lib/countries';
 import { useAuth } from '@/context/AuthContext';
+import { normalizeUiNiche } from '@/lib/trends/publicCopy';
 
-/** Prefer real age from firstDetectedAt so cards aren't stuck on collector stub "1h/2h/3h". */
-function formatTimeAgo(firstDetectedAt: string, fallback: string): string {
-  const detected = Date.parse(firstDetectedAt || '');
+/** Prefer real age from latest activity so 24h cards reflect what's hot now. */
+function formatTimeAgo(firstDetectedAt: string, fallback: string, latestActivityAt?: string): string {
+  const detected = Date.parse(latestActivityAt || firstDetectedAt || '');
   if (!Number.isFinite(detected) || detected <= 0) return fallback || '—';
   const ageMs = Math.max(0, Date.now() - detected);
   const mins = Math.floor(ageMs / 60000);
@@ -69,12 +71,16 @@ function prefsToFilters(
     default_region?: string | null;
   } | null
 ): DashboardFilterState {
-  const niches = (profile?.niches || []).filter(Boolean);
+  const brief = new Set(BRIEF_NICHES as string[]);
+  const niches = (profile?.niches || [])
+    .map((n) => normalizeUiNiche(n))
+    .filter((n) => brief.has(n));
   const platforms = (profile?.platforms || []) as DashboardFilterState['platforms'];
   const tf = profile?.default_time_window || '24h';
   const region = profile?.default_region;
   return {
-    categories: niches.length ? niches : ['All'],
+    // Prefer All when multiple/stale niches would over-filter the feed
+    categories: niches.length === 1 ? niches : ['All'],
     platforms: Array.isArray(platforms) ? platforms.filter(Boolean) : [],
     keyword: '',
     timeframe: tf === '48h' || tf === '72h' ? tf : '24h',
@@ -253,7 +259,7 @@ export default function DashboardContent() {
 
   displayTrends = displayTrends.map((t) => ({
     ...t,
-    timeAgo: formatTimeAgo(t.firstDetectedAt, t.timeAgo),
+    timeAgo: formatTimeAgo(t.firstDetectedAt, t.timeAgo, t.latestActivityAt),
   }));
 
   const fadingTrends = displayTrends.filter(
@@ -290,7 +296,7 @@ export default function DashboardContent() {
               Hey {displayName.split(' ')[0]} — Live trends
             </h1>
             <p className="text-base text-foreground/65 font-sans truncate mt-0.5">
-              {planLabel} plan · Near real-time · source: {source}
+              {planLabel} plan · Near real-time
             </p>
           </div>
         </div>

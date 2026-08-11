@@ -14,7 +14,7 @@ const SOCIAL_PLATFORMS = [
     description: 'Your media insights (not IG Explore Trends)',
   },
   { id: 'linkedin', label: 'LinkedIn', description: 'Your professional profile / pages' },
-  { id: 'twitter', label: 'Twitter / X', description: 'Your X account (requires paid API app)' },
+  { id: 'twitter', label: 'Twitter / X', description: 'Your X account for personalization' },
 ];
 
 type ConnectionRow = {
@@ -92,9 +92,9 @@ export default function SocialConnectTab() {
           Nemo fills the global Trends dashboard.
         </p>
         <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-          Global trending topics come from Nemo&apos;s server collectors (Reddit, YouTube API key,
-          Google Trends / SerpAPI, etc.) on a schedule — separate from these logins. OAuth access
-          tokens are encrypted at rest and never sent to your browser.
+          Global Trends are collected on a schedule across social platforms and search — separate
+          from these logins. Your connection credentials stay encrypted and never appear in your
+          browser.
         </p>
       </div>
 

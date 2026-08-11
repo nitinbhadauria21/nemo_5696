@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { userFacingPlatformStatus } from '@/lib/trends/publicCopy';
 
 type Source = {
   platform: string;
   displayName?: string;
   status: string;
   metricMode?: string;
-  notes?: string;
 };
 
 export default function DataSourceStatus({ compact = false }: { compact?: boolean }) {
@@ -30,7 +30,7 @@ export default function DataSourceStatus({ compact = false }: { compact?: boolea
     <div className={compact ? '' : 'card-surface p-3'}>
       {demo && (
         <div className="mb-2 rounded-lg bg-amber-500/15 text-amber-900 dark:text-amber-200 px-3 py-2 text-sm font-semibold">
-          Demo mode — sample data labeled; not live production metrics
+          Demo mode — showing sample trends, not live signals
         </div>
       )}
       <ul className="flex flex-wrap gap-2">
@@ -38,13 +38,11 @@ export default function DataSourceStatus({ compact = false }: { compact?: boolea
           <li
             key={s.platform}
             className="text-xs px-2 py-1 rounded-md border border-border bg-muted/50"
-            title={s.notes || ''}
           >
             <span className="font-semibold">{s.displayName || s.platform}</span>{' '}
-            <span className="text-foreground/55">{s.status}</span>
-            {s.metricMode && s.metricMode !== 'available' && (
-              <span className="text-amber-700 dark:text-amber-300"> · {s.metricMode}</span>
-            )}
+            <span className="text-foreground/55">
+              {(s as { label?: string }).label || userFacingPlatformStatus(s.status)}
+            </span>
           </li>
         ))}
       </ul>

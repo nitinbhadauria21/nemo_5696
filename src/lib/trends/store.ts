@@ -6,30 +6,44 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { persistTrendsToSupabase } from './persist';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { applyTrendFilters, type TrendQueryFilters } from './filters';
+import { normalizeUiNiche, sanitizePublicText } from './publicCopy';
 
 let memoryStore: TrendItem[] = [];
 let lastCollectedAt = 0;
 
-/** Map DB trend_niche_enum → brief Dashboard niche labels. */
-function nicheToUiCategory(niche: string): string {
-  const map: Record<string, string> = {
-    AI: 'AI',
-    fitness: 'Fitness',
-    finance: 'Finance',
-    fashion: 'Fashion',
-    gaming: 'Gaming',
-    movies: 'Movies',
-    education: 'Education',
-    startups: 'Startups',
-    travel: 'Travel',
-    food: 'Food',
-    sports: 'Fitness',
-    marketing: 'Startups',
-    productivity: 'Education',
-    business: 'Startups',
-    other: 'AI',
+function nicheToUiCategory(niche: string, titleHint = ''): string {
+  return normalizeUiNiche(niche, titleHint);
+}
+
+function resolveNiches(
+  title: string,
+  rawNiches: string[] | undefined,
+  dbNiches: string[],
+  dbNiche: string,
+  rawCategory: string | undefined
+): { category: string; niches: string[] } {
+  const candidates = [
+    ...(rawNiches || []),
+    ...dbNiches,
+    dbNiche,
+    rawCategory || '',
+  ].filter(Boolean);
+  const mapped = candidates.map((n) => nicheToUiCategory(n, title));
+  const niches = Array.from(new Set(mapped.filter(Boolean)));
+  const category = niches[0] || nicheToUiCategory(dbNiche || rawCategory || 'other', title);
+  return { category, niches: niches.length ? niches : [category] };
+}
+
+function scrubTrend(t: TrendItem): TrendItem {
+  return {
+    ...t,
+    description: sanitizePublicText(
+      t.description,
+      `${t.title} is gaining attention across ${(t.platforms || []).join(', ') || 'social'} right now.`
+    ),
+    category: nicheToUiCategory(t.category, t.title),
+    niches: (t.niches?.length ? t.niches : [t.category]).map((n) => nicheToUiCategory(n, t.title)),
   };
-  return map[niche] || niche || 'AI';
 }
 
 function mapDbPlatformToUi(p: string): string {
@@ -84,7 +98,17 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
   const raw = row.raw_platform_data as TrendItem | null;
   const geoFromRow = (row.geo_regions as string[] | null) || [];
   const nichesFromRow = (row.niches as string[] | null) || [];
-  const category = nicheToUiCategory(String(row.niche || nichesFromRow[0] || 'other'));
+  const title = String(raw?.title || row.topic_text || 'Untitled');
+  const { category, niches } = resolveNiches(
+    title,
+    raw?.niches,
+    nichesFromRow,
+    String(row.niche || ''),
+    raw?.category
+  );
+  const latestActivityAt = String(
+    row.last_seen_at || row.collected_at || raw?.latestActivityAt || raw?.firstDetectedAt || ''
+  );
   if (raw?.id) {
     const status =
       raw.status ||
@@ -92,15 +116,12 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
     const conf =
       Number(row.confidence_score ?? raw.confidenceScore) ||
       Math.min(100, raw.cps + raw.freshness / 2);
-    return {
+    return scrubTrend({
       ...raw,
+      title,
       geoRegions: raw.geoRegions?.length ? raw.geoRegions : geoFromRow,
-      category: raw.category || category,
-      niches: raw.niches?.length
-        ? raw.niches
-        : nichesFromRow.length
-          ? nichesFromRow.map(nicheToUiCategory)
-          : [raw.category || category],
+      category,
+      niches,
       lifecycle: raw.lifecycle || lifecycleFromRow(row, status, raw.nemoScore),
       confidenceScore: conf,
       confidence: raw.confidence || confidenceFromScore(conf),
@@ -109,8 +130,9 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
       noveltyScore: (raw.noveltyScore ?? Number(row.novelty_score)) || 0,
       persistenceScore: (raw.persistenceScore ?? Number(row.persistence_score)) || 0,
       breakoutScore: (raw.breakoutScore ?? Number(row.breakout_score)) || 0,
-      latestActivityAt: raw.latestActivityAt || String(row.last_seen_at || row.collected_at || ''),
-    };
+      latestActivityAt: latestActivityAt || raw.latestActivityAt || raw.firstDetectedAt,
+      firstDetectedAt: raw.firstDetectedAt || String(row.first_detected_at || latestActivityAt),
+    });
   }
   const statusRaw = String(row.status || 'RISING');
   const nemo = Number(row.nemo_score) || 0;
@@ -120,7 +142,7 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
   const creators72 = Number(row.creators_last_72h) || 0;
   const creators24 = Number(row.creators_last_24h) || creators72;
   const creators6 = Number(row.creators_last_6h) || Math.max(1, Math.round(creators24 / 4));
-  const firstDetectedAt = String(row.first_detected_at || new Date().toISOString());
+  const firstDetectedAt = String(row.first_detected_at || latestActivityAt || new Date().toISOString());
   const platformsPresent = (row.platforms_present as string[] | null) || [];
   const platforms = (
     platformsPresent.length
@@ -131,12 +153,12 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
   const conf =
     Number(row.confidence_score) ||
     Math.min(100, (Number(row.cross_platform_score) || 0) + (Number(row.freshness_score) || 0) / 2);
-  return {
+  return scrubTrend({
     id: String(row.trend_id),
-    title: String(row.topic_text || 'Untitled'),
+    title,
     description: '',
     category,
-    niches: nichesFromRow.length ? nichesFromRow.map(nicheToUiCategory) : [category],
+    niches,
     platforms,
     contentType: 'KEYWORD',
     nemoScore: nemo,
@@ -171,7 +193,7 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
     geoRegions: geoFromRow,
     geoSpreadScore: Number(row.geo_spread_score) || geoFromRow.length,
     breakoutBoolean: Boolean(row.breakout_boolean),
-  };
+  });
 }
 
 export async function runTrendIngestion(options?: { useServiceRole?: boolean }): Promise<{
@@ -286,10 +308,11 @@ export async function getTrends(options?: {
     source: 'supabase' | 'memory' | 'mock',
     collectedAt: string | null
   ) => {
-    const totalBeforeFilter = trends.length;
+    const scrubbed = trends.map(scrubTrend);
+    const totalBeforeFilter = scrubbed.length;
     const filtered = options?.filters
-      ? applyTrendFilters(trends, options.filters)
-      : applyTrendFilters(trends, { timeframeHours: 24, neverBlankTopK: true });
+      ? applyTrendFilters(scrubbed, options.filters)
+      : applyTrendFilters(scrubbed, { timeframeHours: 24, neverBlankTopK: true });
     return {
       trends: filtered,
       source,
@@ -300,10 +323,14 @@ export async function getTrends(options?: {
   };
 
   try {
-    const supabase = await createClient();
-    if (supabase) {
+    // Prefer service role for public trend reads so RLS never blanks the dashboard.
+    const admin = createAdminClient();
+    const userClient = await createClient();
+    const reader = admin || userClient;
+
+    if (reader) {
       try {
-        const { data: runs } = await supabase
+        const { data: runs } = await reader
           .from('collector_runs')
           .select('finished_at')
           .order('finished_at', { ascending: false })
@@ -313,7 +340,7 @@ export async function getTrends(options?: {
         // optional
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await reader
         .from('trend_records')
         .select('*')
         .order('nemo_score', { ascending: false })
@@ -328,7 +355,6 @@ export async function getTrends(options?: {
       }
 
       if (supabaseConfigured && !error) {
-        // Honest empty: do not serve MOCK_TRENDS when DB is live but empty
         if (memoryStore.length) {
           return finalize(memoryStore, 'memory', new Date(lastCollectedAt || now).toISOString());
         }

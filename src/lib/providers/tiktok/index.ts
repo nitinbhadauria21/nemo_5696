@@ -1,14 +1,15 @@
 import type { TrendProvider, NormalizedTrendRecord, MetricAvailability } from '../types';
+import { getScrapeCreatorsApiKey } from '@/lib/trends/scrapeCreators';
 
 export const tiktokProvider: TrendProvider = {
   id: 'tiktok',
   displayName: 'TikTok',
   async getHealth() {
-    const hasKey = Boolean(process.env.APIFY_TOKEN || process.env.TIKTOK_API_KEY);
+    const live = Boolean(getScrapeCreatorsApiKey());
     return {
-      status: hasKey ? 'partial' : 'partial',
-      metricMode: 'estimated' as MetricAvailability,
-      notes: 'Honest gaps without official TikTok metrics API',
+      status: live ? 'active' : 'unavailable',
+      metricMode: (live ? 'available' : 'unavailable') as MetricAvailability,
+      notes: undefined,
     };
   },
   async fetchTrends(): Promise<NormalizedTrendRecord[]> {

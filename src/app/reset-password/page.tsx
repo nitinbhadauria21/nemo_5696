@@ -176,7 +176,7 @@ export default function ResetPasswordPage() {
                   Set new password
                 </h1>
                 <p className="text-sm text-muted-foreground font-sans">
-                  Choose a strong password for your account. This updates your login in Supabase.
+                  Choose a strong password for your account.
                 </p>
               </div>
 

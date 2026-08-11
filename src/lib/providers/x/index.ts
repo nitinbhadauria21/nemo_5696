@@ -1,14 +1,15 @@
 import type { TrendProvider, NormalizedTrendRecord, MetricAvailability } from '../types';
+import { getScrapeCreatorsApiKey } from '@/lib/trends/scrapeCreators';
 
-/** X/Twitter — estimated only; no synthetic metrics as live. */
 export const xProvider: TrendProvider = {
   id: 'twitter',
-  displayName: 'X (Twitter)',
+  displayName: 'X',
   async getHealth() {
+    const live = Boolean(getScrapeCreatorsApiKey() || process.env.TWITTER_BEARER_TOKEN?.trim());
     return {
-      status: 'estimated',
-      metricMode: 'estimated' as MetricAvailability,
-      notes: 'Topics when available; metrics marked estimated, never live',
+      status: live ? 'partial' : 'unavailable',
+      metricMode: (live ? 'estimated' : 'unavailable') as MetricAvailability,
+      notes: undefined,
     };
   },
   async fetchTrends(): Promise<NormalizedTrendRecord[]> {

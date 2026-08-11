@@ -425,7 +425,7 @@ export default function AdminAnalyticsContent() {
             ? 'Loading…'
             : `Refreshed ${metrics?.generatedAt ? new Date(metrics.generatedAt).toLocaleTimeString() : '—'}`}
           {' · '}
-          Source: {metrics?.source === 'supabase' ? 'live Supabase' : (metrics?.source ?? '…')}
+          Source: {metrics?.source === 'supabase' ? 'live' : (metrics?.source ?? '…')}
         </span>
       </div>
 

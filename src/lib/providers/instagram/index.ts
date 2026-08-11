@@ -1,24 +1,22 @@
 import type { TrendProvider, NormalizedTrendRecord, MetricAvailability } from '../types';
 import { withRetry } from '../types';
+import { getScrapeCreatorsApiKey } from '@/lib/trends/scrapeCreators';
 
-/** Instagram adapter — reels weighted higher when type known. */
 export const instagramProvider: TrendProvider = {
   id: 'instagram',
   displayName: 'Instagram',
   async getHealth() {
-    const hasKey = Boolean(process.env.APIFY_TOKEN || process.env.PHYLLO_API_KEY);
+    const live = Boolean(
+      getScrapeCreatorsApiKey() || process.env.INSTAGRAM_ACCESS_TOKEN?.trim()
+    );
     return {
-      status: hasKey ? 'partial' : 'estimated',
-      metricMode: (hasKey ? 'estimated' : 'estimated') as MetricAvailability,
-      notes: 'Reels weighted > posts when content type known',
+      status: live ? 'active' : 'unavailable',
+      metricMode: (live ? 'available' : 'unavailable') as MetricAvailability,
+      notes: undefined,
     };
   },
   async fetchTrends() {
-    return withRetry(async () => {
-      // Collectors already pull IG via social connect / apify when configured.
-      // Adapter returns empty here; pipeline uses collectors. Marks honesty.
-      return [] as NormalizedTrendRecord[];
-    });
+    return withRetry(async () => [] as NormalizedTrendRecord[]);
   },
 };
 
