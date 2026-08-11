@@ -1,0 +1,17 @@
+{
+  "name": "Nemo",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "npm run dev",
+      "description": "Next.js dev server (http://localhost:4028). Runs with Supabase/AI env unset using the app's graceful local fallback."
+    }
+  ],
+  "ports": [
+    {
+      "name": "web",
+      "port": 4028
+    }
+  ]
+}
