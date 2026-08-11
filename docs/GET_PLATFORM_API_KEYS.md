@@ -155,20 +155,39 @@ Then message the agent: **"SerpAPI key is on Vercel."**
 
 ---
 
-## Part 4 — Later platforms (skip for now)
+## Part 4 — ScrapeCreators (Instagram / TikTok / X / Facebook) → `SCRAPECREATORS_API_KEY`
 
-Do **not** start these for the first demo. Reddit + YouTube + SerpAPI is enough to show real trends.
+**Time:** about 10 minutes  
+**Cost:** pay-as-you-go credits ([scrapecreators.com](https://scrapecreators.com/))  
+**Goal:** one environment variable named exactly `SCRAPECREATORS_API_KEY`
+
+1. Sign up at https://app.scrapecreators.com  
+2. Copy your API key  
+3. Paste into Vercel as `SCRAPECREATORS_API_KEY` (Production + Preview)
+
+Optional helpers:
+
+| Name | Purpose |
+|------|---------|
+| `SCRAPECREATORS_TIKTOK_REGION` | TikTok feed region (default `US`) |
+| `SCRAPECREATORS_TWITTER_GEO` | trends24 path segment (default `united-states`) |
+| `FACEBOOK_TREND_PAGE_URLS` | Comma-separated public FB page URLs for reels |
+
+Auth header used by Nemo: `x-api-key`.
+
+---
+
+## Part 5 — Later platforms (skip for now)
+
+Do **not** start these for the first demo. Reddit + YouTube + SerpAPI + ScrapeCreators is enough.
 
 When you have spare time later:
 
 | Platform | Where you sign up | What you'll eventually give the agent |
 |----------|-------------------|----------------------------------------|
-| Instagram / Facebook | https://developers.facebook.com/ | Meta app + access tokens (harder; often needs a Business Instagram) |
+| Instagram Business (fallback) | https://developers.facebook.com/ | Meta Graph token + Business IG id |
 | LinkedIn | https://www.linkedin.com/developers/ | Client ID, Client Secret, and access token |
-| X (Twitter) | https://developer.x.com/ | Bearer token (usually **paid**) |
-| TikTok | TikTok for Developers / data partners | Special approval (**slow**) |
-
-**Skip these for now.**
+| X official API | https://developer.x.com/ | Bearer token (usually **paid**) |
 
 ---
 

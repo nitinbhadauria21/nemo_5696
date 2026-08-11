@@ -6,7 +6,14 @@ export type TrendStatus = 'hot' | 'rising' | 'fading';
  * Google Trends 18%, Twitter/X 12%, Reddit 5%, LinkedIn 3%.
  */
 export type TrendPlatform =
-  'google' | 'youtube' | 'instagram' | 'linkedin' | 'tiktok' | 'twitter' | 'reddit';
+  | 'google'
+  | 'youtube'
+  | 'instagram'
+  | 'linkedin'
+  | 'tiktok'
+  | 'twitter'
+  | 'reddit'
+  | 'facebook';
 
 export type TrendContentType = 'TOPIC' | 'HOOK' | 'CONCEPT' | 'KEYWORD';
 
@@ -456,6 +463,7 @@ export const PLATFORMS: TrendPlatform[] = [
   'tiktok',
   'twitter',
   'reddit',
+  'facebook',
 ];
 
 export const MOCK_ADMIN_USERS = [

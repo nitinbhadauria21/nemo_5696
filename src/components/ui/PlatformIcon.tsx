@@ -1,7 +1,15 @@
 import React, { useId } from 'react';
 
 export type PlatformId =
-  'google' | 'youtube' | 'instagram' | 'linkedin' | 'tiktok' | 'twitter' | 'reddit' | 'all';
+  | 'google'
+  | 'youtube'
+  | 'instagram'
+  | 'linkedin'
+  | 'tiktok'
+  | 'twitter'
+  | 'reddit'
+  | 'facebook'
+  | 'all';
 
 export const PLATFORM_META: Record<PlatformId, { label: string; brand: string; soft: string }> = {
   all: { label: 'All', brand: '#FF4500', soft: 'rgba(255,69,0,0.12)' },
@@ -12,6 +20,7 @@ export const PLATFORM_META: Record<PlatformId, { label: string; brand: string; s
   tiktok: { label: 'TikTok', brand: '#111111', soft: 'rgba(17,17,17,0.08)' },
   twitter: { label: 'X', brand: '#111111', soft: 'rgba(17,17,17,0.08)' },
   reddit: { label: 'Reddit', brand: '#FF4500', soft: 'rgba(255,69,0,0.12)' },
+  facebook: { label: 'Facebook', brand: '#1877F2', soft: 'rgba(24,119,242,0.12)' },
 };
 
 function normalizePlatform(platform: string): PlatformId {
@@ -22,6 +31,7 @@ function normalizePlatform(platform: string): PlatformId {
   if (p.includes('tiktok')) return 'tiktok';
   if (p.includes('twitter') || p === 'x') return 'twitter';
   if (p.includes('reddit')) return 'reddit';
+  if (p.includes('facebook')) return 'facebook';
   if (p.includes('google')) return 'google';
   if (p === 'all') return 'all';
   return 'google';
@@ -139,6 +149,16 @@ function Glyph({
           />
           <circle cx="16.8" cy="9.1" r="1.15" fill="#fff" />
           <path stroke="#fff" strokeWidth="1.3" d="M13.5 8.2l1.5.5 1.6-3.1" />
+        </svg>
+      );
+    case 'facebook':
+      return (
+        <svg width={s} height={s} viewBox="0 0 24 24" aria-hidden>
+          <rect x="2" y="2" width="20" height="20" rx="5" fill="#1877F2" />
+          <path
+            fill="#fff"
+            d="M13.6 19v-6.2h2.1l.3-2.4h-2.4V9.1c0-.7.2-1.2 1.2-1.2h1.3V5.7c-.2 0-1-.1-1.9-.1-1.9 0-3.2 1.2-3.2 3.3v1.9H8.7v2.4h2.3V19h2.6z"
+          />
         </svg>
       );
     case 'all':

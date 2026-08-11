@@ -26,9 +26,11 @@ Add on Vercel as `CONNECTIONS_ENCRYPTION_KEY` (Production + Preview).
 - **Required env (phased):**
   - Reddit — none (public JSON)
   - `YOUTUBE_API_KEY`
-  - `SERPAPI_KEY` (or `GOOGLE_TRENDS_PROXY_URL`)
-  - Later: `INSTAGRAM_ACCESS_TOKEN`, `LINKEDIN_ACCESS_TOKEN`, `TWITTER_BEARER_TOKEN`, TikTok partner keys
-- **Schedule:** Vercel cron `/api/trends/ingest` every 6 hours (`vercel.json`)
+  - `SERPAPI_KEY` / `SEARCHAPI_KEY` (or `GOOGLE_TRENDS_PROXY_URL`)
+  - `SCRAPECREATORS_API_KEY` — Instagram trending reels, TikTok trending feed, X topics (via trends24), Facebook page reels ([ScrapeCreators](https://scrapecreators.com/))
+  - Optional: `SCRAPECREATORS_TIKTOK_REGION` (default `US`), `SCRAPECREATORS_TWITTER_GEO` (default `united-states`), `FACEBOOK_TREND_PAGE_URLS`
+  - Later / fallback: `INSTAGRAM_ACCESS_TOKEN`, `LINKEDIN_ACCESS_TOKEN`, `TWITTER_BEARER_TOKEN`
+- **Schedule:** Vercel cron `/api/trends/ingest` once daily `0 6 * * *` (Hobby plan)
 - **Stale cleanup:** After a successful ingest, records older than ~72h that were not refreshed are purged
 
 ## What you are collecting now

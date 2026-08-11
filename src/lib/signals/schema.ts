@@ -22,7 +22,8 @@ CREATE TYPE platform_enum AS ENUM (
   'reddit',
   'tiktok',
   'twitter',
-  'linkedin'
+  'linkedin',
+  'facebook'
 );
 
 CREATE TYPE trend_status_enum AS ENUM (
@@ -437,11 +438,12 @@ export const SCHEMA_DATE = '2026-07-14';
  * These are the authoritative values — must match PLATFORM_WEIGHTS in types.ts.
  */
 export const SCHEMA_PLATFORM_WEIGHTS = {
-  tiktok: 0.22,
+  tiktok: 0.2,
   instagram: 0.2,
   youtube: 0.2,
-  google_trends: 0.18,
+  google_trends: 0.16,
   twitter: 0.12,
+  facebook: 0.04,
   reddit: 0.05,
   linkedin: 0.03,
 } as const;

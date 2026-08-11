@@ -19,6 +19,7 @@ const PLATFORM_LABELS: Record<TrendPlatform, string> = {
   tiktok: 'TikTok',
   twitter: 'Twitter / X',
   reddit: 'Reddit',
+  facebook: 'Facebook',
 };
 
 const PLATFORM_COLORS: Record<TrendPlatform, string> = {
@@ -29,6 +30,7 @@ const PLATFORM_COLORS: Record<TrendPlatform, string> = {
   tiktok: 'text-cyan-700 dark:text-cyan-400',
   twitter: 'text-sky-600 dark:text-sky-400',
   reddit: 'text-orange-600 dark:text-orange-400',
+  facebook: 'text-blue-700 dark:text-blue-400',
 };
 
 const STATUS_CONFIG = {

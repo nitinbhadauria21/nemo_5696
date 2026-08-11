@@ -37,6 +37,7 @@ const PLATFORM_LABELS: Record<TrendPlatform, string> = {
   tiktok: 'TikTok',
   twitter: 'Twitter / X',
   reddit: 'Reddit',
+  facebook: 'Facebook',
 };
 
 export default function DashboardFilters({

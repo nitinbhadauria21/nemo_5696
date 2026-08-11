@@ -9,7 +9,14 @@
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 export type Platform =
-  'instagram' | 'youtube' | 'google_trends' | 'reddit' | 'tiktok' | 'twitter' | 'linkedin';
+  | 'instagram'
+  | 'youtube'
+  | 'google_trends'
+  | 'reddit'
+  | 'tiktok'
+  | 'twitter'
+  | 'linkedin'
+  | 'facebook';
 
 export type TrendStatus = 'RISING' | 'PEAKING' | 'DECLINING' | 'PREDICTED' | 'EXPIRED';
 
@@ -325,11 +332,12 @@ export interface TrendRecord {
  * Sum = 1.0
  */
 export const PLATFORM_WEIGHTS: Record<Platform, number> = {
-  tiktok: 0.22,
+  tiktok: 0.2,
   instagram: 0.2,
   youtube: 0.2,
-  google_trends: 0.18,
+  google_trends: 0.16,
   twitter: 0.12,
+  facebook: 0.04,
   reddit: 0.05,
   linkedin: 0.03,
 };

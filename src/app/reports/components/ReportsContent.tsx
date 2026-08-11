@@ -97,6 +97,7 @@ function toPlatformId(platform: string): TrendPlatform {
   if (p.includes('linkedin')) return 'linkedin';
   if (p.includes('twitter') || p === 'x') return 'twitter';
   if (p.includes('reddit')) return 'reddit';
+  if (p.includes('facebook')) return 'facebook';
   if (p.includes('google')) return 'google';
   return 'google';
 }

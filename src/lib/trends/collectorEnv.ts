@@ -9,6 +9,7 @@ export type CollectorKeyStatus = {
 };
 
 export function getTrendCollectorEnvStatus(): CollectorKeyStatus[] {
+  const scrapeCreators = Boolean(process.env.SCRAPECREATORS_API_KEY?.trim());
   return [
     { platform: 'reddit', key: '(public JSON — no key)', present: true },
     {
@@ -21,15 +22,20 @@ export function getTrendCollectorEnvStatus(): CollectorKeyStatus[] {
       key: 'SERPAPI_KEY | SEARCHAPI_KEY | GOOGLE_TRENDS_PROXY_URL',
       present: Boolean(
         process.env.SERPAPI_KEY?.trim() ||
-        process.env.SEARCHAPI_KEY?.trim() ||
-        process.env.SEARCHAPI_API_KEY?.trim() ||
-        process.env.GOOGLE_TRENDS_PROXY_URL?.trim()
+          process.env.SEARCHAPI_KEY?.trim() ||
+          process.env.SEARCHAPI_API_KEY?.trim() ||
+          process.env.GOOGLE_TRENDS_PROXY_URL?.trim()
       ),
     },
     {
       platform: 'instagram',
-      key: 'INSTAGRAM_ACCESS_TOKEN',
-      present: Boolean(process.env.INSTAGRAM_ACCESS_TOKEN?.trim()),
+      key: 'SCRAPECREATORS_API_KEY (preferred) | INSTAGRAM_ACCESS_TOKEN',
+      present: scrapeCreators || Boolean(process.env.INSTAGRAM_ACCESS_TOKEN?.trim()),
+    },
+    {
+      platform: 'facebook',
+      key: 'SCRAPECREATORS_API_KEY',
+      present: scrapeCreators,
     },
     {
       platform: 'linkedin',
@@ -38,13 +44,13 @@ export function getTrendCollectorEnvStatus(): CollectorKeyStatus[] {
     },
     {
       platform: 'twitter',
-      key: 'TWITTER_BEARER_TOKEN',
-      present: Boolean(process.env.TWITTER_BEARER_TOKEN?.trim()),
+      key: 'SCRAPECREATORS_API_KEY (preferred) | TWITTER_BEARER_TOKEN',
+      present: scrapeCreators || Boolean(process.env.TWITTER_BEARER_TOKEN?.trim()),
     },
     {
       platform: 'tiktok',
-      key: 'TIKTOK_CLIENT_KEY (+ partner)',
-      present: Boolean(process.env.TIKTOK_CLIENT_KEY?.trim()),
+      key: 'SCRAPECREATORS_API_KEY',
+      present: scrapeCreators,
     },
   ];
 }
