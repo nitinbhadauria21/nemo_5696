@@ -1,5 +1,72 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { TrendItem } from '@/lib/mockData';
+import type { TrendItem, TrendPlatform } from '@/lib/mockData';
+
+/** DB platform_enum values (incl. google_trends + youtube_shorts). */
+type DbPlatform =
+  | 'instagram'
+  | 'youtube'
+  | 'youtube_shorts'
+  | 'google_trends'
+  | 'reddit'
+  | 'tiktok'
+  | 'twitter'
+  | 'linkedin'
+  | 'facebook';
+
+const NICHE_ENUM = new Set([
+  'AI',
+  'fitness',
+  'finance',
+  'fashion',
+  'gaming',
+  'movies',
+  'education',
+  'startups',
+  'travel',
+  'food',
+  'sports',
+  'marketing',
+  'productivity',
+  'business',
+  'other',
+]);
+
+/** Map UI category / free-text niche → trend_niche_enum. */
+export function mapCategoryToNiche(category: string | undefined | null): string {
+  const raw = String(category || 'other').trim();
+  if (NICHE_ENUM.has(raw)) return raw;
+
+  const c = raw.toLowerCase();
+  if (c === 'ai & tech' || c === 'ai' || c.includes('tech') || c.includes('artificial'))
+    return 'AI';
+  if (c.includes('market')) return 'marketing';
+  if (c.includes('sport')) return 'sports';
+  if (c.includes('game')) return 'gaming';
+  if (c.includes('financ') || c.includes('crypto') || c.includes('invest')) return 'finance';
+  if (c.includes('business') || c.includes('startup'))
+    return c.includes('startup') ? 'startups' : 'business';
+  if (c.includes('productiv')) return 'productivity';
+  if (c.includes('fit') || c.includes('gym') || c.includes('health')) return 'fitness';
+  if (c.includes('fashion') || c.includes('beauty') || c.includes('style')) return 'fashion';
+  if (c.includes('food') || c.includes('cook') || c.includes('recipe')) return 'food';
+  if (c.includes('travel')) return 'travel';
+  if (c.includes('educat') || c.includes('learn')) return 'education';
+  if (c.includes('movie') || c.includes('film') || c.includes('entertainment')) return 'movies';
+  return 'other';
+}
+
+export function mapUiPlatformToDb(platform: TrendPlatform | string): DbPlatform {
+  if (platform === 'google') return 'google_trends';
+  if (platform === 'youtube_shorts') return 'youtube_shorts';
+  return platform as DbPlatform;
+}
+
+function trendAgeHours(firstDetectedAt: string | undefined): number {
+  if (!firstDetectedAt) return 0;
+  const ms = Date.parse(firstDetectedAt);
+  if (!Number.isFinite(ms)) return 0;
+  return Math.max(0, (Date.now() - ms) / 3600000);
+}
 
 function mapTrendToRecord(t: TrendItem) {
   const statusMap: Record<string, string> = {
@@ -7,14 +74,20 @@ function mapTrendToRecord(t: TrendItem) {
     rising: 'RISING',
     fading: 'DECLINING',
   };
+  const platforms = (t.platforms?.length ? t.platforms : ['google']).map(mapUiPlatformToDb);
+  const geo =
+    t.geoRegions && t.geoRegions.length
+      ? t.geoRegions.map((g) => String(g).toUpperCase())
+      : ['GLOBAL'];
+
   return {
     trend_id: t.id,
     topic_text: t.title,
-    platform: t.platforms[0] === 'google' ? 'google_trends' : t.platforms[0],
-    niche: 'other',
+    platform: platforms[0],
+    niche: mapCategoryToNiche(t.category),
     first_detected_at: t.firstDetectedAt,
     collected_at: new Date().toISOString(),
-    trend_age_hours: 2,
+    trend_age_hours: trendAgeHours(t.firstDetectedAt),
     creator_velocity_score: t.cvs,
     spike_score: t.ss,
     cross_platform_score: t.cps,
@@ -22,7 +95,8 @@ function mapTrendToRecord(t: TrendItem) {
     freshness_multiplier: t.freshnessMultiplier,
     nemo_score: t.nemoScore,
     status: statusMap[t.status] ?? 'RISING',
-    platforms_present: t.platforms.map((p) => (p === 'google' ? 'google_trends' : p)),
+    platforms_present: platforms,
+    geo_regions: geo,
     mentions_last_24h: t.mentions24h,
     mentions_prev_24h: t.mentionsPrev24h,
     creators_last_6h: t.creatorsLast6h,

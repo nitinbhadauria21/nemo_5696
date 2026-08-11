@@ -1,4 +1,5 @@
 import type { TrendItem, TrendPlatform, TrendStatus } from '@/lib/mockData';
+import { CATEGORIES } from '@/lib/mockData';
 import type { Platform } from '@/lib/signals';
 import {
   computeFullNemoScore,
@@ -36,6 +37,47 @@ function mapUiPlatforms(platforms: TrendPlatform[]): Platform[] {
   });
 }
 
+/** Collection geo: GLOBAL by default; else 2-letter country from env. */
+export function collectionGeoRegions(override?: string | null): string[] {
+  const raw = (override ?? process.env.GOOGLE_TRENDS_GEO ?? 'GLOBAL').trim().toUpperCase();
+  if (!raw || raw === 'GLOBAL' || raw === 'WW' || raw === 'WORLD') return ['GLOBAL'];
+  return [raw.slice(0, 2)];
+}
+
+const UI_CATEGORY_SET = new Set(CATEGORIES.filter((c) => c !== 'All'));
+
+/** Map free-text / DB niche toward Dashboard UI categories. */
+export function mapToUiCategory(raw: string | undefined | null, titleHint = ''): string {
+  const text = `${raw || ''} ${titleHint}`.trim();
+  if (!text) return 'other';
+  if (UI_CATEGORY_SET.has(text)) return text;
+
+  const c = text.toLowerCase();
+  if (/\b(ai|artificial|tech|gpt|claude|llm|software|coding|robot)\b/.test(c) || c === 'ai')
+    return 'AI & Tech';
+  if (/\b(market|seo|ads|brand|growth|content market)\b/.test(c) || c === 'marketing')
+    return 'Marketing';
+  if (/\b(sport|cricket|ipl|football|nba|soccer|tennis)\b/.test(c) || c === 'sports')
+    return 'Sports';
+  if (/\b(game|gaming|esport|steam|xbox|playstation)\b/.test(c) || c === 'gaming') return 'Gaming';
+  if (/\b(financ|crypto|stock|invest|upi|bank|money)\b/.test(c) || c === 'finance')
+    return 'Finance';
+  if (
+    /\b(business|startup|entrepreneur|saas|b2b)\b/.test(c) ||
+    c === 'business' ||
+    c === 'startups'
+  )
+    return 'Business';
+  if (/\b(productiv|notion|workflow|habits|focus)\b/.test(c) || c === 'productivity')
+    return 'Productivity';
+  if (/\b(fit|gym|workout|health|wellness)\b/.test(c) || c === 'fitness') return 'Fitness';
+  if (/\b(fashion|beauty|style|outfit|luxury)\b/.test(c) || c === 'fashion') return 'Fashion';
+  if (/\b(food|cook|recipe|restaurant|cuisine)\b/.test(c) || c === 'food') return 'Food';
+  if (/\b(travel|tourism|flight|hotel|vacation)\b/.test(c) || c === 'travel') return 'Travel';
+  if (/\b(educat|learn|course|school|study)\b/.test(c) || c === 'education') return 'Education';
+  return 'other';
+}
+
 function toTrendItem(input: {
   topic: string;
   niche: string;
@@ -48,8 +90,12 @@ function toTrendItem(input: {
   ageHours: number;
   description?: string;
   hashtags?: string[];
+  geoRegions?: string[];
 }): TrendItem {
-  const firstDetectedAt = new Date(Date.now() - input.ageHours * 3600 * 1000).toISOString();
+  const ageHours = Math.max(0.25, input.ageHours);
+  const firstDetectedAt = new Date(Date.now() - ageHours * 3600 * 1000).toISOString();
+  const category = mapToUiCategory(input.niche, input.topic);
+  const geoRegions = input.geoRegions?.length ? input.geoRegions : collectionGeoRegions();
   const score = computeFullNemoScore({
     creatorVelocityInputs: {
       creators_last_6h: input.creators6h,
@@ -77,7 +123,7 @@ function toTrendItem(input: {
   return {
     id: hashId(input.topic),
     title: input.topic,
-    category: input.niche,
+    category,
     status: statusFromNemo(score.nemo_score),
     nemoScore: Math.round(score.nemo_score),
     cvs: Math.round(score.creator_velocity_score),
@@ -93,7 +139,7 @@ function toTrendItem(input: {
     creatorsLast24h: input.creators24h,
     creatorsLast72h: input.creators72h,
     sparklineData: spark,
-    timeAgo: timeAgoFromHours(input.ageHours),
+    timeAgo: timeAgoFromHours(ageHours),
     firstDetectedAt,
     hashtags: input.hashtags ?? [`#${input.topic.replace(/\s+/g, '')}`],
     description:
@@ -103,29 +149,61 @@ function toTrendItem(input: {
     velocity: Number((input.mentions24h / Math.max(input.mentionsPrev24h, 1)).toFixed(2)),
     spike: Number((input.mentions24h / Math.max(input.mentionsPrev24h, 1)).toFixed(2)),
     contentType: 'TOPIC',
+    geoRegions,
   };
 }
 
 /** Reddit public JSON — no API key required. Platforms tag is honest: reddit only. */
 export async function collectRedditTrends(): Promise<TrendItem[]> {
+  const urls = [
+    'https://www.reddit.com/r/popular/hot.json?limit=12',
+    'https://old.reddit.com/r/popular/hot.json?limit=12',
+    'https://www.reddit.com/r/popular/rising.json?limit=12',
+    'https://old.reddit.com/r/popular/rising.json?limit=12',
+  ];
+  const headers = {
+    'User-Agent': 'NemoTrends/1.0 (trend intelligence; contact: support@nemo.app)',
+    Accept: 'application/json',
+  };
+  const geo = collectionGeoRegions('GLOBAL');
+
+  async function fetchRedditJson(url: string): Promise<any | null> {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 12000);
+        const res = await fetch(url, {
+          headers,
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        clearTimeout(timer);
+        if (!res.ok) {
+          console.error('Reddit collector HTTP', res.status, url, `attempt=${attempt + 1}`);
+          if (attempt === 0) await new Promise((r) => setTimeout(r, 400 + attempt * 200));
+          continue;
+        }
+        return await res.json();
+      } catch (err) {
+        console.error('Reddit collector fetch failed', url, `attempt=${attempt + 1}`, err);
+        if (attempt === 0) await new Promise((r) => setTimeout(r, 400));
+      }
+    }
+    return null;
+  }
+
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
-    const res = await fetch('https://www.reddit.com/r/popular/hot.json?limit=12', {
-      headers: {
-        'User-Agent': 'NemoTrends/1.0 (trend intelligence; contact: support@nemo.app)',
-        Accept: 'application/json',
-      },
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
-    if (!res.ok) {
-      console.error('Reddit collector HTTP', res.status);
+    let json: any = null;
+    for (const url of urls) {
+      json = await fetchRedditJson(url);
+      if (json?.data?.children?.length) break;
+    }
+    if (!json?.data?.children?.length) {
+      console.error('Reddit collector: all hosts/retries exhausted');
       return [];
     }
-    const json = await res.json();
-    const posts = json?.data?.children ?? [];
+
+    const posts = json.data.children;
     return posts.slice(0, 8).map((child: any, idx: number) => {
       const p = child.data;
       const score = typeof p.score === 'number' ? p.score : 100;
@@ -149,23 +227,23 @@ export async function collectRedditTrends(): Promise<TrendItem[]> {
         post_ids_sample: [p.id],
         collected_at: new Date().toISOString(),
       });
-      // Use platform scorer for relative weight (snapshot-based until we have history)
       scoreRedditSignals(signals, { max_score_velocity: 200, max_comment_velocity: 100 });
 
-      // mentionsPrev24h omitted invention: use same-window floor so spike is conservative
       const mentions24h = Math.max(50, score);
+      const title = String(p.title || `Reddit trend ${idx}`).slice(0, 120);
       return toTrendItem({
-        topic: String(p.title || `Reddit trend ${idx}`).slice(0, 120),
-        niche: 'other',
+        topic: title,
+        niche: mapToUiCategory(String(p.subreddit || ''), title),
         platforms: ['reddit'],
         creators6h: Math.max(5, Math.round(comments / 8)),
         creators24h: Math.max(20, Math.round(comments / 2)),
         creators72h: Math.max(40, comments),
         mentions24h,
         mentionsPrev24h: mentions24h,
-        ageHours: Math.max(1, ageHours),
+        ageHours: Math.max(0.25, ageHours),
         description: `Trending on r/${p.subreddit}: ${String(p.title || '').slice(0, 160)}`,
         hashtags: [`#${p.subreddit}`, '#reddit'],
+        geoRegions: geo,
       });
     });
   } catch (err) {
@@ -197,10 +275,12 @@ async function collectYouTubeNative(): Promise<TrendItem[]> {
   if (!key) return [];
 
   try {
+    const region = (process.env.GOOGLE_TRENDS_GEO || 'IN').trim().toUpperCase().slice(0, 2);
+    const geo = collectionGeoRegions(region);
     const url = new URL('https://www.googleapis.com/youtube/v3/videos');
     url.searchParams.set('part', 'snippet,statistics');
     url.searchParams.set('chart', 'mostPopular');
-    url.searchParams.set('regionCode', process.env.GOOGLE_TRENDS_GEO || 'IN');
+    url.searchParams.set('regionCode', region);
     url.searchParams.set('maxResults', '8');
     url.searchParams.set('key', key);
 
@@ -211,6 +291,8 @@ async function collectYouTubeNative(): Promise<TrendItem[]> {
       const views = Number(item.statistics?.viewCount || 1000);
       const comments = Number(item.statistics?.commentCount || 50);
       const likes = Number(item.statistics?.likeCount || 100);
+      const title = String(item.snippet?.title || `YouTube trend ${idx}`).slice(0, 120);
+      const published = item.snippet?.publishedAt as string | undefined;
       const signals = collectYouTubeSignals({
         views_per_hour_1h: Math.round(views / 24),
         views_per_hour_6h: Math.round(views / 12),
@@ -235,17 +317,18 @@ async function collectYouTubeNative(): Promise<TrendItem[]> {
 
       const mentions24h = Math.max(100, Math.round(views / 100));
       return toTrendItem({
-        topic: String(item.snippet?.title || `YouTube trend ${idx}`).slice(0, 120),
-        niche: 'AI',
+        topic: title,
+        niche: mapToUiCategory(String(item.snippet?.categoryId || ''), title),
         platforms: ['youtube'],
         creators6h: Math.max(10, Math.round(comments / 15)),
         creators24h: Math.max(30, Math.round(comments / 5)),
         creators72h: Math.max(60, comments),
         mentions24h,
         mentionsPrev24h: mentions24h,
-        ageHours: 6 + idx,
+        ageHours: ageHoursFromIso(published, 6 + idx),
         description: String(item.snippet?.description || '').slice(0, 220),
-        hashtags: ['#youtube', '#shorts'],
+        hashtags: ['#youtube'],
+        geoRegions: geo,
       });
     });
   } catch (err) {
@@ -259,6 +342,7 @@ async function collectYouTubeScrapeCreators(): Promise<TrendItem[]> {
   const { getScrapeCreatorsApiKey, scrapeCreatorsGet } = await import('./scrapeCreators');
   if (!getScrapeCreatorsApiKey()) return [];
 
+  const geo = collectionGeoRegions();
   const result = await scrapeCreatorsGet<{
     shorts?: Array<{
       id?: string;
@@ -287,10 +371,11 @@ async function collectYouTubeScrapeCreators(): Promise<TrendItem[]> {
       .slice(0, 4)
       .map((k) => `#${String(k).replace(/\s+/g, '')}`);
     const mentions24h = Math.max(100, Math.round(views / 100));
+    const title = String(item.title || `YouTube Short ${idx}`).slice(0, 120);
     return toTrendItem({
-      topic: String(item.title || `YouTube Short ${idx}`).slice(0, 120),
-      niche: 'other',
-      platforms: ['youtube'],
+      topic: title,
+      niche: mapToUiCategory(keywords.join(' '), title),
+      platforms: ['youtube_shorts'],
       creators6h: Math.max(10, Math.round(comments / 15)),
       creators24h: Math.max(30, Math.round(comments / 5)),
       creators72h: Math.max(60, comments),
@@ -299,6 +384,7 @@ async function collectYouTubeScrapeCreators(): Promise<TrendItem[]> {
       ageHours: ageHoursFromIso(item.publishDate, 4 + idx),
       description: String(item.description || item.title || '').slice(0, 220),
       hashtags: keywords.length ? keywords : ['#youtube', '#shorts'],
+      geoRegions: geo,
     });
   });
 }
@@ -315,7 +401,7 @@ export async function collectYouTubeTrends(): Promise<TrendItem[]> {
   return mergeTrendsByTitle([...native, ...scrapeCreators]);
 }
 
-function mapGoogleTrendRows(items: any[], sourceLabel: string): TrendItem[] {
+function mapGoogleTrendRows(items: any[], sourceLabel: string, geo: string[]): TrendItem[] {
   return items.slice(0, 8).map((item: any, idx: number) => {
     const title = String(item.query || item.title || item.story_title || `Trend ${idx}`).slice(
       0,
@@ -328,7 +414,7 @@ function mapGoogleTrendRows(items: any[], sourceLabel: string): TrendItem[] {
     const niche = Array.isArray(nicheRaw) ? String(nicheRaw[0] || 'other') : String(nicheRaw);
     return toTrendItem({
       topic: title,
-      niche,
+      niche: mapToUiCategory(niche, title),
       platforms: ['google'],
       creators6h: 20 + idx * 3,
       creators24h: 60 + idx * 8,
@@ -338,6 +424,7 @@ function mapGoogleTrendRows(items: any[], sourceLabel: string): TrendItem[] {
       ageHours: 2 + idx,
       description: `Google Trends (${sourceLabel}): ${title}`,
       hashtags: ['#googletrends'],
+      geoRegions: geo,
     });
   });
 }
@@ -347,20 +434,21 @@ function mapGoogleTrendRows(items: any[], sourceLabel: string): TrendItem[] {
  * (searchapi.io), then GOOGLE_TRENDS_PROXY_URL. Production never fabricates seeds.
  */
 export async function collectGoogleTrends(): Promise<TrendItem[]> {
-  const geo = process.env.GOOGLE_TRENDS_GEO || 'IN';
+  const geoCode = process.env.GOOGLE_TRENDS_GEO || 'IN';
+  const geo = collectionGeoRegions(geoCode);
   const serpKey = process.env.SERPAPI_KEY?.trim();
   if (serpKey) {
     try {
       const url = new URL('https://serpapi.com/search.json');
       url.searchParams.set('engine', 'google_trends_trending_now');
-      url.searchParams.set('geo', geo);
+      url.searchParams.set('geo', geoCode);
       url.searchParams.set('api_key', serpKey);
       const res = await fetch(url.toString(), { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         const items = (data.trending_searches || data.trends || data.news_results || []) as any[];
         if (Array.isArray(items) && items.length) {
-          return mapGoogleTrendRows(items, 'SerpAPI');
+          return mapGoogleTrendRows(items, 'SerpAPI', geo);
         }
       } else {
         console.error('SerpAPI Google Trends HTTP', res.status);
@@ -375,14 +463,14 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
     try {
       const url = new URL('https://www.searchapi.io/api/v1/search');
       url.searchParams.set('engine', 'google_trends_trending_now');
-      url.searchParams.set('geo', geo);
+      url.searchParams.set('geo', geoCode);
       url.searchParams.set('api_key', searchApiKey);
       const res = await fetch(url.toString(), { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         const items = (data.trends || data.trending_searches || data.trending_now || []) as any[];
         if (Array.isArray(items) && items.length) {
-          return mapGoogleTrendRows(items, 'SearchAPI.io');
+          return mapGoogleTrendRows(items, 'SearchAPI.io', geo);
         }
       } else {
         console.error('SearchAPI.io Google Trends HTTP', res.status);
@@ -414,7 +502,7 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
             source_surface: 'trending_now',
             category: String(item.niche || 'other'),
             search_type: 'web',
-            geo_regions: ['IN'],
+            geo_regions: geo,
             collected_at: new Date().toISOString(),
           });
           scoreGoogleTrendsSignals(signals, {
@@ -423,7 +511,7 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
           });
           return toTrendItem({
             topic: title,
-            niche: String(item.niche || 'other'),
+            niche: mapToUiCategory(String(item.niche || 'other'), title),
             platforms: ['google'],
             creators6h: 40 + idx * 5,
             creators24h: 120 + idx * 12,
@@ -431,6 +519,7 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
             mentions24h: 2000 + idx * 300,
             mentionsPrev24h: 2000 + idx * 300,
             ageHours: 3 + idx,
+            geoRegions: geo,
           });
         });
       }
@@ -445,11 +534,11 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
   }
 
   const seeds = [
-    { title: 'AI agents for creators', niche: 'AI', growth: 420 },
-    { title: 'UPI credit cards India', niche: 'finance', growth: 280 },
-    { title: 'Short-form SEO 2026', niche: 'marketing', growth: 210 },
-    { title: 'IPL highlight hooks', niche: 'sports', growth: 350 },
-    { title: 'Quiet luxury reels', niche: 'fashion', growth: 160 },
+    { title: 'AI agents for creators', niche: 'AI & Tech', growth: 420 },
+    { title: 'UPI credit cards India', niche: 'Finance', growth: 280 },
+    { title: 'Short-form SEO 2026', niche: 'Marketing', growth: 210 },
+    { title: 'IPL highlight hooks', niche: 'Sports', growth: 350 },
+    { title: 'Quiet luxury reels', niche: 'Fashion', growth: 160 },
   ];
 
   return seeds.map((s, idx) => {
@@ -465,7 +554,7 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
       source_surface: 'explore_rising',
       category: s.niche,
       search_type: 'web',
-      geo_regions: ['IN'],
+      geo_regions: geo,
       collected_at: new Date().toISOString(),
     });
     return toTrendItem({
@@ -478,7 +567,8 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
       mentions24h: 2500 + s.growth * 4,
       mentionsPrev24h: 2500 + s.growth * 4,
       ageHours: 2 + idx,
-      hashtags: [`#${s.niche}`, '#trends'],
+      hashtags: [`#${s.niche.replace(/\s+/g, '')}`, '#trends'],
+      geoRegions: geo,
     });
   });
 }
@@ -513,6 +603,7 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
         user?: { username?: string };
       }>;
       if (reels.length) {
+        const geo = collectionGeoRegions();
         return reels.slice(0, 8).map((item, idx) => {
           const plays = Number(item.play_count ?? item.ig_play_count ?? 0);
           const likes = Number(item.like_count ?? 0);
@@ -524,7 +615,7 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
           const mentions24h = Math.max(50, likes || Math.round(plays / 100) || 50);
           return toTrendItem({
             topic: topic.slice(0, 120),
-            niche: 'other',
+            niche: mapToUiCategory(caption, topic),
             platforms: ['instagram'],
             creators6h: Math.max(5, Math.round(comments / 4) || 5),
             creators24h: Math.max(15, Math.round(comments / 2) || 15),
@@ -536,6 +627,7 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
               item.shortcode ? ` (${item.shortcode})` : ''
             }`,
             hashtags: ['#instagram', '#reels'],
+            geoRegions: geo,
           });
         });
       }
@@ -586,22 +678,25 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
       caption?: string;
       like_count?: number;
       comments_count?: number;
+      timestamp?: string;
     }>;
     if (!items.length) return [];
 
+    const geo = collectionGeoRegions();
     return items.map((item, idx) =>
       toTrendItem({
         topic: (item.caption ?? 'Instagram post').slice(0, 80),
-        niche: 'fashion',
+        niche: mapToUiCategory(item.caption || 'Fashion'),
         platforms: ['instagram'],
         creators6h: 30 + idx * 5,
         creators24h: 90 + idx * 10,
         creators72h: 200 + idx * 20,
         mentions24h: (item.like_count ?? 500) + idx * 100,
         mentionsPrev24h: Math.max(50, Math.round((item.like_count ?? 500) * 0.4)),
-        ageHours: 2 + idx,
+        ageHours: ageHoursFromIso(item.timestamp, 2 + idx),
         description: `Instagram media from connected business account`,
         hashtags: ['#instagram'],
+        geoRegions: geo,
       })
     );
   } catch (err) {
@@ -626,10 +721,11 @@ export async function collectLinkedInTrends(): Promise<TrendItem[]> {
     if (!res.ok) throw new Error('LinkedIn API error');
     const data = await res.json();
     const elements = (data.elements ?? []).slice(0, 6);
+    const geo = collectionGeoRegions();
     return elements.map((_: unknown, idx: number) =>
       toTrendItem({
         topic: `LinkedIn trending topic ${idx + 1}`,
-        niche: 'business',
+        niche: 'Business',
         platforms: ['linkedin'],
         creators6h: 20 + idx * 4,
         creators24h: 70 + idx * 8,
@@ -637,6 +733,7 @@ export async function collectLinkedInTrends(): Promise<TrendItem[]> {
         mentions24h: 1500 + idx * 200,
         mentionsPrev24h: 600 + idx * 50,
         ageHours: 3 + idx,
+        geoRegions: geo,
       })
     );
   } catch (err) {
@@ -767,9 +864,10 @@ export async function collectTwitterTrends(): Promise<TrendItem[]> {
   return unique.map((topic, idx) => {
     const tag = topic.startsWith('#') ? topic : `#${topic.replace(/\s+/g, '')}`;
     const mentions24h = 800 + (12 - idx) * 90;
+    const clean = topic.replace(/^#/, '').slice(0, 120);
     return toTrendItem({
-      topic: topic.replace(/^#/, '').slice(0, 120),
-      niche: 'other',
+      topic: clean,
+      niche: mapToUiCategory(clean),
       platforms: ['twitter'],
       creators6h: 20 + idx * 3,
       creators24h: 60 + idx * 8,
@@ -779,6 +877,7 @@ export async function collectTwitterTrends(): Promise<TrendItem[]> {
       ageHours: 1 + idx * 0.4,
       description: `X/Twitter trending via getdaytrends (ScrapeCreators discovery; no native SC Twitter trends API)`,
       hashtags: [tag, '#twitter'],
+      geoRegions: collectionGeoRegions(trendsGeo),
     });
   });
 }
@@ -846,7 +945,7 @@ export async function collectTikTokTrends(): Promise<TrendItem[]> {
       : 2 + idx;
     return toTrendItem({
       topic: topic.slice(0, 120) || `TikTok trend ${idx + 1}`,
-      niche: 'other',
+      niche: mapToUiCategory(desc, topic),
       platforms: ['tiktok'],
       creators6h: Math.max(8, Math.round(comments / 10) || 8),
       creators24h: Math.max(25, Math.round(comments / 3) || 25),
@@ -856,6 +955,7 @@ export async function collectTikTokTrends(): Promise<TrendItem[]> {
       ageHours: Math.min(72, ageHours),
       description: `TikTok trending feed via ScrapeCreators (region=${region})`,
       hashtags: hashtags.length ? hashtags : ['#tiktok'],
+      geoRegions: collectionGeoRegions(region),
     });
   });
 }
@@ -912,6 +1012,7 @@ export async function collectFacebookTrends(): Promise<TrendItem[]> {
   }
 
   const ranked = [...all].sort((a, b) => Number(b.view_count || 0) - Number(a.view_count || 0));
+  const geo = collectionGeoRegions();
   return ranked.slice(0, 8).map((item, idx) => {
     const views = Number(item.view_count || 0);
     const desc = String(item.description || '').trim();
@@ -922,7 +1023,7 @@ export async function collectFacebookTrends(): Promise<TrendItem[]> {
       : 2 + idx;
     return toTrendItem({
       topic: topic.slice(0, 120),
-      niche: 'other',
+      niche: mapToUiCategory(desc, topic),
       platforms: ['facebook'],
       creators6h: 10 + idx * 2,
       creators24h: 30 + idx * 5,
@@ -932,6 +1033,7 @@ export async function collectFacebookTrends(): Promise<TrendItem[]> {
       ageHours: Math.min(72, ageHours),
       description: `Facebook public page reel via ScrapeCreators (no native FB trending API)`,
       hashtags: ['#facebook'],
+      geoRegions: geo,
     });
   });
 }

@@ -1,4 +1,4 @@
-import type { TrendItem } from '@/lib/mockData';
+import type { TrendItem, TrendStatus } from '@/lib/mockData';
 import { MOCK_TRENDS } from '@/lib/mockData';
 import { collectMvpTrends } from './collectors';
 import { createClient } from '@/lib/supabase/server';
@@ -9,10 +9,57 @@ import { isSupabaseConfigured } from '@/lib/supabase/config';
 let memoryStore: TrendItem[] = [];
 let lastCollectedAt = 0;
 
+/** Map DB trend_niche_enum → Dashboard UI category labels. */
+function nicheToUiCategory(niche: string): string {
+  const map: Record<string, string> = {
+    AI: 'AI & Tech',
+    fitness: 'Fitness',
+    finance: 'Finance',
+    fashion: 'Fashion',
+    gaming: 'Gaming',
+    movies: 'other',
+    education: 'Education',
+    startups: 'Business',
+    travel: 'Travel',
+    food: 'Food',
+    sports: 'Sports',
+    marketing: 'Marketing',
+    productivity: 'Productivity',
+    business: 'Business',
+    other: 'other',
+  };
+  return map[niche] || niche || 'other';
+}
+
+function mapDbPlatformToUi(p: string): string {
+  if (p === 'google_trends') return 'google';
+  return p;
+}
+
+/** Prefer DB status, fall back to score bands (aligned with collectors). */
+function statusFromScores(statusRaw: string, nemo: number, cvs: number, ss: number): TrendStatus {
+  if (statusRaw === 'EXPIRED' || statusRaw === 'DECLINING') return 'fading';
+  if (statusRaw === 'PEAKING') return 'hot';
+  if (statusRaw === 'RISING') return 'rising';
+  if (nemo >= 70 || (nemo >= 60 && cvs >= 55 && ss >= 55)) return 'hot';
+  if (nemo >= 35) return 'rising';
+  return 'fading';
+}
+
 function rowToTrend(row: Record<string, unknown>): TrendItem {
   const raw = row.raw_platform_data as TrendItem | null;
-  if (raw?.id) return raw;
+  const geoFromRow = (row.geo_regions as string[] | null) || [];
+  if (raw?.id) {
+    return {
+      ...raw,
+      geoRegions: raw.geoRegions?.length ? raw.geoRegions : geoFromRow,
+      category: raw.category || nicheToUiCategory(String(row.niche || 'other')),
+    };
+  }
   const statusRaw = String(row.status || 'RISING');
+  const nemo = Number(row.nemo_score) || 0;
+  const cvs = Number(row.creator_velocity_score) || 0;
+  const ss = Number(row.spike_score) || 0;
   const mentions24h = Number(row.mentions_last_24h) || 0;
   const creators72 = Number(row.creators_last_72h) || 0;
   const creators24 = Number(row.creators_last_24h) || creators72;
@@ -21,34 +68,25 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
   const platformsPresent = (row.platforms_present as string[] | null) || [];
   const platforms = (
     platformsPresent.length
-      ? platformsPresent.map((p) => (p === 'google_trends' ? 'google' : p))
-      : [
-          String(row.platform || 'google') === 'google_trends'
-            ? 'google'
-            : String(row.platform || 'google'),
-        ]
+      ? platformsPresent.map(mapDbPlatformToUi)
+      : [mapDbPlatformToUi(String(row.platform || 'google'))]
   ) as TrendItem['platforms'];
   return {
     id: String(row.trend_id),
     title: String(row.topic_text || 'Untitled'),
     description: '',
-    category: String(row.niche || 'other'),
+    category: nicheToUiCategory(String(row.niche || 'other')),
     platforms,
     contentType: 'KEYWORD',
-    nemoScore: Number(row.nemo_score) || 0,
-    cvs: Number(row.creator_velocity_score) || 0,
-    ss: Number(row.spike_score) || 0,
+    nemoScore: nemo,
+    cvs,
+    ss,
     cps: Number(row.cross_platform_score) || 0,
     freshness: Number(row.freshness_score) || 0,
     freshnessMultiplier: Number(row.freshness_multiplier) || 1,
-    velocity: Number(row.spike_score) || 0,
-    spike: Number(row.spike_score) || 0,
-    status:
-      statusRaw === 'PEAKING' || Number(row.nemo_score) >= 70
-        ? 'hot'
-        : statusRaw === 'RISING' || Number(row.nemo_score) >= 35
-          ? 'rising'
-          : 'fading',
+    velocity: ss,
+    spike: ss,
+    status: statusFromScores(statusRaw, nemo, cvs, ss),
     mentions24h,
     mentionsPrev24h: Number(row.mentions_prev_24h) || Math.max(1, Math.round(mentions24h * 0.6)),
     creatorsCount: creators72,
@@ -60,7 +98,7 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
     sparklineData: [],
     timeAgo: '',
     isBookmarked: false,
-    geoRegions: (row.geo_regions as string[]) || [],
+    geoRegions: geoFromRow,
   };
 }
 
