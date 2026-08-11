@@ -19,8 +19,6 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: 'HomeIcon', group: 'main' },
-  { label: 'Explore', href: '/explore', icon: 'MagnifyingGlassIcon', group: 'main' },
-  { label: 'Trend Detail', href: '/trend/trend-001', icon: 'FireIcon', group: 'main' },
   { label: 'Content Queue', href: '/queue', icon: 'QueueListIcon', group: 'create' },
   { label: 'Carousel Studio', href: '/carousel', icon: 'RectangleGroupIcon', group: 'create' },
   {

@@ -4,27 +4,63 @@ import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import LiveBadge from './LiveBadge';
 import DashboardKPICards from './DashboardKPICards';
-import DashboardFilters from './DashboardFilters';
+import DashboardFilters, { type DashboardFilterState } from './DashboardFilters';
 import DashboardSidebar from './DashboardSidebar';
 import TrendCard from './TrendCard';
-import type { TrendItem, TrendPlatform } from '@/lib/mockData';
+import type { TrendItem } from '@/lib/mockData';
 import { COUNTRIES } from '@/lib/countries';
 import { useAuth } from '@/context/AuthContext';
+
+/** Prefer real age from firstDetectedAt so cards aren't stuck on collector stub "1h/2h/3h". */
+function formatTimeAgo(firstDetectedAt: string, fallback: string): string {
+  const detected = Date.parse(firstDetectedAt || '');
+  if (!Number.isFinite(detected) || detected <= 0) return fallback || '—';
+  const ageMs = Math.max(0, Date.now() - detected);
+  const mins = Math.floor(ageMs / 60000);
+  if (mins < 60) return `${Math.max(1, mins)}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 48) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function emptyStateCopy(filters: DashboardFilterState): string {
+  const parts: string[] = [];
+  if (filters.platforms.length > 0) {
+    parts.push(`sources: ${filters.platforms.join(', ')}`);
+  }
+  if (!filters.categories.includes('All')) {
+    parts.push(`categories: ${filters.categories.join(', ')}`);
+  }
+  if (filters.keyword.trim()) {
+    parts.push(`keyword “${filters.keyword.trim()}”`);
+  }
+  if (filters.countries.length > 0) {
+    parts.push(`location: ${filters.countries.join(', ')}`);
+  }
+  if (filters.bookmarksOnly) {
+    parts.push('saved only');
+  }
+  parts.push(`window ${filters.timeframe}`);
+
+  if (filters.countries.length > 0) {
+    return `No trends match ${parts.join(' · ')}. Try clearing location or widening the window.`;
+  }
+  if (filters.keyword.trim()) {
+    return `No trends match ${parts.join(' · ')}. Try a different keyword or clear search, then Submit.`;
+  }
+  if (filters.platforms.length > 0) {
+    return `No trends match ${parts.join(' · ')}. Try All Sources or a wider window, then Submit.`;
+  }
+  return `No trends in the last ${filters.timeframe}. Reload data or widen the window (48h / 72h), then Submit.`;
+}
 
 export default function DashboardContent() {
   const { profile, user } = useAuth();
   const [trends, setTrends] = useState<TrendItem[]>([]);
   const [source, setSource] = useState<string>('loading');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<{
-    categories: string[];
-    platforms: TrendPlatform[];
-    keyword: string;
-    timeframe: string;
-    bookmarksOnly: boolean;
-    countries: string[];
-    sortBy: 'score' | 'recent' | 'rising';
-  }>({
+  const [activeFilters, setActiveFilters] = useState<DashboardFilterState>({
     categories: ['All'],
     platforms: [],
     keyword: '',
@@ -81,7 +117,7 @@ export default function DashboardContent() {
     setIsRefreshing(true);
     await loadTrends(true);
     setIsRefreshing(false);
-    toast.success('Trends refreshed', { icon: '🔥' });
+    toast.success('Trends reloaded from API');
   };
 
   const handleBookmarkToggle = async (id: string) => {
@@ -126,10 +162,11 @@ export default function DashboardContent() {
       const inTags = (t.hashtags || []).some((h) => h.toLowerCase().includes(kw));
       if (!inTitle && !inDesc && !inTags) return false;
     }
-    // Global default: empty countries = show all. Only filter when user picks countries.
+    // Empty countries = Global: show all (including untagged geoRegions).
+    // When countries are selected: keep matching geo OR untagged rows so the grid
+    // doesn't go blank until collectors stamp geo on every trend.
     if (activeFilters.countries.length > 0) {
       const trendRegions = t.geoRegions ?? [];
-      // Untagged live rows stay visible globally; only exclude when they have geo and don't match
       if (trendRegions.length > 0) {
         const hasMatch = activeFilters.countries.some(
           (code) =>
@@ -148,13 +185,18 @@ export default function DashboardContent() {
     return true;
   });
 
-  const sortedTrends = [...filteredTrends].sort((a, b) => {
-    if (activeFilters.sortBy === 'rising') return b.velocity - a.velocity;
-    if (activeFilters.sortBy === 'recent') {
-      return new Date(b.firstDetectedAt).getTime() - new Date(a.firstDetectedAt).getTime();
-    }
-    return b.nemoScore - a.nemoScore;
-  });
+  const sortedTrends = [...filteredTrends]
+    .map((t) => ({
+      ...t,
+      timeAgo: formatTimeAgo(t.firstDetectedAt, t.timeAgo),
+    }))
+    .sort((a, b) => {
+      if (activeFilters.sortBy === 'rising') return b.velocity - a.velocity;
+      if (activeFilters.sortBy === 'recent') {
+        return new Date(b.firstDetectedAt).getTime() - new Date(a.firstDetectedAt).getTime();
+      }
+      return b.nemoScore - a.nemoScore;
+    });
 
   // Main grid shows ALL filtered trends (including lower scores). Hiding "fading"
   // previously caused "16 detected" + empty grid when scores were under 50.
@@ -229,7 +271,7 @@ export default function DashboardContent() {
                 onClick={handleRefresh}
                 className="text-sm font-semibold text-primary hover:underline self-start sm:self-center"
               >
-                Refresh digest →
+                Reload digest →
               </button>
             </div>
 
@@ -253,7 +295,12 @@ export default function DashboardContent() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 flex-wrap">
                 <h2 className="font-semibold tracking-tight text-foreground text-xl">
-                  {activeFilters.countries.length > 0 ? 'Filtered Trends' : 'All Trends'}{' '}
+                  {activeFilters.countries.length > 0 ||
+                  activeFilters.platforms.length > 0 ||
+                  activeFilters.keyword ||
+                  !activeFilters.categories.includes('All')
+                    ? 'Filtered Trends'
+                    : 'All Trends'}{' '}
                   <span className="text-primary font-semibold">
                     {filteredTrends.length} detected
                   </span>
@@ -268,7 +315,7 @@ export default function DashboardContent() {
                 </div>
               </div>
               <span className="text-base text-foreground/60 font-sans font-medium hidden sm:block">
-                Sorted by {sortLabel}
+                Sorted by {sortLabel} · {activeFilters.timeframe}
               </span>
             </div>
 
@@ -277,12 +324,8 @@ export default function DashboardContent() {
                 <p className="font-display font-bold text-foreground text-xl mb-2">
                   No trends found
                 </p>
-                <p className="text-base text-foreground/65 font-sans">
-                  {activeFilters.countries.length > 0
-                    ? 'Try clearing the location filter or picking different countries'
-                    : activeFilters.keyword
-                      ? 'Try a different keyword, or clear search'
-                      : 'Refresh trends or widen the time window (48h / 72h)'}
+                <p className="text-base text-foreground/65 font-sans max-w-lg">
+                  {emptyStateCopy(activeFilters)}
                 </p>
               </div>
             ) : (

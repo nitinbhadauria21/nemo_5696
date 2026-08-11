@@ -250,10 +250,10 @@ export default function TopNavbar() {
                 </ul>
                 <div className="px-4 py-2.5 border-t border-border bg-muted/30">
                   <button
-                    onClick={() => handleSearchSelect('/explore')}
+                    onClick={() => handleSearchSelect('/dashboard')}
                     className="text-base font-semibold text-primary hover:underline font-sans"
                   >
-                    View all results in Explore →
+                    View all results on Dashboard →
                   </button>
                 </div>
               </>

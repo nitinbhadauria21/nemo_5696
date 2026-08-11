@@ -29,7 +29,11 @@ function timeAgoFromHours(hours: number): string {
 }
 
 function mapUiPlatforms(platforms: TrendPlatform[]): Platform[] {
-  return platforms.map((p) => (p === 'google' ? 'google_trends' : p));
+  return platforms.map((p) => {
+    if (p === 'google') return 'google_trends';
+    if (p === 'youtube_shorts') return 'youtube';
+    return p;
+  });
 }
 
 function toTrendItem(input: {

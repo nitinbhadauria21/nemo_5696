@@ -3,6 +3,7 @@ import React, { useId } from 'react';
 export type PlatformId =
   | 'google'
   | 'youtube'
+  | 'youtube_shorts'
   | 'instagram'
   | 'linkedin'
   | 'tiktok'
@@ -15,6 +16,7 @@ export const PLATFORM_META: Record<PlatformId, { label: string; brand: string; s
   all: { label: 'All', brand: '#FF4500', soft: 'rgba(255,69,0,0.12)' },
   google: { label: 'Google Trends', brand: '#4285F4', soft: 'rgba(66,133,244,0.12)' },
   youtube: { label: 'YouTube', brand: '#FF0000', soft: 'rgba(255,0,0,0.10)' },
+  youtube_shorts: { label: 'YouTube Shorts', brand: '#FF0000', soft: 'rgba(255,0,0,0.10)' },
   instagram: { label: 'Instagram', brand: '#E1306C', soft: 'rgba(225,48,108,0.12)' },
   linkedin: { label: 'LinkedIn', brand: '#0A66C2', soft: 'rgba(10,102,194,0.12)' },
   tiktok: { label: 'TikTok', brand: '#111111', soft: 'rgba(17,17,17,0.08)' },
@@ -24,7 +26,8 @@ export const PLATFORM_META: Record<PlatformId, { label: string; brand: string; s
 };
 
 function normalizePlatform(platform: string): PlatformId {
-  const p = platform.toLowerCase().replace(/\s+/g, '');
+  const p = platform.toLowerCase().replace(/\s+/g, '_');
+  if (p === 'youtube_shorts' || p.includes('shorts')) return 'youtube_shorts';
   if (p.includes('youtube')) return 'youtube';
   if (p.includes('instagram')) return 'instagram';
   if (p.includes('linkedin')) return 'linkedin';
@@ -70,6 +73,7 @@ function Glyph({
         </svg>
       );
     case 'youtube':
+    case 'youtube_shorts':
       return (
         <svg width={s} height={s} viewBox="0 0 24 24" aria-hidden>
           <path

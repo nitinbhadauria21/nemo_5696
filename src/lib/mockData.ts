@@ -6,7 +6,15 @@ export type TrendStatus = 'hot' | 'rising' | 'fading';
  * Google Trends 18%, Twitter/X 12%, Reddit 5%, LinkedIn 3%.
  */
 export type TrendPlatform =
-  'google' | 'youtube' | 'instagram' | 'linkedin' | 'tiktok' | 'twitter' | 'reddit' | 'facebook';
+  | 'google'
+  | 'youtube'
+  | 'youtube_shorts'
+  | 'instagram'
+  | 'linkedin'
+  | 'tiktok'
+  | 'twitter'
+  | 'reddit'
+  | 'facebook';
 
 export type TrendContentType = 'TOPIC' | 'HOOK' | 'CONCEPT' | 'KEYWORD';
 
@@ -448,15 +456,17 @@ export const CATEGORIES = [
   'Education',
 ];
 
+/** Dashboard Source chips order — empty selection = All Sources. */
 export const PLATFORMS: TrendPlatform[] = [
-  'google',
   'youtube',
+  'youtube_shorts',
   'instagram',
-  'linkedin',
   'tiktok',
   'twitter',
-  'reddit',
   'facebook',
+  'reddit',
+  'google',
+  'linkedin',
 ];
 
 export const MOCK_ADMIN_USERS = [

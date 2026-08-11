@@ -27,6 +27,12 @@ const nextConfig = {
     minimumCacheTTL: 60,
     qualities: [75, 85, 100],
   },
+  async redirects() {
+    return [
+      { source: '/explore', destination: '/dashboard', permanent: true },
+      { source: '/explore/:path*', destination: '/dashboard', permanent: true },
+    ];
+  },
   webpack(config, { dev }) {
     if (dev) {
       const ignoredPaths = (process.env.WATCH_IGNORED_PATHS || '')

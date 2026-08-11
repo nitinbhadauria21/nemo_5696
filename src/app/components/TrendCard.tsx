@@ -14,6 +14,7 @@ interface TrendCardProps {
 const PLATFORM_LABELS: Record<TrendPlatform, string> = {
   google: 'Google',
   youtube: 'YouTube',
+  youtube_shorts: 'YouTube Shorts',
   instagram: 'Instagram',
   linkedin: 'LinkedIn',
   tiktok: 'TikTok',
@@ -25,6 +26,7 @@ const PLATFORM_LABELS: Record<TrendPlatform, string> = {
 const PLATFORM_COLORS: Record<TrendPlatform, string> = {
   google: 'text-blue-600 dark:text-blue-400',
   youtube: 'text-red-600 dark:text-red-400',
+  youtube_shorts: 'text-red-600 dark:text-red-400',
   instagram: 'text-pink-600 dark:text-pink-400',
   linkedin: 'text-sky-700 dark:text-sky-400',
   tiktok: 'text-cyan-700 dark:text-cyan-400',
