@@ -118,7 +118,7 @@ function resolveCreatorWindows(
   creators24h: number,
   creators72h: number
 ): { creators6h: number; creators24h: number; creators72h: number } {
-  let c24 = Math.max(1, Math.round(creators24h));
+  const c24 = Math.max(1, Math.round(creators24h));
   let c72 = Math.max(1, Math.round(creators72h));
   let c6 = Math.max(1, Math.round(creators6h || c24 / 3));
 
