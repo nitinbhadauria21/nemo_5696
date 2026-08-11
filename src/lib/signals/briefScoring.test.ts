@@ -15,8 +15,9 @@ import {
   computeMultiWindowSpike,
   computeAcceleration,
   buildWhyTrending,
+  deriveVelocitiesFromSnapshots,
 } from '../signals/briefScoring';
-import { applyTrendFilters } from '../trends/filters';
+import { applyTrendFilters, collapseToCanonicalCards } from '../trends/filters';
 import type { TrendItem } from '../mockData';
 
 function baseTrend(overrides: Partial<TrendItem> = {}): TrendItem {
@@ -219,5 +220,106 @@ describe('filters', () => {
     });
     assert.ok(why.every((w) => !/hallucin|maybe|probably/i.test(w)));
     assert.ok(why.length >= 2);
+  });
+
+  it('24h activity window uses latestActivityAt', () => {
+    const recent = baseTrend({
+      id: 'recent',
+      firstDetectedAt: new Date(Date.now() - 100 * 3600 * 1000).toISOString(),
+      latestActivityAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+    });
+    const stale = baseTrend({
+      id: 'stale',
+      firstDetectedAt: new Date(Date.now() - 100 * 3600 * 1000).toISOString(),
+      latestActivityAt: new Date(Date.now() - 80 * 3600 * 1000).toISOString(),
+    });
+    const filtered = applyTrendFilters([recent, stale], {
+      timeframeHours: 24,
+      neverBlankTopK: false,
+    });
+    const ids = filtered.map((t) => t.id);
+    assert.ok(ids.includes('recent'));
+    assert.ok(!ids.includes('stale'));
+  });
+
+  it('youtube filter includes youtube_shorts', () => {
+    const shorts = baseTrend({
+      id: 'shorts',
+      platforms: ['youtube_shorts'],
+      title: 'Shorts Dance Challenge',
+    });
+    const filtered = applyTrendFilters([shorts], {
+      platforms: ['youtube'],
+      timeframeHours: 24,
+      neverBlankTopK: false,
+    });
+    assert.equal(filtered.length, 1);
+    assert.equal(filtered[0].id, 'shorts');
+  });
+
+  it('collapses cluster aliases to one canonical card', () => {
+    const a = baseTrend({
+      id: 'a',
+      title: '#ClaudeAI',
+      nemoScore: 50,
+      platforms: ['youtube'],
+      clusterId: 'cl_claudeai',
+    });
+    const b = baseTrend({
+      id: 'b',
+      title: 'claudeai',
+      nemoScore: 80,
+      platforms: ['tiktok'],
+      clusterId: 'cl_claudeai',
+    });
+    const collapsed = collapseToCanonicalCards([a, b]);
+    assert.equal(collapsed.length, 1);
+    assert.equal(collapsed[0].id, 'b');
+    assert.ok(collapsed[0].platforms.includes('youtube'));
+    assert.ok(collapsed[0].platforms.includes('tiktok'));
+    assert.equal(collapsed[0].clusterSize, 2);
+  });
+
+  it('excludes recycled lifecycle from feed', () => {
+    const recycled = baseTrend({ id: 'r', lifecycle: 'recycled', title: 'Old Recycled Thing' });
+    const live = baseTrend({ id: 'l', lifecycle: 'rising', title: 'Fresh Topic XYZ' });
+    const filtered = applyTrendFilters([recycled, live], {
+      timeframeHours: 24,
+      neverBlankTopK: false,
+    });
+    assert.deepEqual(
+      filtered.map((t) => t.id),
+      ['l']
+    );
+  });
+});
+
+describe('snapshot velocities', () => {
+  it('derives velocities from consecutive snapshots', () => {
+    const now = Date.now();
+    const derived = deriveVelocitiesFromSnapshots([
+      {
+        at: new Date(now - 6 * 3600 * 1000).toISOString(),
+        score: 40,
+        mentions: 100,
+        creatorVelocity: 20,
+      },
+      {
+        at: new Date(now - 3 * 3600 * 1000).toISOString(),
+        score: 60,
+        mentions: 200,
+        creatorVelocity: 40,
+      },
+      {
+        at: new Date(now).toISOString(),
+        score: 90,
+        mentions: 400,
+        creatorVelocity: 50,
+      },
+    ]);
+    assert.ok(derived.peakScore === 90);
+    assert.ok(derived.mentionVelocity >= 1.5);
+    assert.ok(derived.scoreVelocity >= 1);
+    assert.ok(derived.peakVelocity >= derived.scoreVelocity);
   });
 });

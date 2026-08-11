@@ -150,6 +150,15 @@ export default function TrendCard({ trend, onBookmarkToggle }: TrendCardProps) {
           ))}
         </div>
 
+        {(trend.clusterSize ?? 1) > 1 && (
+          <p className="text-[0.75rem] text-foreground/55">
+            Cluster · {trend.clusterSize} sources
+            {trend.clusterAliases?.length
+              ? ` · also: ${trend.clusterAliases.slice(0, 2).join(', ')}`
+              : ''}
+          </p>
+        )}
+
         {trend.hashtags?.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {trend.hashtags.slice(0, 4).map((h) => (

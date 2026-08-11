@@ -58,8 +58,46 @@ function toUiTrend(t: TrendItem) {
     timeAgo: t.timeAgo,
     hashtags: t.hashtags,
     description: t.description,
+    whyTrending: t.whyTrending || [],
+    velocity: t.velocity,
+    acceleration: t.acceleration ?? 0,
   };
 }
+
+type HistoryPayload = {
+  series?: Array<{
+    windowHours: number;
+    points: Array<{ at: string; score: number; mentions: number }>;
+    velocities?: {
+      mention?: number;
+      creator?: number;
+      score?: number;
+      acceleration?: number;
+    };
+  }>;
+  peakScore?: number;
+  peakVelocity?: number;
+  peakAcceleration?: number;
+  velocities?: {
+    mention?: number;
+    creator?: number;
+    score?: number;
+    acceleration?: number;
+  };
+  durationHours?: number;
+  snapshotCount?: number;
+};
+
+type SourceRow = {
+  id: number;
+  platform: string;
+  title: string | null;
+  url: string | null;
+  creator: string | null;
+  published_at: string | null;
+  collected_at: string;
+  metadata?: { views?: string; historical?: boolean } | null;
+};
 
 interface TrendDetailContentProps {
   trendId?: string;
@@ -75,6 +113,9 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
   const [remoteTrend, setRemoteTrend] = useState<TrendItem | null>(null);
   const [relatedTrends, setRelatedTrends] = useState<TrendItem[]>([]);
   const [windowHoursLeft, setWindowHoursLeft] = useState<number | null>(null);
+  const [chartWindow, setChartWindow] = useState(72);
+  const [history, setHistory] = useState<HistoryPayload | null>(null);
+  const [sources, setSources] = useState<SourceRow[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -107,6 +148,32 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
   }, [trendId]);
 
   useEffect(() => {
+    if (!trendId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [hRes, sRes] = await Promise.all([
+          fetch(`/api/trends/${trendId}/history`),
+          fetch(`/api/trends/${trendId}/sources`),
+        ]);
+        if (hRes.ok) {
+          const h = await hRes.json();
+          if (!cancelled) setHistory(h);
+        }
+        if (sRes.ok) {
+          const s = await sRes.json();
+          if (!cancelled) setSources(s.sources || []);
+        }
+      } catch {
+        // optional enrichment
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [trendId]);
+
+  useEffect(() => {
     if (!remoteTrend?.firstDetectedAt) return;
     const update = () => {
       const ageH = (Date.now() - new Date(remoteTrend.firstDetectedAt).getTime()) / 3600000;
@@ -127,6 +194,15 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
     if (fromMock) return toUiTrend(fromMock);
     return null;
   }, [remoteTrend, trendId]);
+
+  const activeSeries = useMemo(() => {
+    const series = history?.series || [];
+    return (
+      series.find((s) => s.windowHours === chartWindow) ||
+      series.find((s) => s.windowHours === 72) ||
+      series[series.length - 1]
+    );
+  }, [history, chartWindow]);
 
   if (!TREND) {
     return (
@@ -162,6 +238,30 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
   const selectedCountryNames = selectedCountries
     .map((code) => COUNTRIES.find((c) => c.code === code))
     .filter(Boolean);
+
+  const whyBullets = TREND.whyTrending?.length
+    ? TREND.whyTrending
+    : ([
+        `Score ${Math.round(TREND.nemoScore)}`,
+        `Velocity ${TREND.velocity.toFixed(2)}x`,
+        TREND.platforms.length >= 2 ? `On ${TREND.platforms.length} platforms` : null,
+      ].filter(Boolean) as string[]);
+
+  const contentItems =
+    sources.length > 0
+      ? sources.slice(0, 6).map((s) => ({
+          id: String(s.id),
+          title: s.title || TREND.title,
+          views: s.metadata?.views || (s.creator ? `by ${s.creator}` : 'Source'),
+          platform: s.platform,
+          historical: Boolean(s.metadata?.historical) || Boolean(s.published_at),
+          url: s.url,
+        }))
+      : (remoteTrend?.topContent ?? []).map((item) => ({
+          ...item,
+          historical: false as boolean,
+          url: undefined as string | undefined,
+        }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -267,10 +367,53 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
                 <div className="flex-shrink-0 flex flex-col items-center gap-2">
                   <TrendSparkline data={TREND.sparklineData} width={100} height={40} trend="up" />
                   <span className="text-xs font-mono-custom font-semibold text-muted-foreground">
-                    7-day signal
+                    Signal
                   </span>
                 </div>
               </div>
+            </div>
+
+            <div className="bg-card border-2 border-border rounded-2xl p-5">
+              <h3 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                Why it&apos;s trending
+              </h3>
+              <ul className="space-y-2">
+                {whyBullets.map((b) => (
+                  <li key={b} className="flex gap-2 text-sm font-sans text-foreground">
+                    <span className="text-primary font-bold mt-0.5">•</span>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+              {(history?.velocities || activeSeries?.velocities) && (
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                  {[
+                    {
+                      label: 'Score vel',
+                      value: `${(history?.velocities?.score ?? activeSeries?.velocities?.score ?? TREND.velocity).toFixed(2)}x`,
+                    },
+                    {
+                      label: 'Mention vel',
+                      value: `${(history?.velocities?.mention ?? activeSeries?.velocities?.mention ?? 1).toFixed(2)}x`,
+                    },
+                    {
+                      label: 'Accel',
+                      value: `${(history?.velocities?.acceleration ?? activeSeries?.velocities?.acceleration ?? TREND.acceleration) >= 0 ? '+' : ''}${(history?.velocities?.acceleration ?? activeSeries?.velocities?.acceleration ?? TREND.acceleration).toFixed(2)}`,
+                    },
+                    {
+                      label: 'Peak score',
+                      value: String(Math.round(history?.peakScore ?? TREND.nemoScore)),
+                    },
+                  ].map((m) => (
+                    <div key={m.label} className="rounded-lg bg-muted/50 px-3 py-2">
+                      <div className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold">
+                        {m.label}
+                      </div>
+                      <div className="font-mono-custom font-bold tabular-nums">{m.value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <ScoreBreakdownPanel finalScore={TREND.nemoScore} />
@@ -284,8 +427,30 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
               </div>
             )}
 
+            <div className="flex flex-wrap gap-2">
+              {[1, 6, 12, 24, 48, 72].map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  onClick={() => setChartWindow(h)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${
+                    chartWindow === h
+                      ? 'bg-primary text-white border-primary'
+                      : 'border-border text-foreground/70'
+                  }`}
+                >
+                  {h}h
+                </button>
+              ))}
+            </div>
+
             <div className="grid lg:grid-cols-2 gap-4">
-              <TrendVolumeChart sparkline={TREND.sparklineData} />
+              <TrendVolumeChart
+                sparkline={TREND.sparklineData}
+                points={activeSeries?.points}
+                windowHours={chartWindow}
+                velocities={activeSeries?.velocities || history?.velocities}
+              />
               <TrendGeoChart regions={remoteTrend?.geoRegions} />
             </div>
 
@@ -310,33 +475,24 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
 
             <div className="space-y-3">
               <h3 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Top Performing Content
+                Representative content
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {(
-                  remoteTrend?.topContent ?? [
-                    {
-                      id: '1',
-                      title: 'Viral hook breakdown',
-                      views: '1.2M',
-                      platform: TREND.platforms[0],
-                    },
-                    {
-                      id: '2',
-                      title: 'Creator reaction clip',
-                      views: '840K',
-                      platform: TREND.platforms[1] ?? TREND.platforms[0],
-                    },
-                    {
-                      id: '3',
-                      title: 'Trend explainer short',
-                      views: '520K',
-                      platform: TREND.platforms[0],
-                    },
-                  ]
+                {(contentItems.length
+                  ? contentItems
+                  : [
+                      {
+                        id: '1',
+                        title: 'Top post for this topic',
+                        views: '—',
+                        platform: TREND.platforms[0],
+                        historical: true,
+                        url: undefined as string | undefined,
+                      },
+                    ]
                 )
-                  .slice(0, 3)
-                  .map((item: { id: string; title: string; views: string; platform?: string }) => (
+                  .slice(0, 6)
+                  .map((item) => (
                     <div
                       key={item.id}
                       className="rounded-xl border border-border bg-card overflow-hidden"
@@ -350,10 +506,22 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
                       </div>
                       <div className="p-3">
                         <p className="text-xs font-sans font-semibold text-foreground line-clamp-2">
-                          {item.title}
+                          {item.url ? (
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:text-primary"
+                            >
+                              {item.title}
+                            </a>
+                          ) : (
+                            item.title
+                          )}
                         </p>
                         <p className="text-xs font-mono-custom text-muted-foreground mt-1">
-                          {item.views} views
+                          {item.views}
+                          {item.historical ? ' · historical context' : ''}
                         </p>
                       </div>
                     </div>
@@ -367,10 +535,10 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
               <div className="flex items-end justify-between gap-3">
                 <div>
                   <h3 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    AI-Powered Analysis
+                    AI analysis (secondary)
                   </h3>
                   <p className="text-xs font-sans text-muted-foreground mt-1">
-                    Structured insights for {TREND.category} · {TREND.title}
+                    Optional insights — metrics above are the primary explanation
                   </p>
                 </div>
               </div>

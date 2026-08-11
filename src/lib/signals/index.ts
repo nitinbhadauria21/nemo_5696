@@ -48,8 +48,13 @@ export {
   buildWhyTrending,
   clusterTrends,
   pickCanonical,
+  deriveVelocitiesFromSnapshots,
 } from './briefScoring';
-export type { BriefWeights, LifecycleStatus as BriefLifecycleStatus } from './briefScoring';
+export type {
+  BriefWeights,
+  LifecycleStatus as BriefLifecycleStatus,
+  SnapshotPoint,
+} from './briefScoring';
 
 // Scoring Engine — Four Formulas + Final Nemo Score
 export {

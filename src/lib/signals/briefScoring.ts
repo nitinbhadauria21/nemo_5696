@@ -237,3 +237,75 @@ export function clusterTrends<T extends { id: string; title: string; nemoScore: 
 export function pickCanonical<T extends { nemoScore: number; title: string }>(group: T[]): T {
   return [...group].sort((a, b) => b.nemoScore - a.nemoScore || a.title.length - b.title.length)[0];
 }
+
+export type SnapshotPoint = {
+  at: string;
+  score: number;
+  mentions: number;
+  creatorVelocity?: number;
+};
+
+/**
+ * Derive mention / creator / score velocity + acceleration from consecutive snapshots.
+ * Velocities are ratios (latest / prior); acceleration is delta of score velocity.
+ */
+export function deriveVelocitiesFromSnapshots(points: SnapshotPoint[]): {
+  mentionVelocity: number;
+  creatorVelocity: number;
+  scoreVelocity: number;
+  acceleration: number;
+  peakScore: number;
+  peakVelocity: number;
+  peakAcceleration: number;
+} {
+  if (!points.length) {
+    return {
+      mentionVelocity: 0,
+      creatorVelocity: 0,
+      scoreVelocity: 0,
+      acceleration: 0,
+      peakScore: 0,
+      peakVelocity: 0,
+      peakAcceleration: 0,
+    };
+  }
+
+  const sorted = [...points].sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+  const scores = sorted.map((p) => p.score);
+  const peakScore = Math.max(...scores);
+
+  let peakVelocity = 0;
+  let peakAcceleration = 0;
+  let prevScoreVel = 0;
+  const scoreVels: number[] = [];
+  const mentionVels: number[] = [];
+  const creatorVels: number[] = [];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1];
+    const cur = sorted[i];
+    const scoreVel = cur.score / Math.max(prev.score, 1);
+    const mentionVel = cur.mentions / Math.max(prev.mentions, 1);
+    const prevCv = prev.creatorVelocity ?? 0;
+    const curCv = cur.creatorVelocity ?? 0;
+    const creatorVel = prevCv > 0 ? curCv / prevCv : scoreVel;
+    const accel = computeAcceleration(scoreVel, prevScoreVel || scoreVel);
+    scoreVels.push(scoreVel);
+    mentionVels.push(mentionVel);
+    creatorVels.push(creatorVel);
+    peakVelocity = Math.max(peakVelocity, scoreVel, mentionVel);
+    peakAcceleration = Math.max(peakAcceleration, accel);
+    prevScoreVel = scoreVel;
+  }
+
+  const last = scoreVels.length - 1;
+  return {
+    mentionVelocity: mentionVels[last] ?? 1,
+    creatorVelocity: creatorVels[last] ?? 1,
+    scoreVelocity: scoreVels[last] ?? 1,
+    acceleration: last >= 1 ? computeAcceleration(scoreVels[last], scoreVels[last - 1]) : 0,
+    peakScore,
+    peakVelocity: peakVelocity || scoreVels[last] || 1,
+    peakAcceleration,
+  };
+}

@@ -78,8 +78,16 @@ export interface TrendItem {
   topContent?: { id: string; title: string; views: string; platform?: string }[];
   breakoutBoolean?: boolean;
   queryClusterId?: string;
+  clusterId?: string;
+  /** Other titles folded into this canonical card. */
+  clusterAliases?: string[];
+  /** Member count in cluster (1 = singleton). */
+  clusterSize?: number;
   geoSpreadScore?: number;
   engagementVelocity?: number;
+  peakScore?: number;
+  peakVelocity?: number;
+  peakAcceleration?: number;
 }
 
 export const MOCK_TRENDS: TrendItem[] = [

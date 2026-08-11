@@ -8,6 +8,8 @@ import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { applyTrendFilters, type TrendQueryFilters } from './filters';
 import { classifyTrendNiche, normalizeUiNiche, sanitizePublicText } from './publicCopy';
 import { upsertDataSourceStatusFromIngest } from './sourceStatus';
+import { evaluateAlertRules } from '@/lib/alerts/evaluate';
+import { buildWhyTrending } from '@/lib/signals/briefScoring';
 
 let memoryStore: TrendItem[] = [];
 let lastCollectedAt = 0;
@@ -134,6 +136,9 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
     const conf =
       Number(row.confidence_score ?? raw.confidenceScore) ||
       Math.min(100, raw.cps + raw.freshness / 2);
+    const whyFromDb = Array.isArray(row.why_trending)
+      ? (row.why_trending as unknown[]).map((x) => String(x))
+      : raw.whyTrending;
     return scrubTrend({
       ...raw,
       title,
@@ -150,6 +155,19 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
       breakoutScore: (raw.breakoutScore ?? Number(row.breakout_score)) || 0,
       latestActivityAt: latestActivityAt || raw.latestActivityAt || raw.firstDetectedAt,
       firstDetectedAt: raw.firstDetectedAt || String(row.first_detected_at || latestActivityAt),
+      clusterId: String(row.cluster_id || raw.clusterId || '') || undefined,
+      whyTrending: whyFromDb?.length
+        ? whyFromDb
+        : buildWhyTrending({
+            velocity: raw.velocity,
+            spike: raw.ss,
+            platforms: raw.platforms?.length,
+            freshness: raw.freshness,
+            breakout: raw.breakoutBoolean || (raw.breakoutScore ?? 0) >= 70,
+            creators: raw.creatorsCount,
+            acceleration: raw.acceleration,
+            geoSpread: raw.geoSpreadScore || geoFromRow.length,
+          }),
     });
   }
   const statusRaw = String(row.status || 'RISING');
@@ -213,6 +231,19 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
     geoRegions: geoFromRow,
     geoSpreadScore: Number(row.geo_spread_score) || geoFromRow.length,
     breakoutBoolean: Boolean(row.breakout_boolean),
+    clusterId: String(row.cluster_id || '') || undefined,
+    whyTrending: Array.isArray(row.why_trending)
+      ? (row.why_trending as unknown[]).map((x) => String(x))
+      : buildWhyTrending({
+          velocity: Number(row.velocity_score) || ss,
+          spike: ss,
+          platforms: platforms.length,
+          freshness: Number(row.freshness_score) || 0,
+          breakout: Boolean(row.breakout_boolean) || Number(row.breakout_score) >= 70,
+          creators: creators72,
+          acceleration: Number(row.acceleration_score) || 0,
+          geoSpread: Number(row.geo_spread_score) || geoFromRow.length,
+        }),
   });
 }
 
@@ -235,6 +266,12 @@ export async function runTrendIngestion(options?: { useServiceRole?: boolean }):
       await upsertDataSourceStatusFromIngest(client, collected, stats);
     } catch (e) {
       console.error('data_source_status upsert failed', e);
+    }
+    try {
+      const alertResult = await evaluateAlertRules(client, collected);
+      console.info(`[ingest] alerts created=${alertResult.created}`);
+    } catch (e) {
+      console.error('alert evaluation failed', e);
     }
   };
 

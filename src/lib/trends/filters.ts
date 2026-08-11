@@ -2,6 +2,12 @@ import type { TrendItem, TrendPlatform, LifecycleStatus } from '@/lib/mockData';
 import { BRIEF_NICHES } from '@/lib/mockData';
 import { selectDashboardTrends } from './trendingGate';
 import { normalizeUiNiche } from './publicCopy';
+import {
+  clusterTrends,
+  isEvergreenTopic,
+  normalizeClusterKey,
+  pickCanonical,
+} from '@/lib/signals/briefScoring';
 
 export type TrendQueryFilters = {
   niche?: string[];
@@ -108,6 +114,80 @@ function normalizeFilterNiches(niches: string[]): string[] {
 }
 
 /**
+ * Collapse near-duplicate titles into one canonical card with merged platforms.
+ * Recycled excluded earlier; evergreen titles are soft-downranked via score.
+ */
+export function collapseToCanonicalCards(trends: TrendItem[]): TrendItem[] {
+  if (trends.length <= 1) return trends;
+
+  const byExplicit = new Map<string, TrendItem[]>();
+  const unclustered: TrendItem[] = [];
+
+  for (const t of trends) {
+    if (t.clusterId) {
+      const list = byExplicit.get(t.clusterId) || [];
+      list.push(t);
+      byExplicit.set(t.clusterId, list);
+    } else {
+      unclustered.push(t);
+    }
+  }
+
+  const titleGroups = clusterTrends(unclustered);
+  const used = new Set<string>();
+  const out: TrendItem[] = [];
+
+  const mergeGroup = (members: TrendItem[]): TrendItem => {
+    const canonical = pickCanonical(members);
+    const platforms = Array.from(
+      new Set(members.flatMap((m) => m.platforms || []))
+    ) as TrendItem['platforms'];
+    const aliases = members
+      .filter((m) => m.id !== canonical.id)
+      .map((m) => m.title)
+      .filter(Boolean);
+    const merged: TrendItem = {
+      ...canonical,
+      platforms: platforms.length ? platforms : canonical.platforms,
+      clusterId: canonical.clusterId || `cl_${normalizeClusterKey(canonical.title)}`,
+      clusterAliases: aliases,
+      clusterSize: members.length,
+      mentions24h: Math.max(...members.map((m) => m.mentions24h || 0)),
+      creatorsCount: Math.max(...members.map((m) => m.creatorsCount || 0)),
+      nemoScore: Math.max(...members.map((m) => m.nemoScore)),
+    };
+    // Soft down-rank evergreen niche labels still present after filters
+    if (isEvergreenTopic(merged.title)) {
+      merged.nemoScore = Math.round(merged.nemoScore * 0.55 * 100) / 100;
+    }
+    return merged;
+  };
+
+  for (const members of byExplicit.values()) {
+    out.push(mergeGroup(members));
+    for (const m of members) used.add(m.id);
+  }
+
+  for (const members of titleGroups.values()) {
+    const fresh = members.filter((m) => !used.has(m.id));
+    if (!fresh.length) continue;
+    out.push(mergeGroup(fresh));
+    for (const m of fresh) used.add(m.id);
+  }
+
+  for (const t of unclustered) {
+    if (used.has(t.id)) continue;
+    out.push(
+      isEvergreenTopic(t.title)
+        ? { ...t, nemoScore: Math.round(t.nemoScore * 0.55 * 100) / 100, clusterSize: 1 }
+        : { ...t, clusterSize: 1 }
+    );
+  }
+
+  return out;
+}
+
+/**
  * Apply user filters. Never restores unfiltered tops when empty.
  * Optional never-blank top-K runs AFTER filters only.
  */
@@ -138,6 +218,9 @@ export function applyTrendFilters(trends: TrendItem[], filters: TrendQueryFilter
     if (!withinTimeframe(t, timeframeHours)) return false;
     return true;
   });
+
+  // One canonical card per cluster before top-K
+  filtered = collapseToCanonicalCards(filtered);
 
   if (filters.neverBlankTopK !== false && filtered.length > 0) {
     filtered = selectDashboardTrends(filtered, {

@@ -56,9 +56,11 @@ export async function GET() {
       displayName: p.displayName,
       status,
       label: userFacingPlatformStatus(status),
-      enabled: row?.enabled ?? true,
+      enabled: row?.enabled !== false,
+      poll_interval_minutes: Number(row?.poll_interval_minutes ?? 30),
       lastSuccessAt: row?.last_success_at ?? null,
       recordsLastRun: Number(row?.records_last_run ?? 0),
+      records_last_run: Number(row?.records_last_run ?? 0),
     };
   };
 

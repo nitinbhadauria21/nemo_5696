@@ -1,5 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { TrendItem, TrendPlatform } from '@/lib/mockData';
+import {
+  buildWhyTrending,
+  clusterTrends,
+  isEvergreenTopic,
+  normalizeClusterKey,
+  pickCanonical,
+} from '@/lib/signals/briefScoring';
 import { normalizeUiNiche } from './publicCopy';
 
 /** DB platform_enum values (incl. google_trends + youtube_shorts). */
@@ -92,6 +99,23 @@ function mapTrendToRecord(t: TrendItem) {
     )
   );
   const uiCategory = normalizeUiNiche(t.category || uiNiches[0] || 'AI', t.title);
+  const why =
+    t.whyTrending?.length && t.whyTrending.length > 0
+      ? t.whyTrending
+      : buildWhyTrending({
+          velocity: t.velocity,
+          spike: t.ss,
+          platforms: t.platforms?.length,
+          freshness: t.freshness,
+          breakout: t.breakoutBoolean || (t.breakoutScore ?? 0) >= 70,
+          creators: t.creatorsCount,
+          acceleration: t.acceleration,
+          geoSpread: t.geoSpreadScore || t.geoRegions?.length,
+        });
+
+  // Soft down-rank evergreen niche-name topics in stored score
+  const evergreenPenalty = isEvergreenTopic(t.title) ? 0.55 : 1;
+  const storedScore = Math.round(t.nemoScore * evergreenPenalty * 100) / 100;
 
   return {
     trend_id: t.id,
@@ -118,7 +142,10 @@ function mapTrendToRecord(t: TrendItem) {
     persistence_score: t.persistenceScore ?? 0,
     breakout_score: t.breakoutScore ?? 0,
     confidence_score: t.confidenceScore ?? 0,
-    nemo_score: t.nemoScore,
+    geo_spread_score: t.geoSpreadScore ?? geo.length,
+    nemo_score: storedScore,
+    cluster_id: t.clusterId || null,
+    why_trending: why,
     status: statusMap[t.status] ?? 'RISING',
     platforms_present: platforms,
     geo_regions: geo,
@@ -127,8 +154,111 @@ function mapTrendToRecord(t: TrendItem) {
     creators_last_6h: t.creatorsLast6h,
     creators_last_24h: t.creatorsLast24h,
     creators_last_72h: t.creatorsLast72h,
-    raw_platform_data: t,
+    raw_platform_data: { ...t, whyTrending: why, clusterId: t.clusterId, nemoScore: storedScore },
   };
+}
+
+async function persistClusters(
+  supabase: SupabaseClient,
+  trends: TrendItem[]
+): Promise<Map<string, string>> {
+  /** trend_id → cluster_id */
+  const assignment = new Map<string, string>();
+  const groups = clusterTrends(trends);
+  const now = new Date().toISOString();
+  const clusterRows: Array<Record<string, unknown>> = [];
+
+  for (const [key, members] of groups) {
+    if (members.length < 1) continue;
+    const canonical = pickCanonical(members);
+    const clusterId = `cl_${key}`.slice(0, 120);
+    const aliases = members.map((m) => m.title).filter((t) => t !== canonical.title);
+    const niches = Array.from(
+      new Set(members.flatMap((m) => (m.niches?.length ? m.niches : [m.category])))
+    );
+    for (const m of members) assignment.set(m.id, clusterId);
+    clusterRows.push({
+      cluster_id: clusterId,
+      canonical_title: canonical.title,
+      aliases,
+      keywords: [key],
+      niche: mapCategoryToNiche(canonical.category),
+      niches,
+      first_seen_at:
+        members
+          .map((m) => m.firstDetectedAt)
+          .filter(Boolean)
+          .sort()[0] || now,
+      last_seen_at: now,
+      member_count: members.length,
+      peak_score: Math.max(...members.map((m) => m.nemoScore)),
+    });
+  }
+
+  // Singletons still get a cluster id for stable joining
+  for (const t of trends) {
+    if (assignment.has(t.id)) continue;
+    const key = normalizeClusterKey(t.title) || t.id;
+    const clusterId = `cl_${key}`.slice(0, 120);
+    assignment.set(t.id, clusterId);
+    clusterRows.push({
+      cluster_id: clusterId,
+      canonical_title: t.title,
+      aliases: [],
+      keywords: [key],
+      niche: mapCategoryToNiche(t.category),
+      niches: t.niches?.length ? t.niches : [t.category],
+      first_seen_at: t.firstDetectedAt || now,
+      last_seen_at: now,
+      member_count: 1,
+      peak_score: t.nemoScore,
+    });
+  }
+
+  if (clusterRows.length) {
+    const { error } = await supabase
+      .from('trend_clusters')
+      .upsert(clusterRows, { onConflict: 'cluster_id' });
+    if (error) console.error('trend_clusters upsert failed', error.message);
+  }
+
+  return assignment;
+}
+
+async function persistTrendSources(supabase: SupabaseClient, trends: TrendItem[]): Promise<void> {
+  const rows: Array<Record<string, unknown>> = [];
+  for (const t of trends) {
+    for (const item of t.topContent || []) {
+      rows.push({
+        trend_id: t.id,
+        platform: mapUiPlatformToDb(item.platform || t.platforms[0] || 'google'),
+        external_id: item.id,
+        title: item.title,
+        url: null,
+        metadata: { views: item.views, historical: false },
+        collected_at: new Date().toISOString(),
+      });
+    }
+    // Fallback: one source row per platform so detail can show evidence
+    if (!t.topContent?.length && t.platforms?.length) {
+      for (const p of t.platforms.slice(0, 4)) {
+        rows.push({
+          trend_id: t.id,
+          platform: mapUiPlatformToDb(p),
+          title: t.title,
+          url: t.sourceUrl || null,
+          metadata: { historical: false },
+          collected_at: new Date().toISOString(),
+        });
+      }
+    }
+  }
+  if (!rows.length) return;
+  // Avoid unbounded growth: delete prior sources for these trends then insert
+  const ids = [...new Set(rows.map((r) => String(r.trend_id)))];
+  await supabase.from('trend_sources').delete().in('trend_id', ids);
+  const { error } = await supabase.from('trend_sources').insert(rows);
+  if (error) console.error('trend_sources insert failed', error.message);
 }
 
 /**
@@ -176,12 +306,18 @@ export async function persistTrendsToSupabase(
   const eligible = trends.filter((t) => trendAgeHours(t.firstDetectedAt) <= MAX_PERSIST_AGE_HOURS);
   if (!eligible.length) return;
 
+  const clusterMap = await persistClusters(supabase, eligible);
+  const withClusters = eligible.map((t) => ({
+    ...t,
+    clusterId: clusterMap.get(t.id) || t.clusterId,
+  }));
+
   const collectedAt = new Date().toISOString();
-  const records = eligible.map(mapTrendToRecord);
+  const records = withClusters.map(mapTrendToRecord);
 
   await supabase.from('trend_records').upsert(records, { onConflict: 'trend_id' });
 
-  const snapshots = eligible.map((t) => ({
+  const snapshots = withClusters.map((t) => ({
     trend_id: t.id,
     collected_at: collectedAt,
     nemo_score: t.nemoScore,
@@ -194,9 +330,15 @@ export async function persistTrendsToSupabase(
 
   await supabase.from('trend_snapshots').insert(snapshots);
 
+  try {
+    await persistTrendSources(supabase, withClusters);
+  } catch (e) {
+    console.error('persistTrendSources failed', e);
+  }
+
   await purgeStaleTrendRecords(
     supabase,
-    eligible.map((t) => t.id),
+    withClusters.map((t) => t.id),
     Number(process.env.TREND_STALE_MAX_AGE_HOURS || 72)
   );
 

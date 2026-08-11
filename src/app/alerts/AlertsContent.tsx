@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BRIEF_NICHES } from '@/lib/mockData';
 import { toast } from 'sonner';
 
@@ -34,17 +34,41 @@ export default function AlertsContent() {
   const [requireBreakout, setRequireBreakout] = useState(false);
   const [requireCross, setRequireCross] = useState(false);
   const [notifyBrowser, setNotifyBrowser] = useState(false);
+  const seenIds = useRef<Set<string>>(new Set());
+  const primed = useRef(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const res = await fetch('/api/alerts');
     const data = await res.json();
+    const nextAlerts: AlertRow[] = data.alerts || [];
     setRules(data.rules || []);
-    setAlerts(data.alerts || []);
-  };
+    setAlerts(nextAlerts);
+
+    // In-app browser notify for newly arrived unread alerts (no email claim)
+    if (
+      primed.current &&
+      notifyBrowser &&
+      'Notification' in window &&
+      Notification.permission === 'granted'
+    ) {
+      for (const a of nextAlerts) {
+        if (a.read || seenIds.current.has(a.id)) continue;
+        try {
+          new Notification(a.title, { body: a.body || 'New trend alert', tag: a.id });
+        } catch {
+          // ignore
+        }
+      }
+    }
+    for (const a of nextAlerts) seenIds.current.add(a.id);
+    primed.current = true;
+  }, [notifyBrowser]);
 
   useEffect(() => {
     load();
-  }, []);
+    const t = setInterval(load, 60000);
+    return () => clearInterval(t);
+  }, [load]);
 
   const requestNotify = async () => {
     if (!('Notification' in window)) {
@@ -54,7 +78,7 @@ export default function AlertsContent() {
     const perm = await Notification.requestPermission();
     if (perm === 'granted') {
       setNotifyBrowser(true);
-      toast.success('Browser notifications enabled');
+      toast.success('Browser notifications enabled for this session');
     } else {
       toast.message('Notification permission denied');
     }
@@ -87,11 +111,23 @@ export default function AlertsContent() {
     load();
   };
 
+  const markRead = async (id: string) => {
+    await fetch('/api/alerts', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, markRead: true }),
+    });
+    load();
+  };
+
+  const unread = alerts.filter((a) => !a.read);
+
   return (
     <div className="min-h-screen bg-background px-4 sm:px-6 py-6 max-w-3xl mx-auto">
       <h1 className="font-display text-2xl font-bold mb-1">Alerts</h1>
       <p className="text-foreground/60 mb-5">
-        Rules + in-app notifications. Optional browser push.
+        Rules evaluate after each ingest. In-app list plus optional browser notifications — not
+        email delivery.
       </p>
 
       <div className="card-surface p-4 space-y-3 mb-6">
@@ -182,7 +218,9 @@ export default function AlertsContent() {
         ))}
       </ul>
 
-      <h2 className="font-semibold mb-2">In-app alerts</h2>
+      <h2 className="font-semibold mb-2">
+        In-app alerts {unread.length > 0 ? `(${unread.length} unread)` : ''}
+      </h2>
       <ul className="space-y-2">
         {alerts.length === 0 && <li className="text-foreground/55 text-sm">No alerts yet.</li>}
         {alerts.map((a) => (
@@ -190,11 +228,24 @@ export default function AlertsContent() {
             key={a.id}
             className={`border rounded-xl px-3 py-2 ${a.read ? 'border-border opacity-70' : 'border-primary/40'}`}
           >
-            <p className="font-medium">{a.title}</p>
-            {a.body && <p className="text-sm text-foreground/60">{a.body}</p>}
-            <p className="text-xs text-foreground/45 mt-1">
-              {new Date(a.created_at).toLocaleString()}
-            </p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-medium">{a.title}</p>
+                {a.body && <p className="text-sm text-foreground/60">{a.body}</p>}
+                <p className="text-xs text-foreground/45 mt-1">
+                  {new Date(a.created_at).toLocaleString()}
+                </p>
+              </div>
+              {!a.read && (
+                <button
+                  type="button"
+                  onClick={() => markRead(a.id)}
+                  className="text-xs font-semibold text-primary shrink-0"
+                >
+                  Mark read
+                </button>
+              )}
+            </div>
           </li>
         ))}
       </ul>

@@ -23,7 +23,7 @@ const NAV = [
   { href: '/admin/api-keys', label: 'API Keys', icon: KeyRound },
   { href: '/admin/health', label: 'System', icon: HeartPulse },
   { href: '/admin/keywords', label: 'Keywords', icon: Tags },
-  { href: '/admin/platforms', label: 'Platforms', icon: Grid3X3 },
+  { href: '/admin/platforms', label: 'Scoring', icon: Grid3X3 },
 ];
 
 export default function AdminSidebar() {

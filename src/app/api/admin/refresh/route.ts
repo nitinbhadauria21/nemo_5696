@@ -21,6 +21,25 @@ async function requireAdmin() {
   return data.user;
 }
 
+export async function GET(request: NextRequest) {
+  const user = await requireAdmin();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const action = request.nextUrl.searchParams.get('action') || 'get_weights';
+  if (action === 'get_weights') {
+    const admin = createAdminClient();
+    if (!admin) return NextResponse.json({ error: 'Admin client unavailable' }, { status: 503 });
+    const { data } = await admin
+      .from('scoring_weights')
+      .select('*')
+      .eq('id', 'default')
+      .maybeSingle();
+    return NextResponse.json({ weights: data || null });
+  }
+  return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
+}
+
 export async function POST(request: NextRequest) {
   const user = await requireAdmin();
   const cronSecret = process.env.CRON_SECRET;
@@ -68,12 +87,36 @@ export async function POST(request: NextRequest) {
   if (action === 'set_weights') {
     const admin = createAdminClient();
     if (!admin) return NextResponse.json({ error: 'Admin client unavailable' }, { status: 503 });
-    const weights = body.weights || {};
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Admin user required for weight changes' },
+        { status: 401 }
+      );
+    }
+    const raw = (body.weights || {}) as Record<string, unknown>;
+    const allowed = [
+      'freshness',
+      'velocity',
+      'acceleration',
+      'cross_platform',
+      'engagement',
+      'novelty',
+      'creator',
+      'persistence',
+      'breakout_modifier',
+      'geo_spread_modifier',
+    ] as const;
+    const weights: Record<string, number> = {};
+    for (const key of allowed) {
+      if (raw[key] != null && Number.isFinite(Number(raw[key]))) {
+        weights[key] = Number(raw[key]);
+      }
+    }
     await admin.from('scoring_weights').upsert({
       id: 'default',
       ...weights,
       updated_at: new Date().toISOString(),
-      updated_by: user?.id ?? null,
+      updated_by: user.id,
     });
     return NextResponse.json({ ok: true });
   }
