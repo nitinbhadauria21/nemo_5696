@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "e2e-testing-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/developer-essentials/skills/e2e-testing-patterns/SKILL.md",
+      "computedHash": "20a171bc2e543efec9d7158e06d6ee66e7dbd5205a7ebe1aa89cea90ef508cd8"
+    },
     "supabase": {
       "source": "supabase/agent-skills",
       "sourceType": "github",

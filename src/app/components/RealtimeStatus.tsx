@@ -35,7 +35,10 @@ export default function RealtimeStatus({
   sourceLabel,
 }: RealtimeStatusProps) {
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+    <div
+      className="rounded-xl border border-border bg-card px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 justify-between"
+      data-testid="realtime-status"
+    >
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm font-sans">
         <span className="inline-flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />

@@ -32,6 +32,9 @@ Thumbs.db
 # Optional: if using testing tools
 coverage/
 jest-test-results.json
+playwright-report/
+test-results/
+blob-report/
 
 # Optional: if using IDEs
 .vscode/

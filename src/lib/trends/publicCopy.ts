@@ -33,7 +33,7 @@ type NicheRule = { niche: string; re: RegExp };
 const NICHE_RULES: NicheRule[] = [
   {
     niche: 'AI',
-    re: /\b(ai|artificial intelligence|chatgpt|gpt-?\d|claude|llm|machine learning|deep learning|neural|openai|anthropic|midjourney|stable diffusion|robot|coding|software|tech|saas)\b/i,
+    re: /\b(artificial intelligence|chatgpt|gpt-?\d|claude|llms?|machine learning|deep learning|neural nets?|openai|anthropic|midjourney|stable diffusion|generative ai|ai)\b/i,
   },
   {
     niche: 'Fitness',
@@ -85,7 +85,8 @@ const DUMP_BUCKETS = new Set([
 
 /**
  * Classify a trend into a brief UI niche from title + caption + hashtags + raw niche.
- * Never returns the dump bucket "other" when any text is present — defaults to AI.
+ * Unmatched text returns "other" (All feed only — not under named niche chips).
+ * Never dump unknown lifestyle content into AI; do not permanently trust a stale AI label.
  */
 export function classifyTrendNiche(input: {
   title?: string | null;
@@ -95,40 +96,48 @@ export function classifyTrendNiche(input: {
   rawNiche?: string | null;
 }): string {
   const raw = String(input.rawNiche || '').trim();
-  if (raw && BRIEF.includes(raw)) return raw;
+  const briefHit = BRIEF.find((b) => b.toLowerCase() === raw.toLowerCase());
 
-  const rawLower = raw.toLowerCase();
-  if (raw && !DUMP_BUCKETS.has(rawLower)) {
+  const tags = (input.hashtags || []).map((h) => String(h || '')).join(' ');
+  // Do NOT include rawNiche in the evidence blob — a polluted "AI" label would
+  // self-match the AI keyword rule and permanently stick.
+  const blob = [input.title, input.caption, input.description, tags]
+    .map((s) => String(s || '').trim())
+    .filter(Boolean)
+    .join(' \n ');
+
+  // Prefer text evidence over a stored niche (especially polluted "AI" defaults).
+  if (blob) {
+    for (const rule of NICHE_RULES) {
+      if (rule.re.test(blob)) return rule.niche;
+    }
+    if (/\br\/?(fitness|bodybuilding|running|sports)\b/i.test(blob)) return 'Fitness';
+    if (/\br\/?(cryptocurrency|personalfinance|investing|stocks)\b/i.test(blob)) return 'Finance';
+    if (/\br\/?(gaming|games|pcgaming)\b/i.test(blob)) return 'Gaming';
+    if (/\br\/?(movies|television|netflix)\b/i.test(blob)) return 'Movies';
+    if (/\br\/?(food|cooking|recipes)\b/i.test(blob)) return 'Food';
+    if (/\br\/?(travel|solotravel)\b/i.test(blob)) return 'Travel';
+    if (/\br\/?(learnprogramming|education|getdisciplined)\b/i.test(blob)) return 'Education';
+    if (/\br\/?(startups|entrepreneur|marketing)\b/i.test(blob)) return 'Startups';
+    if (
+      /\br\/?(machinelearning|artificial|chatgpt|openai|llm|singularity|generative\s*ai)\b/i.test(
+        blob
+      )
+    ) {
+      return 'AI';
+    }
+  }
+
+  // Non-AI stored niches can stand when text has no stronger signal
+  if (briefHit && briefHit !== 'AI') return briefHit;
+
+  if (raw && !DUMP_BUCKETS.has(raw.toLowerCase()) && !briefHit) {
     for (const rule of NICHE_RULES) {
       if (rule.re.test(raw)) return rule.niche;
     }
   }
 
-  const tags = (input.hashtags || []).map((h) => String(h || '')).join(' ');
-  const blob = [input.title, input.caption, input.description, tags, raw]
-    .map((s) => String(s || '').trim())
-    .filter(Boolean)
-    .join(' \n ');
-
-  if (!blob) return 'AI';
-
-  for (const rule of NICHE_RULES) {
-    if (rule.re.test(blob)) return rule.niche;
-  }
-
-  // Subreddit / platform-ish hints
-  if (/\br\/?(fitness|bodybuilding|running|sports)\b/i.test(blob)) return 'Fitness';
-  if (/\br\/?(cryptocurrency|personalfinance|investing|stocks)\b/i.test(blob)) return 'Finance';
-  if (/\br\/?(gaming|games|pcgaming)\b/i.test(blob)) return 'Gaming';
-  if (/\br\/?(movies|television|netflix)\b/i.test(blob)) return 'Movies';
-  if (/\br\/?(food|cooking|recipes)\b/i.test(blob)) return 'Food';
-  if (/\br\/?(travel|solotravel)\b/i.test(blob)) return 'Travel';
-  if (/\br\/?(learnprogramming|education|getdisciplined)\b/i.test(blob)) return 'Education';
-  if (/\br\/?(startups|entrepreneur|marketing)\b/i.test(blob)) return 'Startups';
-  if (/\br\/?(machinelearning|artificial|chatgpt|singularity|technology)\b/i.test(blob))
-    return 'AI';
-
-  return 'AI';
+  return 'other';
 }
 
 /** Map stale / DB niches onto brief UI labels. */

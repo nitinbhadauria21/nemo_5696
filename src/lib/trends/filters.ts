@@ -25,19 +25,16 @@ export type TrendQueryFilters = {
 };
 
 /**
- * Time window = recent activity, not merely original publish time.
- * Uses the newest of firstDetectedAt / latestActivityAt so 24h means
- * "active in the last 24 hours".
+ * Time window = when the trend emerged — NOT last ingest touch.
+ * Ingest bumps last_seen_at / latestActivityAt on every run, which made 24h/48h/72h
+ * identical. Use firstDetectedAt (emergence).
  */
 function withinTimeframe(t: TrendItem, timeframeHours: number): boolean {
   const windowMs = timeframeHours * 3600 * 1000;
   const now = Date.now();
-  const times = [t.latestActivityAt, t.firstDetectedAt]
-    .map((s) => Date.parse(s || ''))
-    .filter((n) => Number.isFinite(n) && n > 0);
-  if (!times.length) return true;
-  const mostRecent = Math.max(...times);
-  return now - mostRecent <= windowMs;
+  const emerged = Date.parse(t.firstDetectedAt || '');
+  if (!Number.isFinite(emerged) || emerged <= 0) return true;
+  return now - emerged <= windowMs;
 }
 
 function matchesGeo(t: TrendItem, countries: string[]): boolean {
@@ -64,7 +61,7 @@ function matchesGeo(t: TrendItem, countries: string[]): boolean {
 function trendNiches(t: TrendItem): string[] {
   const raw = t.niches?.length ? t.niches : t.category ? [t.category] : [];
   const mapped = raw.map((n) => normalizeUiNiche(n, t.title));
-  return mapped.length ? Array.from(new Set(mapped)) : ['AI'];
+  return mapped.length ? Array.from(new Set(mapped)) : ['other'];
 }
 
 /** YouTube chip includes Shorts; google aliases, etc. */

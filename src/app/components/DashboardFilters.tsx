@@ -19,9 +19,9 @@ export type DashboardFilterState = {
 };
 
 interface DashboardFiltersProps {
-  /** Called only on Submit — drafts do not update the grid until then. */
+  /** Niche / platform / window / sort apply immediately. Keyword + location use Submit. */
   onFiltersChange?: (filters: DashboardFilterState) => void;
-  /** Refetch /api/trends (does not apply draft filters). */
+  /** Refetch /api/trends (does not apply draft keyword). */
   onRefresh?: () => void;
   isRefreshing?: boolean;
   /** Seed draft/applied from user prefs or parent. */
@@ -84,8 +84,21 @@ export default function DashboardFilters({
 
   const isDirty = JSON.stringify(draft) !== JSON.stringify(applied);
 
-  const patchDraft = (overrides: Partial<DashboardFilterState>) => {
-    setDraft((prev) => ({ ...prev, ...overrides }));
+  const applyFilters = (next: DashboardFilterState) => {
+    setDraft(next);
+    setApplied(next);
+    onFiltersChange?.(next);
+  };
+
+  const patchDraft = (overrides: Partial<DashboardFilterState>, autoApply = false) => {
+    setDraft((prev) => {
+      const next = { ...prev, ...overrides };
+      if (autoApply) {
+        setApplied(next);
+        onFiltersChange?.(next);
+      }
+      return next;
+    });
   };
 
   const handleSubmit = () => {
@@ -119,14 +132,14 @@ export default function DashboardFilters({
         next = [...without, cat];
       }
     }
-    patchDraft({ categories: next });
+    applyFilters({ ...draft, categories: next });
   };
 
   const togglePlatform = (p: TrendPlatform) => {
     const next = draft.platforms.includes(p)
       ? draft.platforms.filter((x) => x !== p)
       : [...draft.platforms, p];
-    patchDraft({ platforms: next });
+    applyFilters({ ...draft, platforms: next });
   };
 
   const allSourcesActive = draft.platforms.length === 0;
@@ -252,7 +265,7 @@ export default function DashboardFilters({
               <button
                 key={opt.id}
                 type="button"
-                onClick={() => patchDraft({ sortBy: opt.id })}
+                onClick={() => patchDraft({ sortBy: opt.id }, true)}
                 className={`px-3 py-1.5 rounded-md text-sm font-sans font-semibold transition-all duration-150 ${
                   draft.sortBy === opt.id
                     ? 'bg-primary text-white'
@@ -276,7 +289,7 @@ export default function DashboardFilters({
               <button
                 key={tf}
                 type="button"
-                onClick={() => patchDraft({ timeframe: tf })}
+                onClick={() => patchDraft({ timeframe: tf }, true)}
                 className={`px-3 py-1.5 rounded-md text-sm font-sans font-semibold transition-all duration-150 ${
                   draft.timeframe === tf
                     ? 'bg-primary text-white'

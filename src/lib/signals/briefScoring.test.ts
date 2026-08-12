@@ -222,18 +222,19 @@ describe('filters', () => {
     assert.ok(why.length >= 2);
   });
 
-  it('24h activity window uses latestActivityAt', () => {
-    const recent = baseTrend({
+  it('24h window uses firstDetectedAt, not ingest-bumped latestActivityAt', () => {
+    const emergedRecently = baseTrend({
       id: 'recent',
-      firstDetectedAt: new Date(Date.now() - 100 * 3600 * 1000).toISOString(),
-      latestActivityAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+      firstDetectedAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+      // Ingest often bumps this — must NOT keep old trends in 24h
+      latestActivityAt: new Date().toISOString(),
     });
-    const stale = baseTrend({
+    const emergedLongAgo = baseTrend({
       id: 'stale',
       firstDetectedAt: new Date(Date.now() - 100 * 3600 * 1000).toISOString(),
-      latestActivityAt: new Date(Date.now() - 80 * 3600 * 1000).toISOString(),
+      latestActivityAt: new Date().toISOString(),
     });
-    const filtered = applyTrendFilters([recent, stale], {
+    const filtered = applyTrendFilters([emergedRecently, emergedLongAgo], {
       timeframeHours: 24,
       neverBlankTopK: false,
     });
