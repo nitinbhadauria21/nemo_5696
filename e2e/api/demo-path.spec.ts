@@ -67,8 +67,23 @@ test.describe('Nemo trends API — demo path', () => {
     expect(Array.isArray(body.sources)).toBeTruthy();
     expect(body.sources.length).toBeGreaterThan(0);
 
+    // Reddit is active when REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET are set (OAuth),
+    // unavailable otherwise — both states are honest; accept either.
     const reddit = body.sources.find((s: { platform: string }) => s.platform === 'reddit');
-    expect(reddit?.label || reddit?.status).toMatch(/unavailable|Unavailable/i);
+    expect(reddit?.label || reddit?.status).toMatch(/active|live|unavailable/i);
+  });
+
+  test('platforms=reddit filter returns only reddit items', async ({ request }) => {
+    const body = await fetchTrends(request, 'platforms=reddit&timeframe=24h');
+    // May return empty when Reddit OAuth is not configured — that is acceptable.
+    // When results are present, every item must belong to the reddit platform.
+    expect(Array.isArray(body.trends)).toBeTruthy();
+    if (body.trends.length > 0) {
+      const platforms = trendPlatformSet(body);
+      for (const p of platforms) {
+        expect(['reddit']).toContain(p);
+      }
+    }
   });
 
   test('trend detail returns score and why trending', async ({ request }) => {

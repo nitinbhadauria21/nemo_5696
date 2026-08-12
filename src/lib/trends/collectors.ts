@@ -1,5 +1,5 @@
 import type { TrendItem, TrendPlatform, TrendStatus } from '@/lib/mockData';
-import type { Platform } from '@/lib/signals';
+import type { Platform, RedditSortPosition } from '@/lib/signals';
 import {
   computeFullNemoScore,
   collectGoogleTrendsSignals,
@@ -10,6 +10,19 @@ import {
   scoreYouTubeSignals,
 } from '@/lib/signals';
 import { classifyTrendNiche } from './publicCopy';
+import {
+  fetchRedditListing,
+  fetchPostComments,
+  isRedditOAuthConfigured,
+} from './redditClient';
+import type { RedditPost } from './redditClient';
+import {
+  computeRedditVelocities,
+  clusterByTitle,
+  crossSubredditCount,
+  extractCommentKeywords,
+} from './redditVelocity';
+import type { RedditPostSnapshot } from './redditVelocity';
 
 function hashId(input: string): string {
   let h = 0;
@@ -117,6 +130,9 @@ function toTrendItem(input: {
   description?: string;
   hashtags?: string[];
   geoRegions?: string[];
+  id?: string;
+  sourceUrl?: string;
+  topContent?: { id: string; title: string; views: string; platform?: string }[];
 }): TrendItem | null {
   const ageHours = Math.max(0.25, input.ageHours);
   // Product time rule: do not persist / surface evergreen content older than 30 days
@@ -177,7 +193,7 @@ function toTrendItem(input: {
   );
 
   return {
-    id: hashId(input.topic),
+    id: input.id ?? hashId(input.topic),
     title: input.topic,
     category,
     niches: [category],
@@ -208,6 +224,8 @@ function toTrendItem(input: {
     spike: Number((mentions24h / Math.max(mentionsPrev24h, 1)).toFixed(2)),
     contentType: 'TOPIC',
     geoRegions,
+    sourceUrl: input.sourceUrl,
+    topContent: input.topContent,
   };
 }
 
@@ -215,114 +233,211 @@ function compactTrends(items: Array<TrendItem | null | undefined>): TrendItem[] 
   return items.filter((t): t is TrendItem => t != null);
 }
 
-/** Reddit public JSON — no API key required. Platforms tag is honest: reddit only. */
-export async function collectRedditTrends(): Promise<TrendItem[]> {
-  const urls = [
-    'https://www.reddit.com/r/popular/hot.json?limit=15',
-    'https://old.reddit.com/r/popular/hot.json?limit=15',
-    'https://www.reddit.com/r/popular/rising.json?limit=15',
-    'https://old.reddit.com/r/popular/rising.json?limit=15',
-    'https://www.reddit.com/r/all/hot.json?limit=12',
-    'https://old.reddit.com/r/all/hot.json?limit=12',
-  ];
-  const headers = {
-    'User-Agent': 'NemoTrends/1.1 (creator trend intelligence; +https://nemo-5696.vercel.app)',
-    Accept: 'application/json',
-  };
+/**
+ * Reddit trend collector using OAuth (multi-feed) with public JSON fallback.
+ *
+ * Feeds: popular/hot, popular/rising, all/hot, all/new — deduplicated by post ID.
+ * Velocity computed from prior snapshots when available (passed from runTrendIngestion).
+ * NSFW posts are excluded. Stable IDs use hashId('reddit:' + postId).
+ */
+export async function collectRedditTrends(
+  priorMetrics?: Map<string, RedditPostSnapshot>
+): Promise<TrendItem[]> {
   const geo = collectionGeoRegions('GLOBAL');
+  const collectedAt = new Date().toISOString();
+  const nowSec = Date.now() / 1000;
 
-  async function fetchRedditJson(url: string): Promise<any | null> {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 15000);
-        const res = await fetch(url, {
-          headers,
-          cache: 'no-store',
-          signal: controller.signal,
-          redirect: 'follow',
-        });
-        clearTimeout(timer);
-        if (!res.ok) {
-          console.error('Reddit collector HTTP', res.status, url, `attempt=${attempt + 1}`);
-          if (attempt < 2) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
-          continue;
+  // Track valid sort-position signal values per post (hot/rising/new/top)
+  const sortPositions = new Map<string, Set<RedditSortPosition>>();
+  // Track full feed labels per post for metadata (e.g. 'popular/hot')
+  const feedLabels = new Map<string, Set<string>>();
+  // Deduplicated post list in order of first appearance
+  const seenIds = new Set<string>();
+  const allPosts: RedditPost[] = [];
+
+  const feeds: Array<[string, RedditSortPosition, number]> = [
+    ['popular', 'hot', 25],
+    ['popular', 'rising', 25],
+    ['all', 'hot', 25],
+    ['all', 'new', 25],
+  ];
+
+  if (isRedditOAuthConfigured()) {
+    const results = await Promise.allSettled(
+      feeds.map(([sub, sort, limit]) => fetchRedditListing(sub, sort, limit))
+    );
+    for (let i = 0; i < feeds.length; i++) {
+      const [sub, sort] = feeds[i];
+      const label = `${sub}/${sort}`;
+      const result = results[i];
+      if (result.status === 'rejected') {
+        console.error(`Reddit feed ${label} failed`, result.reason);
+        continue;
+      }
+      for (const post of result.value) {
+        const spos = sortPositions.get(post.id) ?? new Set<RedditSortPosition>();
+        spos.add(sort);
+        sortPositions.set(post.id, spos);
+        const flabs = feedLabels.get(post.id) ?? new Set<string>();
+        flabs.add(label);
+        feedLabels.set(post.id, flabs);
+        if (!seenIds.has(post.id)) {
+          seenIds.add(post.id);
+          allPosts.push(post);
         }
-        return await res.json();
-      } catch (err) {
-        console.error('Reddit collector fetch failed', url, `attempt=${attempt + 1}`, err);
-        if (attempt < 2) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
       }
     }
-    return null;
-  }
-
-  try {
-    let json: any = null;
-    for (const url of urls) {
-      json = await fetchRedditJson(url);
-      if (json?.data?.children?.length) break;
-    }
-    if (!json?.data?.children?.length) {
-      console.error('Reddit collector: all hosts/retries exhausted');
+  } else {
+    // Public JSON fallback — only works locally (Vercel IPs receive 403)
+    try {
+      const posts = await fetchRedditListing('popular', 'hot', 25);
+      for (const post of posts) {
+        sortPositions.set(post.id, new Set<RedditSortPosition>(['hot']));
+        feedLabels.set(post.id, new Set(['popular/hot']));
+        seenIds.add(post.id);
+        allPosts.push(post);
+      }
+    } catch (err) {
+      console.error('Reddit public JSON fallback failed — set REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET', err);
       return [];
     }
+  }
 
-    const posts = json.data.children;
-    return compactTrends(
-      posts.slice(0, 10).map((child: any, idx: number) => {
-        const p = child.data;
-        const score = typeof p.score === 'number' ? p.score : 100;
-        const comments = typeof p.num_comments === 'number' ? p.num_comments : 10;
-        const ageHours = Math.max(
-          0.25,
-          (Date.now() / 1000 - (p.created_utc || Date.now() / 1000)) / 3600
-        );
-        const signals = collectRedditSignals({
-          score_velocity_5min: Math.max(1, Math.round(score / 40)),
-          score_velocity_15min: Math.max(1, Math.round(score / 25)),
-          score_velocity_60min: Math.max(1, Math.round(score / 10)),
-          comment_velocity: Math.max(1, Math.round(comments / 8)),
-          cross_subreddit_count: 1,
-          sort_positions: ['hot', 'rising'],
-          post_age_hours: ageHours,
-          subreddit_subscriber_count: Number(p.subreddit_subscribers || 100000),
-          upvote_ratio: p.upvote_ratio ?? 0.9,
-          nsfw_flag: Boolean(p.over_18),
-          subreddit_names: [p.subreddit],
-          post_ids_sample: [p.id],
-          collected_at: new Date().toISOString(),
-        });
-        scoreRedditSignals(signals, { max_score_velocity: 200, max_comment_velocity: 100 });
-
-        const mentions24h = Math.max(50, score);
-        const title = String(p.title || `Reddit trend ${idx}`).slice(0, 120);
-        const hashtags = [`#${p.subreddit}`, '#reddit'];
-        return toTrendItem({
-          topic: title,
-          niche: classifyTrendNiche({
-            rawNiche: String(p.subreddit || ''),
-            title,
-            description: String(p.selftext || '').slice(0, 240),
-            hashtags,
-          }),
-          platforms: ['reddit'],
-          creators6h: Math.max(5, Math.round(comments / 8)),
-          creators24h: Math.max(20, Math.round(comments / 2)),
-          creators72h: Math.max(40, comments),
-          mentions24h,
-          mentionsPrev24h: estimateMentionsPrev24h(mentions24h),
-          ageHours: Math.max(0.25, ageHours),
-          description: `Trending on r/${p.subreddit}: ${String(p.title || '').slice(0, 160)}`,
-          hashtags,
-          geoRegions: geo,
-        });
-      })
-    );
-  } catch (err) {
-    console.error('Reddit collector failed', err);
+  if (!allPosts.length) {
+    console.error('Reddit collector: no posts returned from any feed');
     return [];
   }
+
+  // Hard-exclude NSFW posts
+  const safePosts = allPosts.filter((p) => !p.over_18);
+  if (!safePosts.length) {
+    console.warn('Reddit collector: all posts were NSFW — nothing to index');
+    return [];
+  }
+
+  // Cross-subreddit clustering for spread signal
+  const clusterInputs = safePosts.map((p) => ({
+    external_id: p.id,
+    title: p.title,
+    subreddit: p.subreddit,
+  }));
+  const clusters = clusterByTitle(clusterInputs, 2);
+
+  // Fetch comments for up to 5 rising posts (keyword extraction)
+  const risingIds = safePosts
+    .filter((p) => sortPositions.get(p.id)?.has('rising') ?? false)
+    .slice(0, 5)
+    .map((p) => p.id);
+
+  const commentKeywordsMap = new Map<string, string[]>();
+  if (risingIds.length && isRedditOAuthConfigured()) {
+    await Promise.allSettled(
+      risingIds.map(async (postId) => {
+        try {
+          const comments = await fetchPostComments(postId, 20);
+          commentKeywordsMap.set(postId, extractCommentKeywords(comments.map((c) => c.body), 3));
+        } catch (err) {
+          console.error(`Reddit comments fetch failed for ${postId}`, err);
+        }
+      })
+    );
+  }
+
+  return compactTrends(
+    safePosts.slice(0, 20).map((post) => {
+      const ageHours = Math.max(0.25, (nowSec - post.created_utc) / 3600);
+      const positions: RedditSortPosition[] = [
+        ...(sortPositions.get(post.id) ?? new Set<RedditSortPosition>(['hot'])),
+      ];
+      const metaLabels = [...(feedLabels.get(post.id) ?? new Set(['unknown']))];
+      const crossSubCount = crossSubredditCount(post.id, clusterInputs, clusters);
+
+      // Real velocity from prior snapshot, synthetic estimate when missing
+      const prior = priorMetrics?.get(post.id);
+      const velocities = prior
+        ? computeRedditVelocities(
+            { score: post.score, num_comments: post.num_comments, collected_at: collectedAt },
+            prior
+          )
+        : null;
+
+      const scoreVel5 = velocities?.score_velocity_5min ?? Math.max(1, Math.round(post.score / 40));
+      const scoreVel15 = velocities?.score_velocity_15min ?? Math.max(1, Math.round(post.score / 25));
+      const scoreVel60 = velocities?.score_velocity_60min ?? Math.max(1, Math.round(post.score / 10));
+      const commentVel = velocities?.comment_velocity ?? Math.max(1, Math.round(post.num_comments / 8));
+
+      const signals = collectRedditSignals({
+        score_velocity_5min: scoreVel5,
+        score_velocity_15min: scoreVel15,
+        score_velocity_60min: scoreVel60,
+        comment_velocity: commentVel,
+        cross_subreddit_count: crossSubCount,
+        sort_positions: positions,
+        post_age_hours: ageHours,
+        subreddit_subscriber_count: post.subreddit_subscribers,
+        upvote_ratio: post.upvote_ratio,
+        nsfw_flag: false, // already filtered above
+        subreddit_names: [post.subreddit],
+        post_ids_sample: [post.id],
+        collected_at: collectedAt,
+      });
+      scoreRedditSignals(signals, { max_score_velocity: 200, max_comment_velocity: 100 });
+
+      const mentions24h = Math.max(50, post.score);
+      const title = post.title.slice(0, 120);
+      const commentKeywords = commentKeywordsMap.get(post.id) ?? [];
+      const hashtags = [
+        `#${post.subreddit}`,
+        '#reddit',
+        ...commentKeywords.map((k) => `#${k}`),
+      ];
+      const permalink = `https://reddit.com${post.permalink}`;
+
+      // Encode per-post metadata in topContent.views (JSON) for persist layer
+      const sourceMetaJson = JSON.stringify({
+        score: post.score,
+        num_comments: post.num_comments,
+        upvote_ratio: post.upvote_ratio,
+        flair: post.link_flair_text,
+        sort_positions: metaLabels,
+        subreddit: post.subreddit,
+        post_age_hours: ageHours,
+        permalink: post.permalink,
+        collected_at: collectedAt,
+      });
+
+      return toTrendItem({
+        id: hashId('reddit:' + post.id),
+        topic: title,
+        niche: classifyTrendNiche({
+          rawNiche: post.subreddit,
+          title,
+          hashtags,
+        }),
+        platforms: ['reddit'],
+        creators6h: Math.max(5, Math.round(post.num_comments / 8)),
+        creators24h: Math.max(20, Math.round(post.num_comments / 2)),
+        creators72h: Math.max(40, post.num_comments),
+        mentions24h,
+        mentionsPrev24h: prior
+          ? Math.max(10, prior.score)
+          : estimateMentionsPrev24h(mentions24h),
+        ageHours,
+        description: `Trending on r/${post.subreddit}: ${post.title.slice(0, 160)}`,
+        hashtags,
+        geoRegions: geo,
+        sourceUrl: permalink,
+        topContent: [
+          {
+            id: post.id,
+            title: post.title.slice(0, 120),
+            views: sourceMetaJson,
+            platform: 'reddit',
+          },
+        ],
+      });
+    })
+  );
 }
 
 function mergeTrendsByTitle(items: TrendItem[]): TrendItem[] {
@@ -1171,12 +1286,14 @@ async function runProvider(
   }
 }
 
-export async function collectMvpTrendsDetailed(): Promise<{
+export async function collectMvpTrendsDetailed(ctx?: {
+  redditPriors?: Map<string, RedditPostSnapshot>;
+}): Promise<{
   trends: TrendItem[];
   stats: ProviderCollectStat[];
 }> {
   const results = await Promise.all([
-    runProvider('reddit', collectRedditTrends),
+    runProvider('reddit', () => collectRedditTrends(ctx?.redditPriors)),
     runProvider('youtube', collectYouTubeTrends),
     runProvider('google_trends', collectGoogleTrends),
     runProvider('instagram', collectInstagramTrends),
