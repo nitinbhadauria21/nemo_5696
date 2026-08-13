@@ -74,14 +74,51 @@ What to do:
 Do NOT change or delete them unless the agent asks you to.
 
 
-PART 1 — REDDIT (NOTHING FOR YOU TO CREATE)
--------------------------------------------
+PART 1 — REDDIT OAUTH (FREE — ~2 MINUTES)
+------------------------------------------
 
-- No API key needed.
-- The agent will fix the app so Reddit trends can load.
-- Your only job later: open the dashboard and check that Reddit topics look real.
+Reddit now requires an OAuth app for trend collection from datacenter IPs
+(Vercel production). The free "app-only" grant has no usage limit for reading
+public listings like /r/popular/hot.
 
-Skip ahead to Part 2 for the first key you create.
+Time: about 2–5 minutes
+Cost: free
+Goal: two environment variables — REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET
+
+Click-by-click steps:
+
+1. Sign in to Reddit (or create an account at https://www.reddit.com).
+2. Open https://www.reddit.com/prefs/apps
+3. Scroll to the bottom and click "are you a developer? create an app..."
+4. Fill in the form:
+   - Name:        NemoTrends (or any name you like)
+   - App type:    Select "script" (simplest; works for app-only auth)
+   - Description: (leave blank)
+   - About URL:   (leave blank)
+   - Redirect URI: http://localhost:8080  (required but not used for app-only)
+5. Click "create app".
+6. You will see a box with your new app. Under the app name you will see a
+   shorter string (e.g. "abc123XYZ") — that is your CLIENT ID.
+7. Click "edit" to see the full app settings. You will see "secret: xxxxxx"
+   — that is your CLIENT SECRET.
+
+Paste into Vercel:
+
+  Name:  REDDIT_CLIENT_ID
+  Value: (the short string under the app name — step 6)
+
+  Name:  REDDIT_CLIENT_SECRET
+  Value: (the secret — step 7)
+
+  Name:  REDDIT_USER_AGENT   (optional — a default is already built in)
+  Value: NemoTrends/1.2 (by /u/YOUR_USERNAME; contact@your-domain.com)
+
+Environments: Production + Preview → Save.
+
+Then message the agent: "Reddit OAuth keys are on Vercel."
+
+Without these keys, Reddit will show as Unavailable in production (honest status).
+Local dev may still work via the public .json fallback.
 
 
 PART 2 — YOUTUBE DATA API KEY → YOUTUBE_API_KEY
@@ -175,6 +212,9 @@ PRINTABLE CHECKLIST
 -------------------
 
 [ ] Checked Vercel has Supabase keys + CRON_SECRET (yes / no: ____)
+[ ] Created Reddit app at https://www.reddit.com/prefs/apps
+[ ] Added REDDIT_CLIENT_ID on Vercel (Production + Preview)
+[ ] Added REDDIT_CLIENT_SECRET on Vercel (Production + Preview)
 [ ] Created Google Cloud project "Nemo"
 [ ] Enabled YouTube Data API v3
 [ ] Created YouTube API key
@@ -183,7 +223,7 @@ PRINTABLE CHECKLIST
 [ ] Added SERPAPI_KEY on Vercel (Production + Preview)
 [ ] Told the agent: keys are ready (which ones)
 
-Suggested order: Part 0 → Part 2 (YouTube) → Part 3 (SerpAPI). Reddit needs no key.
+Suggested order: Part 0 → Part 1 (Reddit OAuth) → Part 2 (YouTube) → Part 3 (SerpAPI).
 
 
 SAFETY TIPS
@@ -212,10 +252,9 @@ you can also say: "Start Phase A now."
 WHAT HAPPENS NEXT (AGENT WORK)
 ------------------------------
 
-After keys are ready (or you ask to start Reddit-only), the agent runs the
-real trends plan in phases:
+After keys are ready, the agent runs the real trends plan in phases:
 
-- Phase A — Foundation + Reddit (no key from you)
+- Phase A — Foundation + Reddit (needs REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET)
 - Phase B — YouTube live data (needs your YOUTUBE_API_KEY)
 - Phase C — Google Trends via SerpAPI (needs your SERPAPI_KEY)
 
@@ -224,8 +263,8 @@ Then the agent deploys. You open the live dashboard
 new, real topics appear.
 
 
-Start with Part 2 (YouTube) today. When that key is on Vercel, message the agent.
-Then do SerpAPI when you can.
+Start with Part 1 (Reddit OAuth) — it is the fastest and free. Then do Part 2
+(YouTube) and Part 3 (SerpAPI) when you can.
 
 Remember: you create API keys / accounts. You are NOT scraping platforms yourself.
 The correct Trends provider name is SerpAPI.
