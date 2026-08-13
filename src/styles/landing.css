@@ -1385,13 +1385,19 @@ html:has(.landing-root) body {
 
 .landing-root footer.site {
   border-top: 1px solid var(--line-d);
-  padding: 54px 0 44px;
+  padding: clamp(36px, 6vw, 54px) 0 clamp(28px, 5vw, 44px);
 }
 
 .landing-root footer.site .top {
   display: flex;
   justify-content: space-between;
-  gap: 40px;
+  gap: clamp(24px, 4vw, 40px);
+  flex-wrap: wrap;
+}
+
+.landing-root footer.site .cols {
+  display: flex;
+  gap: clamp(28px, 5vw, 60px);
   flex-wrap: wrap;
 }
 
