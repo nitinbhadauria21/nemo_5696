@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useScrollReveal } from './landing/useScrollReveal';
 import { useCountUp } from './landing/useCountUp';
@@ -65,11 +65,28 @@ const FEATURES = [
 
 export default function LandingContent() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
 
   useScrollReveal(rootRef);
   useCountUp(rootRef);
   useHeroParallax(rootRef);
   useTravelingGlow(rootRef);
+
+  // React can omit the muted DOM property; force mute + play for reliable autoplay.
+  useEffect(() => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.defaultMuted = true;
+    const play = () => {
+      void video.play().catch(() => {
+        /* muted autoplay usually works; ignore gesture-blocked cases */
+      });
+    };
+    play();
+    video.addEventListener('loadeddata', play);
+    return () => video.removeEventListener('loadeddata', play);
+  }, []);
 
   return (
     <div className="landing-root" ref={rootRef}>
@@ -123,12 +140,13 @@ export default function LandingContent() {
 
       <header className="hero">
         <video
+          ref={heroVideoRef}
           className="hero-video"
           autoPlay
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           aria-hidden="true"
         >
           <source src="/Initial_Scene_-_2026-08-13_202608140019.mp4" type="video/mp4" />

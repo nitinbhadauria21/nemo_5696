@@ -306,6 +306,7 @@ html:has(.landing-root) body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center center;
   pointer-events: none;
 }
 
@@ -314,12 +315,12 @@ html:has(.landing-root) body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.35;
+  /* Soft flame tint only — no solid dark plate so the video stays clearly visible */
+  opacity: 0.5;
   background:
-    radial-gradient(55% 70% at 0% 40%, rgba(255, 61, 13, 0.28), transparent 70%),
-    radial-gradient(55% 70% at 100% 45%, rgba(255, 138, 34, 0.24), transparent 70%),
-    radial-gradient(80% 60% at 50% 20%, rgba(255, 90, 31, 0.18), transparent 65%),
-    linear-gradient(180deg, #140c08 0%, #0d0907 55%, #0a0705 100%);
+    radial-gradient(55% 70% at 0% 40%, rgba(255, 61, 13, 0.16), transparent 70%),
+    radial-gradient(55% 70% at 100% 45%, rgba(255, 138, 34, 0.12), transparent 70%),
+    radial-gradient(80% 60% at 50% 20%, rgba(255, 90, 31, 0.08), transparent 65%);
 }
 
 .landing-root .hero-aurora {
@@ -329,13 +330,14 @@ html:has(.landing-root) body {
   pointer-events: none;
   filter: blur(36px);
   transform: translateZ(0);
+  opacity: 0.3;
 }
 
 .landing-root .hero-aurora i {
   position: absolute;
   border-radius: 50%;
   mix-blend-mode: screen;
-  opacity: 0.28;
+  opacity: 0.18;
   will-change: transform;
 }
 
@@ -429,9 +431,10 @@ html:has(.landing-root) body {
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  /* Lighter veil so the looping video reads clearly while text stays legible */
   background:
-    radial-gradient(120% 90% at 50% 28%, transparent 28%, rgba(13, 9, 7, 0.68) 100%),
-    linear-gradient(180deg, rgba(13, 9, 7, 0.32), rgba(13, 9, 7, 0.86));
+    radial-gradient(120% 90% at 50% 28%, transparent 40%, rgba(13, 9, 7, 0.42) 100%),
+    linear-gradient(180deg, rgba(13, 9, 7, 0.18), rgba(13, 9, 7, 0.55));
 }
 
 .landing-root .hero-platforms {
@@ -1376,6 +1379,11 @@ html:has(.landing-root) body {
 
   .landing-root .hero-fill {
     opacity: 1;
+    background:
+      radial-gradient(55% 70% at 0% 40%, rgba(255, 61, 13, 0.28), transparent 70%),
+      radial-gradient(55% 70% at 100% 45%, rgba(255, 138, 34, 0.24), transparent 70%),
+      radial-gradient(80% 60% at 50% 20%, rgba(255, 90, 31, 0.18), transparent 65%),
+      linear-gradient(180deg, #140c08 0%, #0d0907 55%, #0a0705 100%);
   }
 
   .landing-root .hero-aurora i,
