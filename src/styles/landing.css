@@ -1422,14 +1422,8 @@ html:has(.landing-root) body {
   color: var(--flame-400);
 }
 
-.landing-root footer.site .cols {
-  display: flex;
-  gap: 60px;
-  flex-wrap: wrap;
-}
-
 .landing-root footer.site .bottom {
-  margin-top: 44px;
+  margin-top: clamp(28px, 5vw, 44px);
   padding-top: 20px;
   border-top: 1px solid var(--line-d);
   display: flex;
