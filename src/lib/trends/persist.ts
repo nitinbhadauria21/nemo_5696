@@ -241,7 +241,7 @@ async function persistTrendSources(supabase: SupabaseClient, trends: TrendItem[]
           const { permalink: _p, ...rest } = parsed;
           void _p;
           meta = { ...rest, historical: false };
-          url = permalink ? `https://reddit.com${permalink}` : (t.sourceUrl || null);
+          url = permalink ? `https://reddit.com${permalink}` : t.sourceUrl || null;
         } catch {
           url = t.sourceUrl || null;
         }

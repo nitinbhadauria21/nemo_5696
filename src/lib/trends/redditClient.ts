@@ -9,8 +9,7 @@
 const REDDIT_CLIENT_ID = process.env.REDDIT_CLIENT_ID?.trim() ?? '';
 const REDDIT_CLIENT_SECRET = process.env.REDDIT_CLIENT_SECRET?.trim() ?? '';
 const REDDIT_USER_AGENT =
-  process.env.REDDIT_USER_AGENT?.trim() ??
-  'NemoTrends/1.2 (by /u/nemo; contact@nemo.app)';
+  process.env.REDDIT_USER_AGENT?.trim() ?? 'NemoTrends/1.2 (by /u/nemo; contact@nemo.app)';
 
 /** Reddit OAuth tokens last 60 min; we refresh 5 min early. */
 const TOKEN_TTL_MS = 55 * 60 * 1000;
@@ -42,9 +41,7 @@ export async function getRedditAccessToken(): Promise<string> {
     );
   }
 
-  const credentials = Buffer.from(`${REDDIT_CLIENT_ID}:${REDDIT_CLIENT_SECRET}`).toString(
-    'base64'
-  );
+  const credentials = Buffer.from(`${REDDIT_CLIENT_ID}:${REDDIT_CLIENT_SECRET}`).toString('base64');
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15_000);
@@ -139,9 +136,8 @@ function extractPostsFromListing(json: unknown): RedditPost[] {
   const listing = (json as { data: { children?: unknown } }).data;
   if (!Array.isArray(listing.children)) return [];
   return listing.children
-    .filter(
-      (c): c is { kind: string; data: Record<string, unknown> } =>
-        Boolean(c && typeof c === 'object' && 'data' in c)
+    .filter((c): c is { kind: string; data: Record<string, unknown> } =>
+      Boolean(c && typeof c === 'object' && 'data' in c)
     )
     .map((c) => parseRedditPost(c.data));
 }
@@ -161,14 +157,8 @@ function extractComments(json: unknown, limit: number): RedditComment[] {
   const listing = (commentListing as { data: { children?: unknown } }).data;
   if (!Array.isArray(listing.children)) return [];
   return listing.children
-    .filter(
-      (c): c is { kind: string; data: Record<string, unknown> } =>
-        Boolean(
-          c &&
-            typeof c === 'object' &&
-            'data' in c &&
-            (c as { kind?: string }).kind === 't1'
-        )
+    .filter((c): c is { kind: string; data: Record<string, unknown> } =>
+      Boolean(c && typeof c === 'object' && 'data' in c && (c as { kind?: string }).kind === 't1')
     )
     .slice(0, limit)
     .map((c) => ({

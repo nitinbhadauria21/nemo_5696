@@ -10,11 +10,7 @@ import {
   scoreYouTubeSignals,
 } from '@/lib/signals';
 import { classifyTrendNiche } from './publicCopy';
-import {
-  fetchRedditListing,
-  fetchPostComments,
-  isRedditOAuthConfigured,
-} from './redditClient';
+import { fetchRedditListing, fetchPostComments, isRedditOAuthConfigured } from './redditClient';
 import type { RedditPost } from './redditClient';
 import {
   computeRedditVelocities,
@@ -298,7 +294,10 @@ export async function collectRedditTrends(
         allPosts.push(post);
       }
     } catch (err) {
-      console.error('Reddit public JSON fallback failed — set REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET', err);
+      console.error(
+        'Reddit public JSON fallback failed — set REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET',
+        err
+      );
       return [];
     }
   }
@@ -335,7 +334,13 @@ export async function collectRedditTrends(
       risingIds.map(async (postId) => {
         try {
           const comments = await fetchPostComments(postId, 20);
-          commentKeywordsMap.set(postId, extractCommentKeywords(comments.map((c) => c.body), 3));
+          commentKeywordsMap.set(
+            postId,
+            extractCommentKeywords(
+              comments.map((c) => c.body),
+              3
+            )
+          );
         } catch (err) {
           console.error(`Reddit comments fetch failed for ${postId}`, err);
         }
@@ -362,9 +367,12 @@ export async function collectRedditTrends(
         : null;
 
       const scoreVel5 = velocities?.score_velocity_5min ?? Math.max(1, Math.round(post.score / 40));
-      const scoreVel15 = velocities?.score_velocity_15min ?? Math.max(1, Math.round(post.score / 25));
-      const scoreVel60 = velocities?.score_velocity_60min ?? Math.max(1, Math.round(post.score / 10));
-      const commentVel = velocities?.comment_velocity ?? Math.max(1, Math.round(post.num_comments / 8));
+      const scoreVel15 =
+        velocities?.score_velocity_15min ?? Math.max(1, Math.round(post.score / 25));
+      const scoreVel60 =
+        velocities?.score_velocity_60min ?? Math.max(1, Math.round(post.score / 10));
+      const commentVel =
+        velocities?.comment_velocity ?? Math.max(1, Math.round(post.num_comments / 8));
 
       const signals = collectRedditSignals({
         score_velocity_5min: scoreVel5,
@@ -386,11 +394,7 @@ export async function collectRedditTrends(
       const mentions24h = Math.max(50, post.score);
       const title = post.title.slice(0, 120);
       const commentKeywords = commentKeywordsMap.get(post.id) ?? [];
-      const hashtags = [
-        `#${post.subreddit}`,
-        '#reddit',
-        ...commentKeywords.map((k) => `#${k}`),
-      ];
+      const hashtags = [`#${post.subreddit}`, '#reddit', ...commentKeywords.map((k) => `#${k}`)];
       const permalink = `https://reddit.com${post.permalink}`;
 
       // Encode per-post metadata in topContent.views (JSON) for persist layer
@@ -419,9 +423,7 @@ export async function collectRedditTrends(
         creators24h: Math.max(20, Math.round(post.num_comments / 2)),
         creators72h: Math.max(40, post.num_comments),
         mentions24h,
-        mentionsPrev24h: prior
-          ? Math.max(10, prior.score)
-          : estimateMentionsPrev24h(mentions24h),
+        mentionsPrev24h: prior ? Math.max(10, prior.score) : estimateMentionsPrev24h(mentions24h),
         ageHours,
         description: `Trending on r/${post.subreddit}: ${post.title.slice(0, 160)}`,
         hashtags,

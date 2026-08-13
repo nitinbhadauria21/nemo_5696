@@ -7,7 +7,11 @@ import {
   extractCommentKeywords,
   crossSubredditCount,
 } from './redditVelocity';
-import type { RedditCurrentMetrics, RedditPostSnapshot, RedditClusterInput } from './redditVelocity';
+import type {
+  RedditCurrentMetrics,
+  RedditPostSnapshot,
+  RedditClusterInput,
+} from './redditVelocity';
 
 // ---------------------------------------------------------------------------
 // computeRedditVelocities
@@ -181,7 +185,11 @@ describe('clusterByTitle', () => {
     const posts: RedditClusterInput[] = [
       { external_id: 'x1', title: 'SpaceX Starship launch successful', subreddit: 'spacex' },
       { external_id: 'x2', title: 'SpaceX Starship successful launch', subreddit: 'space' },
-      { external_id: 'x3', title: 'Starship SpaceX launches successfully', subreddit: 'technology' },
+      {
+        external_id: 'x3',
+        title: 'Starship SpaceX launches successfully',
+        subreddit: 'technology',
+      },
     ];
     const clusters = clusterByTitle(posts, 2);
     const bigCluster = [...clusters.values()].find((s) => s.size === 3);
@@ -246,17 +254,11 @@ describe('extractCommentKeywords', () => {
   });
 
   it('filters out stopwords', () => {
-    const comments = [
-      'The and or but in on at to for of with by from',
-      'apple banana cherry',
-    ];
+    const comments = ['The and or but in on at to for of with by from', 'apple banana cherry'];
     const keywords = extractCommentKeywords(comments, 5);
     for (const kw of keywords) {
       assert.ok(kw.length >= 3, `keyword "${kw}" is too short`);
-      assert.ok(
-        !['the', 'and', 'for', 'with'].includes(kw),
-        `stopword "${kw}" should not appear`
-      );
+      assert.ok(!['the', 'and', 'for', 'with'].includes(kw), `stopword "${kw}" should not appear`);
     }
   });
 
