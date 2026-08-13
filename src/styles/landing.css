@@ -288,12 +288,14 @@ html:has(.landing-root) body {
 .landing-root .hero {
   position: relative;
   width: 100%;
-  min-height: min(100svh, 980px);
+  /* Fit under nav + ticker so headline + CTAs stay in the first viewport */
+  min-height: calc(100svh - 118px);
+  max-height: calc(100svh - 118px);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   align-items: stretch;
-  padding: 88px clamp(20px, 5vw, 72px) clamp(72px, 10vh, 110px);
+  padding: clamp(16px, 3vh, 28px) clamp(20px, 5vw, 72px) clamp(28px, 5vh, 48px);
   overflow: hidden;
   isolation: isolate;
   box-sizing: border-box;
@@ -306,8 +308,7 @@ html:has(.landing-root) body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Bias upward so the character face sits in the clear upper zone */
-  object-position: center 28%;
+  object-position: center 32%;
   pointer-events: none;
 }
 
@@ -510,7 +511,6 @@ html:has(.landing-root) body {
   width: 100%;
   max-width: min(1480px, 100%);
   margin: 0 auto;
-  margin-top: clamp(28vh, 34vh, 40vh);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -518,44 +518,8 @@ html:has(.landing-root) body {
   box-sizing: border-box;
 }
 
-.landing-root .hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--flame-400);
-  border: 1px solid var(--line-d);
-  border-radius: 999px;
-  padding: 9px 18px;
-  background: rgba(30, 22, 17, 0.72);
-  margin-bottom: 28px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-}
-
-.landing-root .hero-eyebrow .live {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--flame-500);
-  box-shadow: 0 0 0 0 rgba(255, 90, 31, 0.6);
-  animation: landing-ping 1.8s ease-out infinite;
-}
-
-@keyframes landing-ping {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 90, 31, 0.6);
-  }
-  70%,
-  100% {
-    box-shadow: 0 0 0 12px rgba(255, 90, 31, 0);
-  }
-}
-
 .landing-root .hero h1 {
-  font-size: clamp(2.9rem, 8.4vw, 7.25rem);
+  font-size: clamp(2.35rem, 6.2vw, 5.4rem);
   font-weight: 700;
   letter-spacing: -0.028em;
   line-height: 1.05;
@@ -618,11 +582,11 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero .sub {
-  margin: 28px auto 0;
-  max-width: min(62ch, 100%);
+  margin: 16px auto 0;
+  max-width: min(58ch, 100%);
   color: #e8d5c8;
-  font-size: clamp(1.08rem, 1.7vw, 1.28rem);
-  line-height: 1.7;
+  font-size: clamp(0.98rem, 1.4vw, 1.15rem);
+  line-height: 1.55;
   position: relative;
   z-index: 2;
   font-weight: 400;
@@ -635,8 +599,8 @@ html:has(.landing-root) body {
 
 .landing-root .hero .cta-row {
   display: flex;
-  gap: 14px;
-  margin-top: 36px;
+  gap: 12px;
+  margin-top: 22px;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
@@ -650,7 +614,7 @@ html:has(.landing-root) body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #6b5346;
-  margin-top: 18px;
+  margin-top: 12px;
   position: relative;
   z-index: 2;
 }
@@ -693,22 +657,7 @@ html:has(.landing-root) body {
 }
 
 .landing-root .scroll-cue {
-  position: absolute;
-  left: 50%;
-  bottom: 26px;
-  transform: translateX(-50%);
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #6b5346;
-  opacity: 0;
-  animation: landing-fadeUp 0.8s ease 1.2s forwards;
+  display: none;
 }
 
 .landing-root .scroll-cue .mouse {

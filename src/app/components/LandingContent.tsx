@@ -235,9 +235,6 @@ export default function LandingContent() {
         </div>
 
         <div className="hero-content">
-          <span className="hero-eyebrow">
-            <span className="live" /> Live · 2,047 trends tracked this hour
-          </span>
           <h1>
             <span className="line">
               <span>
@@ -278,11 +275,6 @@ export default function LandingContent() {
         >
           {soundOn ? 'Mute' : 'Sound on'}
         </button>
-
-        <div className="scroll-cue">
-          <div className="mouse" />
-          <span>Scroll</span>
-        </div>
       </header>
 
       <div className="marquee">
