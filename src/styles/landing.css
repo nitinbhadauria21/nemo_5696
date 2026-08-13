@@ -25,6 +25,11 @@ html:has(.landing-root) body {
   --font-display: var(--font-fredoka), Fredoka, system-ui, sans-serif;
   --font-mono: var(--font-space-mono), 'Space Mono', ui-monospace, monospace;
   --font-body: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
+  /* Shared page rhythm — keeps nav / hero / sections aligned */
+  --page-max: 1440px;
+  --page-gutter: clamp(16px, 3.2vw, 40px);
+  --section-y: clamp(64px, 10vw, 110px);
+  --nav-offset: clamp(108px, 14vw, 136px);
 
   scroll-behavior: smooth;
   background: #0d0907;
@@ -46,9 +51,11 @@ html:has(.landing-root) body {
 }
 
 .landing-root .wrap {
-  max-width: 1200px;
+  max-width: var(--page-max);
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 0 var(--page-gutter);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 /* Buttons */
@@ -115,7 +122,7 @@ html:has(.landing-root) body {
 }
 
 .landing-root .nx-dot {
-  color: #000000;
+  color: var(--flame-500);
 }
 
 /* World backdrop */
@@ -188,9 +195,9 @@ html:has(.landing-root) body {
 
 .landing-root nav.site .inner {
   width: 100%;
-  max-width: min(1440px, 100%);
+  max-width: var(--page-max);
   margin: 0 auto;
-  padding: clamp(12px, 1.6vw, 18px) clamp(16px, 3vw, 40px);
+  padding: clamp(12px, 1.6vw, 18px) var(--page-gutter);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
@@ -234,21 +241,56 @@ html:has(.landing-root) body {
 .landing-root nav.site .brand {
   display: flex;
   align-items: center;
-  gap: clamp(8px, 1vw, 12px);
+  gap: clamp(10px, 1.2vw, 14px);
   justify-self: end;
   min-width: 0;
 }
 
-.landing-root nav.site .nx-mark {
-  width: clamp(40px, 4.2vw, 52px);
-  height: clamp(40px, 4.2vw, 52px);
-  font-size: clamp(22px, 2.4vw, 28px);
+.landing-root .brand-mark {
+  width: clamp(48px, 5vw, 64px);
+  height: clamp(48px, 5vw, 64px);
+  display: block;
+  border-radius: 28%;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 4px 18px rgba(255, 90, 31, 0.35);
 }
 
-.landing-root nav.site .nx-word {
-  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+.landing-root .brand-word {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.55rem, 2.6vw, 2.05rem);
   color: #fcefe6;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  letter-spacing: -0.02em;
+}
+
+.landing-root .brand-dot {
+  display: inline-block;
+  width: 0.32em;
+  height: 0.32em;
+  margin-left: 0.08em;
+  border-radius: 30%;
+  background: var(--flame-grad);
+  box-shadow: 0 2px 8px rgba(255, 90, 31, 0.45);
+  flex-shrink: 0;
+}
+
+.landing-root .footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.landing-root .footer-brand .brand-mark {
+  width: 44px;
+  height: 44px;
+}
+
+.landing-root .footer-brand .brand-word {
+  font-size: 1.35rem;
 }
 
 @media (max-width: 900px) {
@@ -275,21 +317,22 @@ html:has(.landing-root) body {
     font-size: 0.88rem;
   }
 
-  .landing-root nav.site .nx-word {
-    font-size: 1.25rem;
+  .landing-root .brand-mark {
+    width: 44px;
+    height: 44px;
   }
 
-  .landing-root nav.site .nx-mark {
-    width: 38px;
-    height: 38px;
-    font-size: 20px;
+  .landing-root .brand-word {
+    font-size: 1.35rem;
   }
 }
 
 /* Ticker */
 .landing-root .ticker-shell {
   width: 100%;
-  padding: 28px clamp(16px, 3vw, 40px) 0;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: clamp(16px, 2.5vw, 28px) var(--page-gutter) 0;
   box-sizing: border-box;
 }
 
@@ -334,11 +377,11 @@ html:has(.landing-root) body {
 .landing-root .hero {
   position: relative;
   width: 100%;
-  height: calc(100svh - 128px);
-  min-height: calc(100svh - 128px);
-  max-height: calc(100svh - 128px);
+  height: calc(100svh - var(--nav-offset));
+  min-height: calc(100svh - var(--nav-offset));
+  max-height: calc(100svh - var(--nav-offset));
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: stretch;
   padding: 0;
   overflow: hidden;
@@ -358,17 +401,14 @@ html:has(.landing-root) body {
   width: auto;
   height: auto;
   min-width: 0;
-  /* Match nav side gutters; tighter right pad closes the mid-gap */
-  padding: clamp(20px, 3.5vh, 40px) clamp(12px, 1.5vw, 20px) clamp(20px, 3.5vh, 40px)
-    clamp(16px, 3vw, 40px);
+  padding: clamp(18px, 3vh, 36px) clamp(10px, 1.4vw, 18px) clamp(18px, 3vh, 36px) var(--page-gutter);
   box-sizing: border-box;
-  /* Soft right fade so the grid seam never reads as a hard line */
   background: linear-gradient(
     90deg,
     #140c08 0%,
-    #140c08 55%,
-    rgba(20, 12, 8, 0.9) 75%,
-    rgba(20, 12, 8, 0.4) 88%,
+    #140c08 52%,
+    rgba(20, 12, 8, 0.88) 72%,
+    rgba(20, 12, 8, 0.35) 88%,
     transparent 100%
   );
   pointer-events: none;
@@ -376,7 +416,7 @@ html:has(.landing-root) body {
 
 .landing-root .hero-copy-inner {
   width: 100%;
-  max-width: none;
+  max-width: 36rem;
   margin: 0;
   text-align: left;
   pointer-events: auto;
@@ -385,19 +425,21 @@ html:has(.landing-root) body {
 .landing-root .hero-live {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: clamp(14px, 2.2vh, 22px);
+  margin-bottom: clamp(12px, 2vh, 20px);
   padding: 7px 14px 7px 12px;
   border-radius: 999px;
   border: 1px solid rgba(255, 107, 43, 0.35);
   background: rgba(255, 61, 13, 0.1);
   color: #ff8a22;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
+  font-size: clamp(0.58rem, 0.95vw, 0.68rem);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   position: relative;
   z-index: 2;
+  max-width: 100%;
   animation: landing-fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -491,7 +533,7 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero h1 {
-  font-size: clamp(2.4rem, 3.8vw, 4rem);
+  font-size: clamp(2.1rem, 3.6vw, 3.85rem);
   font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.05;
@@ -546,10 +588,10 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero .sub {
-  margin: 22px 0 0;
-  max-width: min(52ch, 100%);
+  margin: clamp(14px, 2vh, 22px) 0 0;
+  max-width: min(48ch, 100%);
   color: #e8d5c8;
-  font-size: clamp(1.02rem, 1.25vw, 1.18rem);
+  font-size: clamp(0.98rem, 1.2vw, 1.16rem);
   line-height: 1.5;
   position: relative;
   z-index: 2;
@@ -562,8 +604,8 @@ html:has(.landing-root) body {
 
 .landing-root .hero .cta-row {
   display: flex;
-  gap: 14px;
-  margin-top: 28px;
+  gap: clamp(10px, 1.5vw, 14px);
+  margin-top: clamp(18px, 3vh, 28px);
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
@@ -572,8 +614,8 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero .cta-row .btn-lg {
-  padding: 14px 28px;
-  font-size: 1.02rem;
+  padding: clamp(12px, 1.4vw, 14px) clamp(20px, 2.4vw, 28px);
+  font-size: clamp(0.95rem, 1.15vw, 1.02rem);
 }
 
 .landing-root .hero .micro {
@@ -624,13 +666,31 @@ html:has(.landing-root) body {
   color: #ff8a22;
 }
 
-/* Mobile: stacked copy + video, soft vertical dissolve */
+/* Tablet: keep 50/50 but scale type; phone: stack */
+@media (max-width: 1100px) and (min-width: 901px) {
+  .landing-root .hero h1 {
+    font-size: clamp(1.85rem, 3.2vw, 2.75rem);
+  }
+
+  .landing-root .hero-live-meta {
+    max-width: 18ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .landing-root .hero-media {
+    margin-left: -6%;
+    width: calc(100% + 6%);
+  }
+}
+
 @media (max-width: 900px) {
   .landing-root .hero {
     display: flex;
     flex-direction: column;
     height: auto;
-    min-height: calc(100svh - 128px);
+    min-height: 0;
     max-height: none;
     grid-template-columns: none;
   }
@@ -638,38 +698,38 @@ html:has(.landing-root) body {
   .landing-root .hero-copy {
     width: 100%;
     height: auto;
-    padding: clamp(22px, 4vh, 36px) 28px 12px;
+    padding: clamp(22px, 4vh, 36px) var(--page-gutter) 16px;
     background: #140c08;
   }
 
   .landing-root .hero-copy-inner {
-    max-width: none;
+    max-width: 40rem;
   }
 
   .landing-root .hero h1 {
-    font-size: clamp(2.2rem, 8.5vw, 3.25rem);
+    font-size: clamp(2rem, 8vw, 3rem);
   }
 
   .landing-root .hero .sub {
-    max-width: min(42ch, 100%);
-    font-size: clamp(1rem, 3.6vw, 1.15rem);
+    max-width: 100%;
+    font-size: clamp(1rem, 3.5vw, 1.12rem);
   }
 
   .landing-root .hero .cta-row .btn-lg {
-    padding: 13px 24px;
+    padding: 13px 22px;
     font-size: 0.98rem;
   }
 
   .landing-root .hero-live {
-    font-size: 0.62rem;
+    font-size: 0.6rem;
     padding: 6px 12px 6px 10px;
     gap: 6px;
   }
 
   .landing-root .hero-media {
     position: relative;
-    flex: 1 1 auto;
-    min-height: 42vh;
+    flex: 0 0 auto;
+    min-height: min(48vh, 420px);
     width: 100%;
     margin-left: 0;
   }
@@ -711,7 +771,7 @@ html:has(.landing-root) body {
 .landing-root .mq-track span {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.9rem;
+  font-size: clamp(1.15rem, 3.2vw, 1.9rem);
   letter-spacing: -0.02em;
   color: #fcefe6;
   white-space: nowrap;
@@ -738,13 +798,13 @@ html:has(.landing-root) body {
 
 .landing-root .stat {
   background: var(--bg2);
-  padding: 38px 30px;
+  padding: clamp(24px, 3.5vw, 38px) clamp(16px, 2.5vw, 30px);
 }
 
 .landing-root .stat .big {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 2.6rem;
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
   letter-spacing: -0.03em;
   color: var(--flame-400);
 }
@@ -756,15 +816,21 @@ html:has(.landing-root) body {
   line-height: 1.5;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1100px) {
   .landing-root .stats {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
+@media (max-width: 560px) {
+  .landing-root .stats {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Sections */
 .landing-root section.blk {
-  padding-block: 110px 0;
+  padding-block: var(--section-y) 0;
 }
 
 .landing-root .kick-line {
@@ -804,18 +870,32 @@ html:has(.landing-root) body {
   margin-top: 54px;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1100px) {
+  .landing-root .duo {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .landing-root .duo-card:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
   .landing-root .duo {
     grid-template-columns: 1fr;
+  }
+
+  .landing-root .duo-card:last-child {
+    grid-column: auto;
   }
 }
 
 .landing-root .duo-card {
   border-radius: 26px;
-  padding: 36px;
+  padding: clamp(22px, 3vw, 36px);
   position: relative;
   overflow: hidden;
-  min-height: 360px;
+  min-height: clamp(280px, 40vw, 360px);
   display: flex;
   flex-direction: column;
 }
@@ -933,7 +1013,13 @@ html:has(.landing-root) body {
   margin-top: 54px;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1100px) {
+  .landing-root .feat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
   .landing-root .feat-grid {
     grid-template-columns: 1fr;
   }
@@ -996,7 +1082,7 @@ html:has(.landing-root) body {
   margin-top: 54px;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 960px) {
   .landing-root .steps-row {
     grid-template-columns: 1fr;
   }
@@ -1004,14 +1090,14 @@ html:has(.landing-root) body {
 
 .landing-root .step-cell {
   background: var(--bg2);
-  padding: 44px 34px;
+  padding: clamp(28px, 4vw, 44px) clamp(20px, 3vw, 34px);
 }
 
 .landing-root .step-cell .n {
   font-family: var(--font-display);
   font-weight: 700;
   font-style: italic;
-  font-size: 3.6rem;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
   color: var(--flame-500);
   line-height: 1;
 }
@@ -1059,9 +1145,23 @@ html:has(.landing-root) body {
   margin-top: 54px;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1100px) {
+  .landing-root .t-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .landing-root .t-card.lead {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
   .landing-root .t-grid {
     grid-template-columns: 1fr;
+  }
+
+  .landing-root .t-card.lead {
+    grid-column: auto;
   }
 }
 
@@ -1209,7 +1309,7 @@ html:has(.landing-root) body {
 }
 
 .landing-root .final {
-  padding-block: 130px 90px;
+  padding-block: clamp(80px, 12vw, 130px) clamp(56px, 8vw, 90px);
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -1276,7 +1376,7 @@ html:has(.landing-root) body {
 .landing-root .foot-marquee span {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 12rem;
+  font-size: clamp(4.5rem, 14vw, 12rem);
   letter-spacing: -0.05em;
   color: #fcefe6;
   white-space: nowrap;

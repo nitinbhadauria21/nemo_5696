@@ -131,13 +131,19 @@ export default function LandingContent() {
             <a href="#creators">Creators</a>
             <a href="#faq">FAQ</a>
           </div>
-          <Link href="/" className="brand">
-            <div className="nx-mark">
-              <span>N</span>
-            </div>
-            <div className="nx-word">
-              Nemo<span className="nx-dot">.</span>
-            </div>
+          <Link href="/" className="brand" aria-label="Nemo home">
+            <img
+              className="brand-mark"
+              src="/brand/nemo-mark.png"
+              alt=""
+              width={64}
+              height={64}
+              decoding="async"
+            />
+            <span className="brand-word">
+              Nemo
+              <span className="brand-dot" aria-hidden="true" />
+            </span>
           </Link>
         </div>
       </nav>
@@ -441,12 +447,18 @@ export default function LandingContent() {
         <div className="wrap">
           <div className="top">
             <div style={{ maxWidth: 280 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div className="nx-mark" style={{ width: 34, fontSize: 20 }}>
-                  <span>N</span>
-                </div>
-                <span className="nx-word" style={{ fontSize: 20, color: '#FCEFE6' }}>
-                  Nemo<span className="nx-dot">.</span>
+              <div className="footer-brand">
+                <img
+                  className="brand-mark"
+                  src="/brand/nemo-mark.png"
+                  alt=""
+                  width={44}
+                  height={44}
+                  decoding="async"
+                />
+                <span className="brand-word">
+                  Nemo
+                  <span className="brand-dot" aria-hidden="true" />
                 </span>
               </div>
               <p style={{ color: '#97806F', fontSize: '0.9rem', marginTop: 14, lineHeight: 1.6 }}>
