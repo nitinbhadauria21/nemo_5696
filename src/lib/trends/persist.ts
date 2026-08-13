@@ -227,16 +227,43 @@ async function persistClusters(
 
 async function persistTrendSources(supabase: SupabaseClient, trends: TrendItem[]): Promise<void> {
   const rows: Array<Record<string, unknown>> = [];
+  const now = new Date().toISOString();
   for (const t of trends) {
     for (const item of t.topContent || []) {
+      const platform = mapUiPlatformToDb(item.platform || t.platforms[0] || 'google');
+      if (platform === 'reddit') {
+        // Decode per-post reddit metadata encoded in topContent.views as JSON
+        let meta: Record<string, unknown> = { historical: false };
+        let url: string | null = null;
+        try {
+          const parsed = JSON.parse(item.views || '{}') as Record<string, unknown>;
+          const permalink = typeof parsed.permalink === 'string' ? parsed.permalink : null;
+          const { permalink: _p, ...rest } = parsed;
+          void _p;
+          meta = { ...rest, historical: false };
+          url = permalink ? `https://reddit.com${permalink}` : (t.sourceUrl || null);
+        } catch {
+          url = t.sourceUrl || null;
+        }
+        rows.push({
+          trend_id: t.id,
+          platform: 'reddit',
+          external_id: item.id,
+          title: item.title,
+          url,
+          metadata: meta,
+          collected_at: now,
+        });
+        continue;
+      }
       rows.push({
         trend_id: t.id,
-        platform: mapUiPlatformToDb(item.platform || t.platforms[0] || 'google'),
+        platform,
         external_id: item.id,
         title: item.title,
         url: null,
         metadata: { views: item.views, historical: false },
-        collected_at: new Date().toISOString(),
+        collected_at: now,
       });
     }
     // Fallback: one source row per platform so detail can show evidence
@@ -248,7 +275,7 @@ async function persistTrendSources(supabase: SupabaseClient, trends: TrendItem[]
           title: t.title,
           url: t.sourceUrl || null,
           metadata: { historical: false },
-          collected_at: new Date().toISOString(),
+          collected_at: now,
         });
       }
     }

@@ -13,7 +13,13 @@ export function getTrendCollectorEnvStatus(): CollectorKeyStatus[] {
     process.env.SCRAPECREATORS_API_KEY?.trim() || process.env.SCRAPE_CREATORS_API_KEY?.trim()
   );
   return [
-    { platform: 'reddit', key: '(public JSON — no key)', present: true },
+    {
+      platform: 'reddit',
+      key: 'REDDIT_CLIENT_ID + REDDIT_CLIENT_SECRET (OAuth app-only — free)',
+      present: Boolean(
+        process.env.REDDIT_CLIENT_ID?.trim() && process.env.REDDIT_CLIENT_SECRET?.trim()
+      ),
+    },
     {
       platform: 'youtube',
       key: 'YOUTUBE_API_KEY | SCRAPECREATORS_API_KEY (Shorts → youtube_shorts)',
