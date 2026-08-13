@@ -284,17 +284,15 @@ html:has(.landing-root) body {
   }
 }
 
-/* Hero — split composition: copy left, video right, soft seam blend */
+/* Hero — one canvas: full-bleed video + left copy over a soft scrim (no panel seam) */
 .landing-root .hero {
   position: relative;
   width: 100%;
   /* Fit under nav + ticker so the split stays in the first viewport */
+  height: calc(100svh - 118px);
   min-height: calc(100svh - 118px);
   max-height: calc(100svh - 118px);
-  display: grid;
-  /* ~50/50 text / video so copy stays in the left half */
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  align-items: stretch;
+  display: block;
   padding: 0;
   overflow: hidden;
   isolation: isolate;
@@ -309,29 +307,22 @@ html:has(.landing-root) body {
   z-index: 2;
   display: flex;
   align-items: center;
-  /* Push copy toward the seam (right), not the outer left edge */
-  justify-content: flex-end;
-  padding: clamp(24px, 4.5vh, 48px) clamp(4px, 0.8vw, 12px) clamp(24px, 4.5vh, 48px)
-    clamp(18px, 3.2vw, 44px);
+  justify-content: flex-start;
+  /* Copy band ~left half; transparent so video + scrim show through */
+  width: min(54%, 42rem);
+  height: 100%;
+  padding: clamp(24px, 4.5vh, 48px) clamp(12px, 1.5vw, 20px) clamp(24px, 4.5vh, 48px)
+    clamp(24px, 4.5vw, 64px);
   box-sizing: border-box;
-  /* Early soft fade — no solid card edge against the video */
-  background: linear-gradient(
-    90deg,
-    #0d0907 0%,
-    #0d0907 42%,
-    rgba(13, 9, 7, 0.78) 62%,
-    rgba(13, 9, 7, 0.35) 82%,
-    rgba(13, 9, 7, 0.08) 94%,
-    transparent 100%
-  );
+  background: transparent;
+  pointer-events: none;
 }
 
 .landing-root .hero-copy-inner {
   width: 100%;
-  /* Reach toward seam; leave a little air before clear video */
   max-width: min(36rem, 100%);
-  margin-right: clamp(0px, 0.6vw, 8px);
   text-align: left;
+  pointer-events: auto;
 }
 
 .landing-root .hero-live {
@@ -391,14 +382,12 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero-media {
-  position: relative;
-  z-index: 1;
-  min-height: 0;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
-  /* Pull under copy so the seam dissolves on one canvas */
-  margin-left: -10%;
-  /* Wide soft inset — continuous dark merge, not a panel edge */
-  box-shadow: inset 120px 0 96px -12px rgba(13, 9, 7, 0.96);
+  margin: 0;
+  box-shadow: none;
 }
 
 .landing-root .hero-video {
@@ -410,6 +399,23 @@ html:has(.landing-root) body {
   object-fit: cover;
   object-position: center 28%;
   pointer-events: none;
+  /* Soft left falloff so video dissolves into the dark canvas — no hard cut */
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.15) 18%,
+    rgba(0, 0, 0, 0.55) 34%,
+    rgba(0, 0, 0, 0.9) 52%,
+    #000 68%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.15) 18%,
+    rgba(0, 0, 0, 0.55) 34%,
+    rgba(0, 0, 0, 0.9) 52%,
+    #000 68%
+  );
 }
 
 .landing-root .hero-media-blend {
@@ -417,23 +423,26 @@ html:has(.landing-root) body {
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  /* Wide soft shadow scrim — continuous merge, no vertical panel line */
   background:
     linear-gradient(
       90deg,
       #0d0907 0%,
-      rgba(13, 9, 7, 0.94) 10%,
-      rgba(13, 9, 7, 0.72) 22%,
-      rgba(13, 9, 7, 0.42) 38%,
-      rgba(13, 9, 7, 0.18) 54%,
-      rgba(13, 9, 7, 0.06) 68%,
-      transparent 84%
+      #0d0907 16%,
+      rgba(13, 9, 7, 0.97) 28%,
+      rgba(13, 9, 7, 0.85) 38%,
+      rgba(13, 9, 7, 0.58) 48%,
+      rgba(13, 9, 7, 0.32) 58%,
+      rgba(13, 9, 7, 0.12) 70%,
+      transparent 82%
     ),
+    radial-gradient(ellipse 55% 80% at 0% 50%, rgba(13, 9, 7, 0.75), transparent 70%),
     linear-gradient(
       180deg,
-      rgba(13, 9, 7, 0.28) 0%,
-      transparent 22%,
-      transparent 72%,
-      rgba(13, 9, 7, 0.45) 100%
+      rgba(13, 9, 7, 0.35) 0%,
+      transparent 24%,
+      transparent 70%,
+      rgba(13, 9, 7, 0.5) 100%
     );
 }
 
@@ -573,24 +582,26 @@ html:has(.landing-root) body {
   color: #ff8a22;
 }
 
-/* Mobile: copy then video, vertical seam blend — one canvas, not two cards */
+/* Mobile: stacked copy + video, soft vertical dissolve (still one canvas) */
 @media (max-width: 900px) {
   .landing-root .hero {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(42vh, 1fr);
+    display: flex;
+    flex-direction: column;
+    height: auto;
     min-height: calc(100svh - 118px);
     max-height: none;
   }
 
   .landing-root .hero-copy {
-    justify-content: flex-start;
-    padding: clamp(22px, 4vh, 36px) clamp(20px, 5vw, 32px) 8px;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: clamp(22px, 4vh, 36px) clamp(20px, 5vw, 32px) 12px;
     background: #0d0907;
   }
 
   .landing-root .hero-copy-inner {
     max-width: none;
-    margin-right: 0;
   }
 
   .landing-root .hero h1 {
@@ -614,9 +625,16 @@ html:has(.landing-root) body {
   }
 
   .landing-root .hero-media {
+    position: relative;
+    flex: 1 1 auto;
     min-height: 42vh;
-    margin-left: 0;
-    box-shadow: inset 0 72px 64px -16px rgba(13, 9, 7, 0.98);
+    width: 100%;
+  }
+
+  .landing-root .hero-video {
+    object-position: center 22%;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 12%, #000 36%);
+    mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 12%, #000 36%);
   }
 
   .landing-root .hero-media-blend {
@@ -630,10 +648,6 @@ html:has(.landing-root) body {
         transparent 72%
       ),
       linear-gradient(180deg, transparent 58%, rgba(13, 9, 7, 0.55) 100%);
-  }
-
-  .landing-root .hero-video {
-    object-position: center 22%;
   }
 }
 
