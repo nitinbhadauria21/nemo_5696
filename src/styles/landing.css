@@ -291,9 +291,9 @@ html:has(.landing-root) body {
   min-height: min(100svh, 980px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: stretch;
-  padding: 88px clamp(20px, 5vw, 72px) 120px;
+  padding: 88px clamp(20px, 5vw, 72px) clamp(72px, 10vh, 110px);
   overflow: hidden;
   isolation: isolate;
   box-sizing: border-box;
@@ -306,7 +306,8 @@ html:has(.landing-root) body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center center;
+  /* Bias upward so the character face sits in the clear upper zone */
+  object-position: center 28%;
   pointer-events: none;
 }
 
@@ -431,10 +432,27 @@ html:has(.landing-root) body {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  /* Lighter veil so the looping video reads clearly while text stays legible */
+  /* Keep upper frame open for the character; shade only the lower band */
+  background: linear-gradient(
+    180deg,
+    rgba(13, 9, 7, 0.08) 0%,
+    rgba(13, 9, 7, 0.12) 38%,
+    rgba(13, 9, 7, 0.45) 62%,
+    rgba(13, 9, 7, 0.78) 100%
+  );
+}
+
+.landing-root .hero-text-scrim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: min(58%, 520px);
+  z-index: 1;
+  pointer-events: none;
   background:
-    radial-gradient(120% 90% at 50% 28%, transparent 40%, rgba(13, 9, 7, 0.42) 100%),
-    linear-gradient(180deg, rgba(13, 9, 7, 0.18), rgba(13, 9, 7, 0.55));
+    radial-gradient(70% 80% at 50% 100%, rgba(8, 5, 4, 0.72) 0%, transparent 72%),
+    linear-gradient(180deg, transparent 0%, rgba(8, 5, 4, 0.55) 55%, rgba(8, 5, 4, 0.82) 100%);
 }
 
 .landing-root .hero-platforms {
@@ -492,6 +510,7 @@ html:has(.landing-root) body {
   width: 100%;
   max-width: min(1480px, 100%);
   margin: 0 auto;
+  margin-top: clamp(28vh, 34vh, 40vh);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -513,6 +532,7 @@ html:has(.landing-root) body {
   padding: 9px 18px;
   background: rgba(30, 22, 17, 0.72);
   margin-bottom: 28px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
 }
 
 .landing-root .hero-eyebrow .live {
@@ -546,6 +566,10 @@ html:has(.landing-root) body {
   margin: 0;
   text-wrap: balance;
   max-width: 18ch;
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.55),
+    0 12px 40px rgba(0, 0, 0, 0.55),
+    0 0 48px rgba(0, 0, 0, 0.35);
 }
 
 .landing-root .hero h1 .line {
@@ -602,6 +626,7 @@ html:has(.landing-root) body {
   position: relative;
   z-index: 2;
   font-weight: 400;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
 }
 
 .landing-root .hero .sub b {
@@ -628,6 +653,43 @@ html:has(.landing-root) body {
   margin-top: 18px;
   position: relative;
   z-index: 2;
+}
+
+.landing-root .hero-sound {
+  position: absolute;
+  right: clamp(16px, 3vw, 36px);
+  bottom: clamp(22px, 4vh, 40px);
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(252, 239, 230, 0.28);
+  background: rgba(20, 12, 8, 0.72);
+  color: #fcefe6;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.landing-root .hero-sound:hover {
+  background: rgba(40, 24, 16, 0.85);
+  border-color: rgba(255, 107, 43, 0.55);
+  transform: translateY(-1px);
+}
+
+.landing-root .hero-sound.is-on {
+  border-color: rgba(255, 107, 43, 0.7);
+  color: #ff8a22;
 }
 
 .landing-root .scroll-cue {

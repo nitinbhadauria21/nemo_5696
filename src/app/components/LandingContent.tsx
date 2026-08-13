@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useScrollReveal } from './landing/useScrollReveal';
 import { useCountUp } from './landing/useCountUp';
@@ -66,27 +66,42 @@ const FEATURES = [
 export default function LandingContent() {
   const rootRef = useRef<HTMLDivElement>(null);
   const heroVideoRef = useRef<HTMLVideoElement>(null);
+  const [soundOn, setSoundOn] = useState(false);
 
   useScrollReveal(rootRef);
   useCountUp(rootRef);
   useHeroParallax(rootRef);
   useTravelingGlow(rootRef);
 
-  // React can omit the muted DOM property; force mute + play for reliable autoplay.
+  // Browsers block unmuted autoplay — start muted, then enable audio on user gesture.
   useEffect(() => {
     const video = heroVideoRef.current;
     if (!video) return;
-    video.muted = true;
-    video.defaultMuted = true;
+    video.muted = !soundOn;
+    video.defaultMuted = !soundOn;
     const play = () => {
       void video.play().catch(() => {
-        /* muted autoplay usually works; ignore gesture-blocked cases */
+        /* ignore until gesture */
       });
     };
     play();
     video.addEventListener('loadeddata', play);
     return () => video.removeEventListener('loadeddata', play);
-  }, []);
+  }, [soundOn]);
+
+  const toggleSound = useCallback(() => {
+    const video = heroVideoRef.current;
+    const next = !soundOn;
+    setSoundOn(next);
+    if (!video) return;
+    video.muted = !next;
+    if (next) {
+      video.volume = 1;
+      void video.play().catch(() => {
+        /* still blocked — keep UI state; user can retry */
+      });
+    }
+  }, [soundOn]);
 
   return (
     <div className="landing-root" ref={rootRef}>
@@ -143,7 +158,7 @@ export default function LandingContent() {
           ref={heroVideoRef}
           className="hero-video"
           autoPlay
-          muted
+          muted={!soundOn}
           loop
           playsInline
           preload="auto"
@@ -161,6 +176,7 @@ export default function LandingContent() {
         </div>
         <div className="hero-grain" aria-hidden="true" />
         <div className="hero-veil" aria-hidden="true" />
+        <div className="hero-text-scrim" aria-hidden="true" />
 
         <div className="hero-platforms" data-parallax="0.06" aria-hidden="true">
           <svg
@@ -252,6 +268,16 @@ export default function LandingContent() {
             <div className="micro">Free forever · No card · Cancel anytime</div>
           </div>
         </div>
+
+        <button
+          type="button"
+          className={`hero-sound${soundOn ? ' is-on' : ''}`}
+          onClick={toggleSound}
+          aria-pressed={soundOn}
+          aria-label={soundOn ? 'Mute hero video' : 'Unmute hero video'}
+        >
+          {soundOn ? 'Mute' : 'Sound on'}
+        </button>
 
         <div className="scroll-cue">
           <div className="mouse" />
