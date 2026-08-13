@@ -112,6 +112,25 @@ export default function LandingContent() {
 
       <nav className="site">
         <div className="inner">
+          <div className="nav-actions">
+            <Link
+              className="btn btn-ghost btn-nav"
+              href="/login"
+              style={{ color: '#FCEFE6' }}
+              prefetch={false}
+            >
+              Log in
+            </Link>
+            <Link className="btn btn-primary btn-nav" href="/signup" prefetch={false}>
+              Start free
+            </Link>
+          </div>
+          <div className="links">
+            <a href="#features">Features</a>
+            <a href="#how-nemo-works">How it works</a>
+            <a href="#creators">Creators</a>
+            <a href="#faq">FAQ</a>
+          </div>
           <Link href="/" className="brand">
             <div className="nx-mark">
               <span>N</span>
@@ -120,25 +139,6 @@ export default function LandingContent() {
               Nemo<span className="nx-dot">.</span>
             </div>
           </Link>
-          <div className="links">
-            <a href="#features">Features</a>
-            <a href="#how-nemo-works">How it works</a>
-            <a href="#creators">Creators</a>
-            <a href="#faq">FAQ</a>
-          </div>
-          <div className="right">
-            <Link
-              className="btn btn-ghost btn-sm"
-              href="/login"
-              style={{ color: '#FCEFE6' }}
-              prefetch={false}
-            >
-              Log in
-            </Link>
-            <Link className="btn btn-primary btn-sm" href="/signup" prefetch={false}>
-              Start free
-            </Link>
-          </div>
         </div>
       </nav>
 

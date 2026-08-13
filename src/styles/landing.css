@@ -176,7 +176,7 @@ html:has(.landing-root) body {
   z-index: 1;
 }
 
-/* Nav */
+/* Nav — actions left, links center, logo right; responsive sizes */
 .landing-root nav.site {
   position: sticky;
   top: 0;
@@ -187,36 +187,39 @@ html:has(.landing-root) body {
 }
 
 .landing-root nav.site .inner {
-  max-width: 1200px;
+  width: 100%;
+  max-width: min(1440px, 100%);
   margin: 0 auto;
-  padding: 14px 28px;
-  display: flex;
+  padding: clamp(12px, 1.6vw, 18px) clamp(16px, 3vw, 40px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
+  column-gap: clamp(12px, 2vw, 28px);
+  box-sizing: border-box;
 }
 
-.landing-root nav.site .brand {
+.landing-root nav.site .nav-actions {
   display: flex;
+  gap: clamp(8px, 1.2vw, 12px);
   align-items: center;
-  gap: 10px;
+  justify-self: start;
+  min-width: 0;
 }
 
-.landing-root nav.site .nx-mark {
-  width: 34px;
-  font-size: 20px;
-}
-
-.landing-root nav.site .nx-word {
-  font-size: 20px;
-  color: #fcefe6;
+.landing-root nav.site .btn-nav {
+  padding: clamp(10px, 1.2vw, 12px) clamp(16px, 2vw, 22px);
+  font-size: clamp(0.92rem, 1.15vw, 1.05rem);
+  white-space: nowrap;
 }
 
 .landing-root nav.site .links {
   display: flex;
-  gap: 26px;
+  gap: clamp(18px, 2.4vw, 36px);
+  justify-self: center;
   font-family: var(--font-display);
-  font-weight: 500;
-  font-size: 0.92rem;
+  font-weight: 600;
+  font-size: clamp(0.98rem, 1.25vw, 1.12rem);
+  white-space: nowrap;
 }
 
 .landing-root nav.site .links a {
@@ -228,15 +231,58 @@ html:has(.landing-root) body {
   color: var(--flame-400);
 }
 
-.landing-root nav.site .right {
+.landing-root nav.site .brand {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: clamp(8px, 1vw, 12px);
+  justify-self: end;
+  min-width: 0;
 }
 
-@media (max-width: 760px) {
+.landing-root nav.site .nx-mark {
+  width: clamp(40px, 4.2vw, 52px);
+  height: clamp(40px, 4.2vw, 52px);
+  font-size: clamp(22px, 2.4vw, 28px);
+}
+
+.landing-root nav.site .nx-word {
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+  color: #fcefe6;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
   .landing-root nav.site .links {
     display: none;
+  }
+
+  .landing-root nav.site .inner {
+    grid-template-columns: 1fr auto;
+  }
+
+  .landing-root nav.site .nav-actions {
+    grid-column: 1;
+  }
+
+  .landing-root nav.site .brand {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-root nav.site .btn-nav {
+    padding: 9px 14px;
+    font-size: 0.88rem;
+  }
+
+  .landing-root nav.site .nx-word {
+    font-size: 1.25rem;
+  }
+
+  .landing-root nav.site .nx-mark {
+    width: 38px;
+    height: 38px;
+    font-size: 20px;
   }
 }
 
@@ -288,9 +334,9 @@ html:has(.landing-root) body {
 .landing-root .hero {
   position: relative;
   width: 100%;
-  height: calc(100svh - 118px);
-  min-height: calc(100svh - 118px);
-  max-height: calc(100svh - 118px);
+  height: calc(100svh - 128px);
+  min-height: calc(100svh - 128px);
+  max-height: calc(100svh - 128px);
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: stretch;
@@ -312,17 +358,17 @@ html:has(.landing-root) body {
   width: auto;
   height: auto;
   min-width: 0;
-  /* Align left edge with nav / .wrap (1200px + 28px gutters) */
-  padding: clamp(24px, 4.5vh, 48px) clamp(20px, 2.5vw, 36px) clamp(24px, 4.5vh, 48px)
-    max(28px, calc((100vw - 1200px) / 2 + 28px));
+  /* Match nav side gutters; tighter right pad closes the mid-gap */
+  padding: clamp(20px, 3.5vh, 40px) clamp(12px, 1.5vw, 20px) clamp(20px, 3.5vh, 40px)
+    clamp(16px, 3vw, 40px);
   box-sizing: border-box;
   /* Soft right fade so the grid seam never reads as a hard line */
   background: linear-gradient(
     90deg,
     #140c08 0%,
-    #140c08 62%,
-    rgba(20, 12, 8, 0.92) 78%,
-    rgba(20, 12, 8, 0.45) 90%,
+    #140c08 55%,
+    rgba(20, 12, 8, 0.9) 75%,
+    rgba(20, 12, 8, 0.4) 88%,
     transparent 100%
   );
   pointer-events: none;
@@ -330,7 +376,7 @@ html:has(.landing-root) body {
 
 .landing-root .hero-copy-inner {
   width: 100%;
-  max-width: 34rem;
+  max-width: none;
   margin: 0;
   text-align: left;
   pointer-events: auto;
@@ -398,9 +444,9 @@ html:has(.landing-root) body {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  /* Overlap into copy column so the center dissolves (no hard frame edge) */
-  margin-left: -14%;
-  width: calc(100% + 14%);
+  /* Mild overlap for soft merge without eating the text half */
+  margin-left: -8%;
+  width: calc(100% + 8%);
   box-shadow: none;
 }
 
@@ -584,7 +630,7 @@ html:has(.landing-root) body {
     display: flex;
     flex-direction: column;
     height: auto;
-    min-height: calc(100svh - 118px);
+    min-height: calc(100svh - 128px);
     max-height: none;
     grid-template-columns: none;
   }
