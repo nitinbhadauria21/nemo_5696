@@ -292,8 +292,8 @@ html:has(.landing-root) body {
   min-height: calc(100svh - 118px);
   max-height: calc(100svh - 118px);
   display: grid;
-  /* Slightly wider copy column to close the text↔video gap without covering clear video */
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  /* Wider copy column fills the seam gap; video stays clear on the right */
+  grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.72fr);
   align-items: stretch;
   padding: 0;
   overflow: hidden;
@@ -301,8 +301,7 @@ html:has(.landing-root) body {
   box-sizing: border-box;
   background:
     radial-gradient(70% 90% at 12% 40%, rgba(255, 61, 13, 0.1), transparent 62%),
-    radial-gradient(55% 70% at 88% 55%, rgba(255, 138, 34, 0.06), transparent 68%),
-    #0d0907;
+    radial-gradient(55% 70% at 88% 55%, rgba(255, 138, 34, 0.06), transparent 68%), #0d0907;
 }
 
 .landing-root .hero-copy {
@@ -311,22 +310,23 @@ html:has(.landing-root) body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: clamp(28px, 5vh, 56px) clamp(20px, 3.2vw, 40px) clamp(28px, 5vh, 56px)
-    clamp(24px, 5vw, 72px);
+  padding: clamp(24px, 4.5vh, 48px) clamp(16px, 2.4vw, 28px) clamp(24px, 4.5vh, 48px)
+    clamp(24px, 4.5vw, 64px);
   box-sizing: border-box;
   /* Soft right-edge fade so copy panel merges into the media seam */
   background: linear-gradient(
     90deg,
     #0d0907 0%,
-    #0d0907 78%,
-    rgba(13, 9, 7, 0.55) 100%
+    #0d0907 72%,
+    rgba(13, 9, 7, 0.7) 88%,
+    rgba(13, 9, 7, 0.35) 100%
   );
 }
 
 .landing-root .hero-copy-inner {
   width: 100%;
-  /* Use most of the copy column up to the blend seam — not past clear video */
-  max-width: min(42rem, 100%);
+  /* Use nearly the full copy column up to the blend seam */
+  max-width: min(52rem, 100%);
   text-align: left;
 }
 
@@ -374,18 +374,18 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero h1 {
-  font-size: clamp(2.55rem, 5.4vw, 5.15rem);
+  /* Unmistakably large: one-line headline on desktop */
+  font-size: clamp(2.75rem, 5.8vw, 5.6rem);
   font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.06;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
   color: #fff8f2;
   position: relative;
   z-index: 2;
   font-family: var(--font-display);
   margin: 0;
-  /* One thought: prefer a single line on desktop; allow natural wrap if needed */
-  text-wrap: pretty;
   max-width: none;
+  white-space: nowrap;
   text-shadow:
     0 2px 4px rgba(0, 0, 0, 0.4),
     0 10px 28px rgba(0, 0, 0, 0.35);
@@ -398,8 +398,7 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero h1 .line > span {
-  display: inline-block;
-  max-width: 100%;
+  display: inline;
   animation: landing-fadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -407,11 +406,9 @@ html:has(.landing-root) body {
   animation-delay: 0.15s;
 }
 
-/* Keep the full headline on one line when the copy column is wide enough */
 @media (min-width: 1100px) {
   .landing-root .hero h1 {
-    white-space: nowrap;
-    font-size: clamp(2.9rem, 4.35vw, 4.85rem);
+    font-size: clamp(3.35rem, 4.9vw, 5.6rem);
   }
 }
 
@@ -436,12 +433,12 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero .sub {
-  margin: 22px 0 0;
-  /* Wide enough for ~2 lines on typical desktop; stays inside copy column */
-  max-width: min(48ch, 100%);
+  margin: 26px 0 0;
+  /* ~2 lines on desktop; forced break before “One score.” in markup */
+  max-width: min(44ch, 100%);
   color: #e8d5c8;
-  font-size: clamp(1.05rem, 1.35vw, 1.28rem);
-  line-height: 1.5;
+  font-size: clamp(1.12rem, 1.55vw, 1.42rem);
+  line-height: 1.45;
   position: relative;
   z-index: 2;
   font-weight: 400;
@@ -453,8 +450,8 @@ html:has(.landing-root) body {
 
 .landing-root .hero .cta-row {
   display: flex;
-  gap: 14px;
-  margin-top: 28px;
+  gap: 16px;
+  margin-top: 32px;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
@@ -463,8 +460,8 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero .cta-row .btn-lg {
-  padding: 18px 36px;
-  font-size: 1.18rem;
+  padding: 20px 40px;
+  font-size: 1.28rem;
 }
 
 .landing-root .hero .micro {
@@ -535,17 +532,17 @@ html:has(.landing-root) body {
 
   .landing-root .hero h1 {
     white-space: normal;
-    font-size: clamp(2.25rem, 8.5vw, 3.35rem);
+    font-size: clamp(2.4rem, 9vw, 3.5rem);
   }
 
   .landing-root .hero .sub {
-    max-width: min(40ch, 100%);
-    font-size: clamp(1rem, 3.6vw, 1.12rem);
+    max-width: min(38ch, 100%);
+    font-size: clamp(1.05rem, 3.8vw, 1.2rem);
   }
 
   .landing-root .hero .cta-row .btn-lg {
-    padding: 15px 28px;
-    font-size: 1.05rem;
+    padding: 16px 30px;
+    font-size: 1.12rem;
   }
 
   .landing-root .hero-media {
@@ -1262,8 +1259,7 @@ html:has(.landing-root) body {
   .landing-root .hero-media {
     background:
       radial-gradient(55% 70% at 40% 40%, rgba(255, 61, 13, 0.22), transparent 70%),
-      radial-gradient(55% 70% at 90% 55%, rgba(255, 138, 34, 0.16), transparent 70%),
-      #140c08;
+      radial-gradient(55% 70% at 90% 55%, rgba(255, 138, 34, 0.16), transparent 70%), #140c08;
   }
 
   .landing-root .hero-lower {

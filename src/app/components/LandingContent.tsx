@@ -159,15 +159,16 @@ export default function LandingContent() {
             <h1>
               <span className="line">
                 <span>
-                  Catch the <span className="wave">wave.</span> Before it
-                  crashes.
+                  Catch the <span className="wave">wave.</span> Before it crashes.
                 </span>
               </span>
             </h1>
             <div className="hero-lower">
               <p className="sub">
                 Nemo tells you <b>what&apos;s blowing up</b>, on which platform, and{' '}
-                <b>how many hours you have left</b> to post about it. One score. One window.
+                <b>how many hours you have left</b> to post about it.
+                <br />
+                One score. One window.
               </p>
               <div className="cta-row">
                 <Link className="btn btn-primary btn-lg" href="/signup" prefetch={false}>
