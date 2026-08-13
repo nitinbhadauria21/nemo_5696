@@ -122,6 +122,17 @@ export default function LandingContent() {
       </div>
 
       <header className="hero">
+        <video
+          className="hero-video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+        >
+          <source src="/Initial_Scene_-_2026-08-13_202608140019.mp4" type="video/mp4" />
+        </video>
         <div className="hero-fill" aria-hidden="true" />
         <div className="hero-aurora" data-parallax="0.05">
           <i className="a1" />
