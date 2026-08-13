@@ -154,127 +154,64 @@ export default function LandingContent() {
       </div>
 
       <header className="hero">
-        <video
-          ref={heroVideoRef}
-          className="hero-video"
-          autoPlay
-          muted={!soundOn}
-          loop
-          playsInline
-          preload="auto"
-          aria-hidden="true"
-        >
-          <source src="/Initial_Scene_-_2026-08-13_202608140019.mp4" type="video/mp4" />
-        </video>
-        <div className="hero-fill" aria-hidden="true" />
-        <div className="hero-aurora" data-parallax="0.05">
-          <i className="a1" />
-          <i className="a2" />
-          <i className="a3" />
-          <i className="a4" />
-          <i className="a5" />
-        </div>
-        <div className="hero-grain" aria-hidden="true" />
-        <div className="hero-veil" aria-hidden="true" />
-        <div className="hero-text-scrim" aria-hidden="true" />
-
-        <div className="hero-platforms" data-parallax="0.06" aria-hidden="true">
-          <svg
-            className="p1"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.4"
-          >
-            <path d="M16 8.5v6a4.5 4.5 0 1 1-4.5-4.5" />
-            <path d="M16 3v5.5a5 5 0 0 0 5 5" />
-          </svg>
-          <svg
-            className="p2"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.4"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="5" />
-            <circle cx="12" cy="12" r="4.2" />
-            <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
-          </svg>
-          <svg
-            className="p3"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.4"
-          >
-            <rect x="2.5" y="5" width="19" height="14" rx="3.5" />
-            <path d="M10 9.2v5.6l5-2.8-5-2.8Z" fill="currentColor" stroke="none" />
-          </svg>
-          <svg
-            className="p4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.4"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="3" />
-            <circle cx="8" cy="8.2" r="1.6" fill="currentColor" stroke="none" />
-            <path d="M6.5 11v6.5M6.5 11h0" />
-            <path d="M11.5 11v6.5M11.5 13.4c0-2 3-3.4 4.7-1.8.7.6.8 1.5.8 2.4v3.5" />
-          </svg>
-          <svg
-            className="p5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.4"
-          >
-            <path d="M4 15c3-6 6-9 8-9s5 3 8 9" />
-            <path d="M8 14.5c1.5-3 2.6-4.4 4-4.4s2.5 1.4 4 4.4" />
-          </svg>
-        </div>
-
-        <div className="hero-content">
-          <h1>
-            <span className="line">
-              <span>
-                Catch the <span className="wave">wave.</span>
+        <div className="hero-copy">
+          <div className="hero-copy-inner">
+            <h1>
+              <span className="line">
+                <span>
+                  Catch the <span className="wave">wave.</span>
+                </span>
               </span>
-            </span>
-            <span className="line">
-              <span>Before it crashes.</span>
-            </span>
-          </h1>
-          <div className="hero-lower">
-            <p className="sub">
-              Nemo tells you <b>what&apos;s blowing up</b>, on which platform, and{' '}
-              <b>how many hours you have left</b> to post about it. One score. One window.
-            </p>
-            <div className="cta-row">
-              <Link className="btn btn-primary btn-lg" href="/signup" prefetch={false}>
-                Start free →
-              </Link>
-              <a
-                className="btn btn-ghost btn-lg"
-                href="#how-nemo-works"
-                style={{ color: '#FCEFE6' }}
-              >
-                ▶ See how (90 sec)
-              </a>
+              <span className="line">
+                <span>Before it crashes.</span>
+              </span>
+            </h1>
+            <div className="hero-lower">
+              <p className="sub">
+                Nemo tells you <b>what&apos;s blowing up</b>, on which platform, and{' '}
+                <b>how many hours you have left</b> to post about it. One score. One window.
+              </p>
+              <div className="cta-row">
+                <Link className="btn btn-primary btn-lg" href="/signup" prefetch={false}>
+                  Start free →
+                </Link>
+                <a
+                  className="btn btn-ghost btn-lg"
+                  href="#how-nemo-works"
+                  style={{ color: '#FCEFE6' }}
+                >
+                  ▶ See how (90 sec)
+                </a>
+              </div>
+              <div className="micro">Free forever · No card · Cancel anytime</div>
             </div>
-            <div className="micro">Free forever · No card · Cancel anytime</div>
           </div>
         </div>
 
-        <button
-          type="button"
-          className={`hero-sound${soundOn ? ' is-on' : ''}`}
-          onClick={toggleSound}
-          aria-pressed={soundOn}
-          aria-label={soundOn ? 'Mute hero video' : 'Unmute hero video'}
-        >
-          {soundOn ? 'Mute' : 'Sound on'}
-        </button>
+        <div className="hero-media">
+          <video
+            ref={heroVideoRef}
+            className="hero-video"
+            autoPlay
+            muted={!soundOn}
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+          >
+            <source src="/Initial_Scene_-_2026-08-13_202608140019.mp4" type="video/mp4" />
+          </video>
+          <div className="hero-media-blend" aria-hidden="true" />
+          <button
+            type="button"
+            className={`hero-sound${soundOn ? ' is-on' : ''}`}
+            onClick={toggleSound}
+            aria-pressed={soundOn}
+            aria-label={soundOn ? 'Mute hero video' : 'Unmute hero video'}
+          >
+            {soundOn ? 'Mute' : 'Sound on'}
+          </button>
+        </div>
       </header>
 
       <div className="marquee">
