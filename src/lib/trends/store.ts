@@ -10,6 +10,8 @@ import { classifyTrendNiche, normalizeUiNiche, sanitizePublicText } from './publ
 import { upsertDataSourceStatusFromIngest } from './sourceStatus';
 import { evaluateAlertRules } from '@/lib/alerts/evaluate';
 import { buildWhyTrending } from '@/lib/signals/briefScoring';
+import { loadPriorRedditMetrics } from './redditVelocity';
+import type { RedditPostSnapshot } from './redditVelocity';
 
 let memoryStore: TrendItem[] = [];
 let lastCollectedAt = 0;
@@ -254,7 +256,20 @@ export async function runTrendIngestion(options?: { useServiceRole?: boolean }):
   error?: string | null;
 }> {
   const started = Date.now();
-  const { trends: collectedRaw, stats } = await collectMvpTrendsDetailed();
+
+  // Load prior Reddit post snapshots for real velocity computation
+  let redditPriors: Map<string, RedditPostSnapshot> | undefined;
+  try {
+    const priorClient = createAdminClient() ?? (await createClient());
+    if (priorClient) {
+      redditPriors = await loadPriorRedditMetrics(priorClient);
+      console.info(`[ingest] reddit priors loaded count=${redditPriors.size}`);
+    }
+  } catch (e) {
+    console.error('[ingest] loadPriorRedditMetrics failed', e);
+  }
+
+  const { trends: collectedRaw, stats } = await collectMvpTrendsDetailed({ redditPriors });
   const collected = collectedRaw.map(scrubTrend);
   const collectedAt = new Date().toISOString();
   const now = Date.now();
