@@ -156,11 +156,22 @@ export default function LandingContent() {
       <header className="hero">
         <div className="hero-copy">
           <div className="hero-copy-inner">
+            <div className="hero-live" aria-live="polite">
+              <span className="hero-live-dot" aria-hidden="true" />
+              <span className="hero-live-label">LIVE</span>
+              <span className="hero-live-sep" aria-hidden="true">
+                ·
+              </span>
+              <span className="hero-live-meta">2,047 trends tracked this hour</span>
+            </div>
             <h1>
               <span className="line">
                 <span>
-                  Catch the <span className="wave">wave.</span> Before it crashes.
+                  Catch the <span className="wave">wave.</span>
                 </span>
+              </span>
+              <span className="line">
+                <span>Before it crashes.</span>
               </span>
             </h1>
             <div className="hero-lower">

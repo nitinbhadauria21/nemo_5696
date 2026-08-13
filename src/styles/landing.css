@@ -292,8 +292,8 @@ html:has(.landing-root) body {
   min-height: calc(100svh - 118px);
   max-height: calc(100svh - 118px);
   display: grid;
-  /* Wider copy column fills the seam gap; video stays clear on the right */
-  grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.72fr);
+  /* ~50/50 text / video so copy stays in the left half */
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   align-items: stretch;
   padding: 0;
   overflow: hidden;
@@ -317,17 +317,73 @@ html:has(.landing-root) body {
   background: linear-gradient(
     90deg,
     #0d0907 0%,
-    #0d0907 72%,
-    rgba(13, 9, 7, 0.7) 88%,
-    rgba(13, 9, 7, 0.35) 100%
+    #0d0907 68%,
+    rgba(13, 9, 7, 0.55) 86%,
+    rgba(13, 9, 7, 0.18) 100%
   );
 }
 
 .landing-root .hero-copy-inner {
   width: 100%;
-  /* Use nearly the full copy column up to the blend seam */
-  max-width: min(52rem, 100%);
+  /* Cap before the seam — never sit on clear video */
+  max-width: min(34rem, 100%);
   text-align: left;
+}
+
+.landing-root .hero-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: clamp(14px, 2.2vh, 22px);
+  padding: 7px 14px 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 107, 43, 0.35);
+  background: rgba(255, 61, 13, 0.1);
+  color: #ff8a22;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 2;
+  animation: landing-fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.landing-root .hero-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff5a1f;
+  box-shadow: 0 0 0 0 rgba(255, 90, 31, 0.55);
+  animation: hero-live-pulse 1.6s ease-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes hero-live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 90, 31, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(255, 90, 31, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 90, 31, 0);
+  }
+}
+
+.landing-root .hero-live-label {
+  font-weight: 700;
+  color: #ff6b2b;
+}
+
+.landing-root .hero-live-sep {
+  color: rgba(255, 138, 34, 0.55);
+}
+
+.landing-root .hero-live-meta {
+  color: #e8b896;
+  letter-spacing: 0.08em;
+  font-weight: 500;
 }
 
 .landing-root .hero-media {
@@ -335,8 +391,8 @@ html:has(.landing-root) body {
   z-index: 1;
   min-height: 0;
   overflow: hidden;
-  /* Inset shadow from the seam — video dissolves into the dark canvas */
-  box-shadow: inset 72px 0 64px -28px rgba(13, 9, 7, 0.92);
+  /* Soft inset shadow — one frame, not two cards */
+  box-shadow: inset 56px 0 52px -24px rgba(13, 9, 7, 0.88);
 }
 
 .landing-root .hero-video {
@@ -359,10 +415,10 @@ html:has(.landing-root) body {
     linear-gradient(
       90deg,
       #0d0907 0%,
-      rgba(13, 9, 7, 0.88) 10%,
-      rgba(13, 9, 7, 0.42) 28%,
-      rgba(13, 9, 7, 0.12) 46%,
-      transparent 62%
+      rgba(13, 9, 7, 0.78) 8%,
+      rgba(13, 9, 7, 0.32) 24%,
+      rgba(13, 9, 7, 0.08) 40%,
+      transparent 56%
     ),
     linear-gradient(
       180deg,
@@ -374,18 +430,17 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero h1 {
-  /* Unmistakably large: one-line headline on desktop */
-  font-size: clamp(2.75rem, 5.8vw, 5.6rem);
+  /* Two-line headline sized to the copy column */
+  font-size: clamp(2.6rem, 4.2vw, 4.25rem);
   font-weight: 700;
   letter-spacing: -0.035em;
-  line-height: 1.02;
+  line-height: 1.05;
   color: #fff8f2;
   position: relative;
   z-index: 2;
   font-family: var(--font-display);
   margin: 0;
   max-width: none;
-  white-space: nowrap;
   text-shadow:
     0 2px 4px rgba(0, 0, 0, 0.4),
     0 10px 28px rgba(0, 0, 0, 0.35);
@@ -394,7 +449,7 @@ html:has(.landing-root) body {
 .landing-root .hero h1 .line {
   display: block;
   overflow: visible;
-  padding-bottom: 0.06em;
+  padding-bottom: 0.04em;
 }
 
 .landing-root .hero h1 .line > span {
@@ -406,10 +461,8 @@ html:has(.landing-root) body {
   animation-delay: 0.15s;
 }
 
-@media (min-width: 1100px) {
-  .landing-root .hero h1 {
-    font-size: clamp(3.35rem, 4.9vw, 5.6rem);
-  }
+.landing-root .hero h1 .line:nth-child(2) > span {
+  animation-delay: 0.28s;
 }
 
 .landing-root .hero h1 .wave {
@@ -433,12 +486,12 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero .sub {
-  margin: 26px 0 0;
+  margin: 22px 0 0;
   /* ~2 lines on desktop; forced break before “One score.” in markup */
-  max-width: min(44ch, 100%);
+  max-width: min(56ch, 100%);
   color: #e8d5c8;
-  font-size: clamp(1.12rem, 1.55vw, 1.42rem);
-  line-height: 1.45;
+  font-size: clamp(1.05rem, 1.35vw, 1.22rem);
+  line-height: 1.5;
   position: relative;
   z-index: 2;
   font-weight: 400;
@@ -450,8 +503,8 @@ html:has(.landing-root) body {
 
 .landing-root .hero .cta-row {
   display: flex;
-  gap: 16px;
-  margin-top: 32px;
+  gap: 14px;
+  margin-top: 28px;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
@@ -460,13 +513,13 @@ html:has(.landing-root) body {
 }
 
 .landing-root .hero .cta-row .btn-lg {
-  padding: 20px 40px;
-  font-size: 1.28rem;
+  padding: 14px 28px;
+  font-size: 1.02rem;
 }
 
 .landing-root .hero .micro {
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #6b5346;
@@ -531,18 +584,23 @@ html:has(.landing-root) body {
   }
 
   .landing-root .hero h1 {
-    white-space: normal;
-    font-size: clamp(2.4rem, 9vw, 3.5rem);
+    font-size: clamp(2.2rem, 8.5vw, 3.25rem);
   }
 
   .landing-root .hero .sub {
-    max-width: min(38ch, 100%);
-    font-size: clamp(1.05rem, 3.8vw, 1.2rem);
+    max-width: min(42ch, 100%);
+    font-size: clamp(1rem, 3.6vw, 1.15rem);
   }
 
   .landing-root .hero .cta-row .btn-lg {
-    padding: 16px 30px;
-    font-size: 1.12rem;
+    padding: 13px 24px;
+    font-size: 0.98rem;
+  }
+
+  .landing-root .hero-live {
+    font-size: 0.62rem;
+    padding: 6px 12px 6px 10px;
+    gap: 6px;
   }
 
   .landing-root .hero-media {
@@ -1265,6 +1323,14 @@ html:has(.landing-root) body {
   .landing-root .hero-lower {
     opacity: 1;
     transform: none;
+    animation: none;
+  }
+
+  .landing-root .hero-live {
+    animation: none;
+  }
+
+  .landing-root .hero-live-dot {
     animation: none;
   }
 
