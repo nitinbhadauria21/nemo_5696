@@ -159,11 +159,9 @@ export default function LandingContent() {
             <h1>
               <span className="line">
                 <span>
-                  Catch the <span className="wave">wave.</span>
+                  Catch the <span className="wave">wave.</span> Before it
+                  crashes.
                 </span>
-              </span>
-              <span className="line">
-                <span>Before it crashes.</span>
               </span>
             </h1>
             <div className="hero-lower">
