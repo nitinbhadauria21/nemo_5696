@@ -284,11 +284,10 @@ html:has(.landing-root) body {
   }
 }
 
-/* Hero — one canvas: full-bleed video + left copy over a soft scrim (no panel seam) */
+/* Hero — 50/50: left copy, right video, soft shadow merge (no hard seam) */
 .landing-root .hero {
   position: relative;
   width: 100%;
-  /* Fit under nav + ticker so the split stays in the first viewport */
   height: calc(100svh - 118px);
   min-height: calc(100svh - 118px);
   max-height: calc(100svh - 118px);
@@ -297,9 +296,10 @@ html:has(.landing-root) body {
   overflow: hidden;
   isolation: isolate;
   box-sizing: border-box;
+  /* Warm dark matched to video so the merge has no cold black cliff */
   background:
-    radial-gradient(70% 90% at 12% 40%, rgba(255, 61, 13, 0.1), transparent 62%),
-    radial-gradient(55% 70% at 88% 55%, rgba(255, 138, 34, 0.06), transparent 68%), #0d0907;
+    radial-gradient(70% 90% at 12% 40%, rgba(255, 61, 13, 0.08), transparent 62%),
+    radial-gradient(55% 70% at 88% 50%, rgba(255, 138, 34, 0.1), transparent 68%), #140c08;
 }
 
 .landing-root .hero-copy {
@@ -308,11 +308,11 @@ html:has(.landing-root) body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  /* Copy band ~left half; transparent so video + scrim show through */
-  width: min(54%, 42rem);
+  /* True left half for copy */
+  width: 50%;
   height: 100%;
-  padding: clamp(24px, 4.5vh, 48px) clamp(12px, 1.5vw, 20px) clamp(24px, 4.5vh, 48px)
-    clamp(24px, 4.5vw, 64px);
+  padding: clamp(24px, 4.5vh, 48px) clamp(16px, 2vw, 28px) clamp(24px, 4.5vh, 48px)
+    clamp(28px, 4.5vw, 64px);
   box-sizing: border-box;
   background: transparent;
   pointer-events: none;
@@ -320,7 +320,8 @@ html:has(.landing-root) body {
 
 .landing-root .hero-copy-inner {
   width: 100%;
-  max-width: min(36rem, 100%);
+  max-width: min(34rem, 100%);
+  margin-right: auto;
   text-align: left;
   pointer-events: auto;
 }
@@ -397,25 +398,12 @@ html:has(.landing-root) body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 28%;
+  /* Keep subject / energy in the right half for a 50/50 read */
+  object-position: 68% 28%;
   pointer-events: none;
-  /* Soft left falloff so video dissolves into the dark canvas — no hard cut */
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.15) 18%,
-    rgba(0, 0, 0, 0.55) 34%,
-    rgba(0, 0, 0, 0.9) 52%,
-    #000 68%
-  );
-  mask-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.15) 18%,
-    rgba(0, 0, 0, 0.55) 34%,
-    rgba(0, 0, 0, 0.9) 52%,
-    #000 68%
-  );
+  /* No hard mask edge — leave blending to the soft scrim only */
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 .landing-root .hero-media-blend {
@@ -423,26 +411,31 @@ html:has(.landing-root) body {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  /* Wide soft shadow scrim — continuous merge, no vertical panel line */
+  /*
+    Soft shadow merge across the center:
+    left ~50% readable, right ~50% clear video, no vertical cut line.
+    Warm mid-stops pick up the spark tones so luminance doesn’t cliff.
+  */
   background:
     linear-gradient(
       90deg,
-      #0d0907 0%,
-      #0d0907 16%,
-      rgba(13, 9, 7, 0.97) 28%,
-      rgba(13, 9, 7, 0.85) 38%,
-      rgba(13, 9, 7, 0.58) 48%,
-      rgba(13, 9, 7, 0.32) 58%,
-      rgba(13, 9, 7, 0.12) 70%,
-      transparent 82%
+      #140c08 0%,
+      #140c08 22%,
+      rgba(20, 12, 8, 0.96) 34%,
+      rgba(22, 12, 8, 0.88) 40%,
+      rgba(28, 14, 8, 0.72) 45%,
+      rgba(36, 16, 8, 0.5) 50%,
+      rgba(48, 20, 10, 0.28) 56%,
+      rgba(40, 16, 8, 0.12) 62%,
+      transparent 72%
     ),
-    radial-gradient(ellipse 55% 80% at 0% 50%, rgba(13, 9, 7, 0.75), transparent 70%),
+    radial-gradient(ellipse 48% 120% at 42% 50%, rgba(20, 12, 8, 0.55), transparent 72%),
     linear-gradient(
       180deg,
-      rgba(13, 9, 7, 0.35) 0%,
-      transparent 24%,
-      transparent 70%,
-      rgba(13, 9, 7, 0.5) 100%
+      rgba(20, 12, 8, 0.4) 0%,
+      transparent 22%,
+      transparent 72%,
+      rgba(20, 12, 8, 0.45) 100%
     );
 }
 
@@ -597,11 +590,12 @@ html:has(.landing-root) body {
     height: auto;
     min-height: 0;
     padding: clamp(22px, 4vh, 36px) clamp(20px, 5vw, 32px) 12px;
-    background: #0d0907;
+    background: #140c08;
   }
 
   .landing-root .hero-copy-inner {
     max-width: none;
+    margin-right: 0;
   }
 
   .landing-root .hero h1 {
@@ -633,21 +627,21 @@ html:has(.landing-root) body {
 
   .landing-root .hero-video {
     object-position: center 22%;
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 12%, #000 36%);
-    mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 12%, #000 36%);
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .landing-root .hero-media-blend {
     background:
       linear-gradient(
         180deg,
-        #0d0907 0%,
-        rgba(13, 9, 7, 0.92) 10%,
-        rgba(13, 9, 7, 0.55) 28%,
-        rgba(13, 9, 7, 0.2) 48%,
+        #140c08 0%,
+        rgba(20, 12, 8, 0.95) 12%,
+        rgba(28, 14, 8, 0.55) 32%,
+        rgba(40, 16, 8, 0.2) 52%,
         transparent 72%
       ),
-      linear-gradient(180deg, transparent 58%, rgba(13, 9, 7, 0.55) 100%);
+      linear-gradient(180deg, transparent 58%, rgba(20, 12, 8, 0.55) 100%);
   }
 }
 
