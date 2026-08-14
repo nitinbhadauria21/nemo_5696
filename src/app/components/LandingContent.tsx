@@ -282,13 +282,9 @@ export default function LandingContent() {
             </div>
             <h1>
               <span className="line">
-                <span>
-                  Catch the <span className="wave">wave.</span>
-                </span>
+                Catch the <span className="wave">wave.</span>
               </span>
-              <span className="line">
-                <span>Before it crashes.</span>
-              </span>
+              <span className="line">Before it crashes.</span>
             </h1>
             <p className="sub">
               Nemo tells you <b>what&apos;s blowing up</b>, on which platform, and{' '}
@@ -365,53 +361,59 @@ export default function LandingContent() {
         </div>
 
         <div className="duo">
-          <div className="duo-card pain reveal">
-            <div className="ic-wrap" aria-hidden="true">
-              <IconGrind />
+          <div className="reveal">
+            <div className="duo-card pain">
+              <div className="ic-wrap" aria-hidden="true">
+                <IconGrind />
+              </div>
+              <span className="tag">● Before</span>
+              <h3>The Daily Grind</h3>
+              <p>
+                Open Instagram, TikTok, YouTube, Twitter, Reddit, LinkedIn, and Google Trends.
+                Manually check what&apos;s trending on each. 4-5 hours gone.
+              </p>
+              <ul className="bullets">
+                <li>7 apps, 7 logins</li>
+                <li>4-5 hours every day</li>
+                <li>Still miss trends</li>
+              </ul>
             </div>
-            <span className="tag">● Before</span>
-            <h3>The Daily Grind</h3>
-            <p>
-              Open Instagram, TikTok, YouTube, Twitter, Reddit, LinkedIn, and Google Trends.
-              Manually check what&apos;s trending on each. 4-5 hours gone.
-            </p>
-            <ul className="bullets">
-              <li>7 apps, 7 logins</li>
-              <li>4-5 hours every day</li>
-              <li>Still miss trends</li>
-            </ul>
           </div>
-          <div className="duo-card pain reveal">
-            <div className="ic-wrap" aria-hidden="true">
-              <IconPain />
+          <div className="reveal">
+            <div className="duo-card pain">
+              <div className="ic-wrap" aria-hidden="true">
+                <IconPain />
+              </div>
+              <span className="tag">● The pain</span>
+              <h3>The Brutal Reality</h3>
+              <p>
+                By the time you finish your research, the trend has already peaked. You post, nobody
+                cares. The creators who posted 18 hours ago got 2 million views.
+              </p>
+              <ul className="bullets">
+                <li>Trend peaks before you post</li>
+                <li>Competitors post first</li>
+                <li>Hours wasted, zero ROI</li>
+              </ul>
             </div>
-            <span className="tag">● The pain</span>
-            <h3>The Brutal Reality</h3>
-            <p>
-              By the time you finish your research, the trend has already peaked. You post, nobody
-              cares. The creators who posted 18 hours ago got 2 million views.
-            </p>
-            <ul className="bullets">
-              <li>Trend peaks before you post</li>
-              <li>Competitors post first</li>
-              <li>Hours wasted, zero ROI</li>
-            </ul>
           </div>
-          <div className="duo-card fix reveal">
-            <div className="ic-wrap" aria-hidden="true">
-              <IconWin />
+          <div className="reveal">
+            <div className="duo-card fix">
+              <div className="ic-wrap" aria-hidden="true">
+                <IconWin />
+              </div>
+              <span className="tag">● With Nemo</span>
+              <h3>First-Mover Advantage</h3>
+              <p>
+                Open Nemo at 9am. See your top 5 rising trends in 60 seconds. Generate 3 content
+                angles in 30 seconds. Post first. Win.
+              </p>
+              <ul className="bullets">
+                <li>3-minute morning check</li>
+                <li>First to post = most views</li>
+                <li>AI angles ready instantly</li>
+              </ul>
             </div>
-            <span className="tag">● With Nemo</span>
-            <h3>First-Mover Advantage</h3>
-            <p>
-              Open Nemo at 9am. See your top 5 rising trends in 60 seconds. Generate 3 content
-              angles in 30 seconds. Post first. Win.
-            </p>
-            <ul className="bullets">
-              <li>3-minute morning check</li>
-              <li>First to post = most views</li>
-              <li>AI angles ready instantly</li>
-            </ul>
           </div>
         </div>
       </section>
@@ -425,10 +427,12 @@ export default function LandingContent() {
         </div>
         <div className="feat-grid">
           {FEATURES.map((f) => (
-            <div key={f.title} className="feat-card reveal">
-              <div className="ic">{f.icon}</div>
-              <h3>{f.title}</h3>
-              <p>{f.desc}</p>
+            <div key={f.title} className="reveal">
+              <div className="feat-card">
+                <div className="ic">{f.icon}</div>
+                <h3>{f.title}</h3>
+                <p>{f.desc}</p>
+              </div>
             </div>
           ))}
         </div>

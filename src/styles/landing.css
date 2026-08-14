@@ -27,6 +27,8 @@ html:has(.landing-root) body {
   --font-body: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
   --page-max: 1200px;
   --page-gutter: clamp(16px, 4vw, 40px);
+  /* Same left edge as the nav lockup */
+  --edge: clamp(16px, 3vw, 56px);
   --section-y: clamp(64px, 8vw, 110px);
 
   background: #0d0907;
@@ -317,7 +319,7 @@ html:has(.landing-root) body {
 
 .landing-root nav.site .inner {
   width: 100%;
-  padding: 12px clamp(16px, 3vw, 56px);
+  padding: 12px var(--edge);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -431,7 +433,7 @@ html:has(.landing-root) body {
 .landing-root .hero {
   position: relative;
   z-index: 1;
-  padding: clamp(34px, 5vw, 74px) clamp(16px, 4vw, 60px) clamp(64px, 7vw, 110px);
+  padding: clamp(34px, 5vw, 74px) var(--edge) clamp(64px, 7vw, 110px);
   overflow: hidden;
 }
 
@@ -627,16 +629,20 @@ html:has(.landing-root) body {
 .landing-root .hero-copy {
   position: relative;
   z-index: 2;
-  max-width: 1320px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
   align-items: center;
   min-height: clamp(460px, 58vh, 660px);
 }
 
 .landing-root .hero-copy-inner {
+  width: 100%;
   max-width: min(100%, 600px);
+  text-align: left;
 }
 
 .landing-root .hero-live {
@@ -677,18 +683,14 @@ html:has(.landing-root) body {
 
 .landing-root .hero h1 .line {
   display: block;
-}
-
-.landing-root .hero h1 .line > span {
-  display: inline;
   animation: landing-fadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.landing-root .hero h1 .line:nth-child(1) > span {
+.landing-root .hero h1 .line:nth-child(1) {
   animation-delay: 0.1s;
 }
 
-.landing-root .hero h1 .line:nth-child(2) > span {
+.landing-root .hero h1 .line:nth-child(2) {
   animation-delay: 0.26s;
 }
 
@@ -909,21 +911,31 @@ html:has(.landing-root) body {
   perspective: 1600px;
 }
 
+.landing-root .duo > .reveal {
+  display: flex;
+  min-height: 360px;
+  height: 100%;
+  perspective: 1600px;
+}
+
 .landing-root .duo-card {
   position: relative;
   overflow: hidden;
   border-radius: 26px;
   padding: 34px;
   min-height: 360px;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  transform-style: preserve-3d;
   transition:
     transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.4s;
 }
 
 .landing-root .duo-card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-6px) !important;
 }
 
 .landing-root .duo-card.pain {
@@ -932,7 +944,7 @@ html:has(.landing-root) body {
 }
 
 .landing-root .duo-card.pain:hover {
-  box-shadow: 0 34px 60px -30px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 34px 60px -30px rgba(0, 0, 0, 0.9) !important;
 }
 
 .landing-root .duo-card.fix {
@@ -1062,8 +1074,14 @@ html:has(.landing-root) body {
   perspective: 1400px;
 }
 
+.landing-root .feat-grid > .reveal {
+  height: 100%;
+  perspective: 1400px;
+}
+
 .landing-root .feat-card {
   position: relative;
+  height: 100%;
   background: linear-gradient(165deg, rgba(34, 24, 18, 0.95), rgba(20, 14, 10, 0.9));
   border: 1px solid rgba(255, 235, 222, 0.1);
   border-radius: 24px;
@@ -1076,9 +1094,9 @@ html:has(.landing-root) body {
 }
 
 .landing-root .feat-card:hover {
-  transform: translateY(-8px) rotateX(4deg) rotateY(-4deg);
-  border-color: rgba(255, 107, 43, 0.42);
-  box-shadow: 0 34px 60px -30px rgba(0, 0, 0, 0.9);
+  transform: translateY(-8px) rotateX(4deg) rotateY(-4deg) !important;
+  border-color: rgba(255, 107, 43, 0.42) !important;
+  box-shadow: 0 34px 60px -30px rgba(0, 0, 0, 0.9) !important;
 }
 
 .landing-root .feat-card .ic {
@@ -1504,7 +1522,7 @@ html:has(.landing-root) body {
   position: relative;
   z-index: 1;
   border-top: 1px solid rgba(255, 235, 222, 0.1);
-  padding: clamp(40px, 5vw, 54px) clamp(16px, 4vw, 56px) 40px;
+  padding: clamp(40px, 5vw, 54px) var(--edge) 40px;
 }
 
 .landing-root footer.site .foot-inner {
