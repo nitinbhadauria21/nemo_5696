@@ -8,5 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function LandingPage() {
-  return <LandingContent />;
+  return (
+    <>
+      <link rel="preload" as="video" href="/landing/hero-bg.mp4" type="video/mp4" />
+      <LandingContent />
+    </>
+  );
 }

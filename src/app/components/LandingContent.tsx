@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useScrollReveal } from './landing/useScrollReveal';
 import { useCountUp } from './landing/useCountUp';
@@ -96,15 +97,10 @@ export default function LandingContent() {
   const rootRef = useRef<HTMLDivElement>(null);
   const heroVideoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
-  const [soundOn, setSoundOn] = useState(true);
-  const soundOnRef = useRef(true);
+  const [soundOn, setSoundOn] = useState(false);
 
   useScrollReveal(rootRef);
   useCountUp(rootRef);
-
-  useEffect(() => {
-    soundOnRef.current = soundOn;
-  }, [soundOn]);
 
   useEffect(() => {
     const bar = progressRef.current;
@@ -122,63 +118,24 @@ export default function LandingContent() {
     return () => window.removeEventListener('scroll', update, { capture: true });
   }, []);
 
-  // Prefer unmuted autoplay. If the browser blocks it, autoplay muted, then unmute
-  // on the first user gesture. The Sound control starts ON.
+  // Muted autoplay on mount — browsers block unmuted autoplay without a gesture.
   useEffect(() => {
     const video = heroVideoRef.current;
     if (!video) return;
 
-    const gestureEvents: Array<keyof WindowEventMap> = ['pointerdown', 'keydown', 'touchstart'];
-    const remove: Array<() => void> = [];
+    video.muted = true;
+    video.defaultMuted = true;
 
-    const setMuted = (muted: boolean) => {
-      video.muted = muted;
-      video.defaultMuted = muted;
-      if (!muted) video.volume = 1;
-    };
-
-    const unmuteIfWanted = () => {
-      if (!soundOnRef.current) return;
-      setMuted(false);
+    const play = () => {
       void video.play().catch(() => {
-        /* still blocked */
+        /* retry when more data arrives */
       });
     };
 
-    const armGestureUnmute = () => {
-      const onGesture = () => unmuteIfWanted();
-      gestureEvents.forEach((ev) => {
-        window.addEventListener(ev, onGesture, { once: true, passive: true });
-        remove.push(() => window.removeEventListener(ev, onGesture));
-      });
-    };
+    play();
+    video.addEventListener('loadeddata', play, { once: true });
 
-    const start = async () => {
-      setMuted(false);
-      try {
-        await video.play();
-      } catch {
-        setMuted(true);
-        try {
-          await video.play();
-        } catch {
-          /* ignore until gesture */
-        }
-        armGestureUnmute();
-      }
-    };
-
-    void start();
-    const onLoaded = () => {
-      if (soundOnRef.current && video.muted) unmuteIfWanted();
-      else if (video.paused) void video.play().catch(() => {});
-    };
-    video.addEventListener('loadeddata', onLoaded);
-
-    return () => {
-      video.removeEventListener('loadeddata', onLoaded);
-      remove.forEach((fn) => fn());
-    };
+    return () => video.removeEventListener('loadeddata', play);
   }, []);
 
   const toggleSound = useCallback(() => {
@@ -191,10 +148,14 @@ export default function LandingContent() {
     if (next) {
       video.volume = 1;
       void video.play().catch(() => {
-        /* still blocked — keep UI on; next gesture retries via toggle */
+        /* gesture from button click should allow unmute */
       });
     }
   }, [soundOn]);
+
+  const scrollToNextSection = useCallback(() => {
+    document.querySelector('.marquee')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   return (
     <div className="landing-root" ref={rootRef}>
@@ -208,7 +169,15 @@ export default function LandingContent() {
       <nav className="site">
         <div className="inner">
           <Link href="/" className="brand" aria-label="Nemo home" prefetch={false}>
-            <img className="brand-lockup" src="/landing/nemo-lockup.png" alt="Nemo" />
+            <Image
+              className="brand-lockup"
+              src="/landing/nemo-lockup.png"
+              alt="Nemo"
+              width={1433}
+              height={291}
+              sizes="160px"
+              priority
+            />
           </Link>
           <div className="links">
             <a href="#features">Features</a>
@@ -241,7 +210,7 @@ export default function LandingContent() {
             ref={heroVideoRef}
             className="hero-video"
             autoPlay
-            muted={!soundOn}
+            muted
             loop
             playsInline
             preload="auto"
@@ -302,10 +271,15 @@ export default function LandingContent() {
           </div>
         </div>
 
-        <div className="hero-scroll">
+        <button
+          type="button"
+          className="hero-scroll"
+          onClick={scrollToNextSection}
+          aria-label="Scroll to next section"
+        >
           <span className="hero-scroll-wheel" aria-hidden="true" />
           Scroll
-        </div>
+        </button>
       </header>
 
       <div className="marquee">
@@ -511,9 +485,12 @@ export default function LandingContent() {
           <aside className="faq-mascot reveal">
             <div className="faq-mascot-glow" aria-hidden="true" />
             <div className="faq-mascot-art">
-              <img
+              <Image
                 src="/landing/nemo-faq.png"
                 alt="Nemo the mascot relaxing in a beanbag with a laptop"
+                width={1130}
+                height={1009}
+                sizes="(max-width: 768px) 200px, 260px"
               />
             </div>
             <div className="faq-mascot-copy">
@@ -551,10 +528,38 @@ export default function LandingContent() {
 
       <div className="foot-marquee" aria-hidden="true">
         <div className="track">
-          <img src="/landing/nemo-wordmark.png" alt="" />
-          <img src="/landing/nemo-wordmark.png" alt="" />
-          <img src="/landing/nemo-wordmark.png" alt="" />
-          <img src="/landing/nemo-wordmark.png" alt="" />
+          <Image
+            src="/landing/nemo-wordmark.png"
+            alt=""
+            width={1488}
+            height={385}
+            sizes="150px"
+            aria-hidden
+          />
+          <Image
+            src="/landing/nemo-wordmark.png"
+            alt=""
+            width={1488}
+            height={385}
+            sizes="150px"
+            aria-hidden
+          />
+          <Image
+            src="/landing/nemo-wordmark.png"
+            alt=""
+            width={1488}
+            height={385}
+            sizes="150px"
+            aria-hidden
+          />
+          <Image
+            src="/landing/nemo-wordmark.png"
+            alt=""
+            width={1488}
+            height={385}
+            sizes="150px"
+            aria-hidden
+          />
         </div>
       </div>
 
@@ -562,7 +567,16 @@ export default function LandingContent() {
         <div className="foot-inner">
           <div className="top">
             <div className="foot-brand-block">
-              <img className="brand-lockup" src="/landing/nemo-lockup.png" alt="Nemo" />
+              <Link href="/" aria-label="Nemo home" prefetch={false}>
+                <Image
+                  className="brand-lockup"
+                  src="/landing/nemo-lockup.png"
+                  alt="Nemo"
+                  width={1433}
+                  height={291}
+                  sizes="140px"
+                />
+              </Link>
               <p>
                 Real-time trend detection for creators and marketers who refuse to show up late.
               </p>
@@ -578,8 +592,8 @@ export default function LandingContent() {
               <div className="col">
                 <h4>Resources</h4>
                 <a href="#faq">FAQ</a>
-                <a href="#top">Blog</a>
                 <a href="#creators">Creators</a>
+                <a href="#features">Features</a>
               </div>
               <div className="col">
                 <h4>Legal</h4>

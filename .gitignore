@@ -42,3 +42,7 @@ blob-report/
 
 # Optional: if using TurboRepo or monorepo
 turbo/
+
+# Local scratch / extraction artifacts
+.tmp-*
+.tmp-*/
