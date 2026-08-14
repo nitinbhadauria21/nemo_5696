@@ -30,15 +30,20 @@ const FAQ_ITEMS = [
 ];
 
 export default function LandingFAQ() {
-  const [openIndex, setOpenIndex] = useState(0);
+  const [openIndex, setOpenIndex] = useState(-1);
 
   return (
-    <div className="faq-list reveal">
+    <div className="faq-list">
       {FAQ_ITEMS.map((item, i) => {
         const isOpen = openIndex === i;
         return (
           <div key={item.q} className={`faq-item${isOpen ? ' open' : ''}`}>
-            <button type="button" className="faq-q" onClick={() => setOpenIndex(isOpen ? -1 : i)}>
+            <button
+              type="button"
+              className="faq-q"
+              aria-expanded={isOpen}
+              onClick={() => setOpenIndex(isOpen ? -1 : i)}
+            >
               <h3>{item.q}</h3>
               <span className="plus">+</span>
             </button>

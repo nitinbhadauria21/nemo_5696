@@ -21,17 +21,23 @@ export function useCountUp(rootRef: React.RefObject<HTMLElement | null>) {
           const t0 = performance.now();
           const dur = 1400;
 
+          function fmt(v: number) {
+            if (dec) return v.toFixed(dec) + suffix;
+            if (suffix === 'M+') return v.toFixed(1).replace(/\.0$/, '') + 'M+';
+            return Math.round(v) + suffix;
+          }
+
           function tick(t: number) {
             const p = Math.min((t - t0) / dur, 1);
             const ease = 1 - Math.pow(1 - p, 3);
-            el.textContent = (target * ease).toFixed(dec) + suffix;
+            el.textContent = fmt(target * ease);
             if (p < 1) requestAnimationFrame(tick);
           }
 
           requestAnimationFrame(tick);
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.4 }
     );
 
     els.forEach((el) => cio.observe(el));
