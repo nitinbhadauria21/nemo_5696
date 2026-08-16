@@ -1189,11 +1189,16 @@ Calculate an honest viralScore (0–100).`;
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flame-gradient flex items-center justify-center flex-shrink-0">
-            <Icon name="PencilSquareIcon" size={20} className="text-white" />
-          </div>
-          <div>
+        <div className="flex flex-col items-start gap-1.5 min-w-0">
+          <img
+            src="/brand/nemo-laptop.png"
+            alt=""
+            width={56}
+            height={56}
+            className="h-12 w-12 sm:h-14 sm:w-14 object-contain flex-shrink-0 drop-shadow-sm"
+            decoding="async"
+          />
+          <div className="min-w-0">
             <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">
               Viral Script Writer
             </h1>
