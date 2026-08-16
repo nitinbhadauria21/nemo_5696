@@ -442,9 +442,10 @@ html:has(.landing-root) body {
   top: 0;
   right: 0;
   bottom: 0;
-  width: 64%;
+  width: min(72%, 920px);
   z-index: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .landing-root .hero-video {
@@ -454,21 +455,20 @@ html:has(.landing-root) body {
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 1;
   -webkit-mask-image: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.1) 16%,
-    rgba(0, 0, 0, 0.4) 32%,
-    rgba(0, 0, 0, 0.78) 48%,
-    #000 62%
+    rgba(0, 0, 0, 0.35) 12%,
+    rgba(0, 0, 0, 0.75) 28%,
+    #000 48%
   );
   mask-image: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.1) 16%,
-    rgba(0, 0, 0, 0.4) 32%,
-    rgba(0, 0, 0, 0.78) 48%,
-    #000 62%
+    rgba(0, 0, 0, 0.35) 12%,
+    rgba(0, 0, 0, 0.75) 28%,
+    #000 48%
   );
 }
 
@@ -478,11 +478,10 @@ html:has(.landing-root) body {
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    rgba(13, 9, 7, 0.85) 0%,
-    rgba(13, 9, 7, 0.6) 20%,
-    rgba(13, 9, 7, 0.3) 38%,
-    rgba(13, 9, 7, 0.1) 54%,
-    transparent 70%
+    rgba(13, 9, 7, 0.55) 0%,
+    rgba(13, 9, 7, 0.28) 22%,
+    rgba(13, 9, 7, 0.1) 42%,
+    transparent 62%
   );
 }
 
@@ -492,10 +491,10 @@ html:has(.landing-root) body {
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(13, 9, 7, 0.6) 0%,
-    transparent 22%,
-    transparent 70%,
-    rgba(13, 9, 7, 0.72) 100%
+    rgba(13, 9, 7, 0.35) 0%,
+    transparent 18%,
+    transparent 78%,
+    rgba(13, 9, 7, 0.45) 100%
   );
 }
 
@@ -504,6 +503,7 @@ html:has(.landing-root) body {
   right: 20px;
   bottom: 20px;
   z-index: 4;
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -549,11 +549,11 @@ html:has(.landing-root) body {
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    rgba(13, 9, 7, 0.9) 0px,
-    rgba(13, 9, 7, 0.78) 320px,
-    rgba(13, 9, 7, 0.4) 560px,
-    rgba(13, 9, 7, 0.12) 760px,
-    transparent 900px
+    rgba(13, 9, 7, 0.82) 0px,
+    rgba(13, 9, 7, 0.55) 280px,
+    rgba(13, 9, 7, 0.22) 520px,
+    rgba(13, 9, 7, 0.06) 720px,
+    transparent 880px
   );
 }
 

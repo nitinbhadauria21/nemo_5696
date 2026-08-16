@@ -125,17 +125,31 @@ export default function LandingContent() {
 
     video.muted = true;
     video.defaultMuted = true;
+    video.setAttribute('muted', '');
+    video.playsInline = true;
+    video.loop = true;
+    video.preload = 'auto';
 
-    const play = () => {
-      void video.play().catch(() => {
-        /* retry when more data arrives */
-      });
+    const tryPlay = () => {
+      if (video.paused) {
+        void video.play().catch(() => {
+          /* retry on later media events */
+        });
+      }
     };
 
-    play();
-    video.addEventListener('loadeddata', play, { once: true });
+    tryPlay();
+    video.addEventListener('loadedmetadata', tryPlay);
+    video.addEventListener('loadeddata', tryPlay);
+    video.addEventListener('canplay', tryPlay);
+    document.addEventListener('visibilitychange', tryPlay);
 
-    return () => video.removeEventListener('loadeddata', play);
+    return () => {
+      video.removeEventListener('loadedmetadata', tryPlay);
+      video.removeEventListener('loadeddata', tryPlay);
+      video.removeEventListener('canplay', tryPlay);
+      document.removeEventListener('visibilitychange', tryPlay);
+    };
   }, []);
 
   const toggleSound = useCallback(() => {
