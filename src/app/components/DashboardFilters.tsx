@@ -1,17 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, RefreshCw, Bookmark } from 'lucide-react';
+import { RefreshCw, Bookmark } from 'lucide-react';
 import { CATEGORIES, PLATFORMS } from '@/lib/mockData';
 import type { TrendPlatform } from '@/lib/mockData';
 import CountrySelector from '@/components/ui/CountrySelector';
 import PlatformIcon from '@/components/ui/PlatformIcon';
-import { trackSearchQuery } from '@/lib/analytics/client';
 
 export type DashboardFilterState = {
   categories: string[];
   platforms: TrendPlatform[];
-  keyword: string;
   timeframe: string;
   bookmarksOnly: boolean;
   countries: string[];
@@ -19,9 +17,9 @@ export type DashboardFilterState = {
 };
 
 interface DashboardFiltersProps {
-  /** Niche / platform / window / sort apply immediately. Keyword + location use Submit. */
+  /** Niche / platform / window / sort apply immediately. Location uses Submit. */
   onFiltersChange?: (filters: DashboardFilterState) => void;
-  /** Refetch /api/trends (does not apply draft keyword). */
+  /** Refetch /api/trends (does not apply draft location). */
   onRefresh?: () => void;
   isRefreshing?: boolean;
   /** Seed draft/applied from user prefs or parent. */
@@ -50,7 +48,6 @@ const PLATFORM_LABELS: Record<TrendPlatform, string> = {
 const DEFAULT_DRAFT: DashboardFilterState = {
   categories: ['All'],
   platforms: [],
-  keyword: '',
   timeframe: '24h',
   bookmarksOnly: false,
   countries: [],
@@ -65,7 +62,6 @@ export default function DashboardFilters({
 }: DashboardFiltersProps) {
   const [draft, setDraft] = useState<DashboardFilterState>(initialFilters || DEFAULT_DRAFT);
   const [applied, setApplied] = useState<DashboardFilterState>(initialFilters || DEFAULT_DRAFT);
-  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const seeded = useRef(false);
 
   useEffect(() => {
@@ -75,12 +71,6 @@ export default function DashboardFilters({
       setApplied(initialFilters);
     }
   }, [initialFilters]);
-
-  useEffect(() => {
-    return () => {
-      if (searchDebounce.current) clearTimeout(searchDebounce.current);
-    };
-  }, []);
 
   const isDirty = JSON.stringify(draft) !== JSON.stringify(applied);
 
@@ -104,19 +94,6 @@ export default function DashboardFilters({
   const handleSubmit = () => {
     setApplied(draft);
     onFiltersChange?.(draft);
-    const kw = draft.keyword.trim();
-    if (kw.length >= 2) {
-      trackSearchQuery({
-        query: kw,
-        source: 'dashboard',
-        filters: {
-          categories: draft.categories,
-          platforms: draft.platforms,
-          timeframe: draft.timeframe,
-          countries: draft.countries,
-        },
-      });
-    }
   };
 
   const toggleCategory = (cat: string) => {
@@ -168,31 +145,6 @@ export default function DashboardFilters({
               </button>
             );
           })}
-        </div>
-      </div>
-
-      <div className="px-4 py-3">
-        <p className="text-sm font-mono-custom uppercase tracking-widest text-foreground/60 font-bold mb-2.5">
-          Search Keywords
-        </p>
-        <div className="relative">
-          <Search
-            size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/50"
-          />
-          <input
-            type="text"
-            placeholder="Search title, description, hashtags… then Submit"
-            value={draft.keyword}
-            onChange={(e) => patchDraft({ keyword: e.target.value })}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleSubmit();
-              }
-            }}
-            className="w-full bg-input border border-border rounded-lg pl-9 pr-4 py-2 text-base font-sans text-foreground placeholder:text-foreground/45 focus:outline-none focus:ring-2 focus:ring-ring"
-          />
         </div>
       </div>
 

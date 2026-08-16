@@ -44,9 +44,6 @@ function emptyStateCopy(filters: DashboardFilterState, opts: { rawCount: number 
   if (!filters.categories.includes('All')) {
     parts.push(`niches: ${filters.categories.join(', ')}`);
   }
-  if (filters.keyword.trim()) {
-    parts.push(`keyword “${filters.keyword.trim()}”`);
-  }
   if (filters.countries.length > 0) {
     parts.push(`location: ${filters.countries.join(', ')}`);
   }
@@ -58,8 +55,8 @@ function emptyStateCopy(filters: DashboardFilterState, opts: { rawCount: number 
   if (filters.countries.length > 0) {
     return `No trends match ${parts.join(' · ')}. Try clearing location or widening the window, then Submit.`;
   }
-  if (filters.keyword.trim()) {
-    return `No trends match ${parts.join(' · ')}. Try a different keyword or clear search, then Submit.`;
+  if (!filters.categories.includes('All')) {
+    return `No active trends for ${filters.categories.join(', ')} in the last ${filters.timeframe}. Try 48h / 72h or another niche.`;
   }
   if (filters.platforms.length > 0) {
     return `No trends match ${parts.join(' · ')}. Try All Sources or a wider window, then Submit.`;
@@ -86,7 +83,6 @@ function prefsToFilters(
     // Prefer All when multiple/stale niches would over-filter the feed
     categories: niches.length === 1 ? niches : ['All'],
     platforms: Array.isArray(platforms) ? platforms.filter(Boolean) : [],
-    keyword: '',
     timeframe: tf === '48h' || tf === '72h' ? tf : '24h',
     bookmarksOnly: false,
     countries: region && region !== 'GLOBAL' ? [region] : [],
@@ -101,7 +97,6 @@ function buildQuery(filters: DashboardFilterState): string {
   }
   if (filters.platforms.length) params.set('platforms', filters.platforms.join(','));
   if (filters.countries.length) params.set('geo', filters.countries.join(','));
-  if (filters.keyword.trim()) params.set('q', filters.keyword.trim());
   params.set('timeframe', filters.timeframe || '24h');
   params.set('sortBy', filters.sortBy);
   return params.toString();
@@ -120,7 +115,6 @@ export default function DashboardContent() {
   const [activeFilters, setActiveFilters] = useState<DashboardFilterState>({
     categories: ['All'],
     platforms: [],
-    keyword: '',
     timeframe: '24h',
     bookmarksOnly: false,
     countries: [],
@@ -295,6 +289,14 @@ export default function DashboardContent() {
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-20 bg-background/98 backdrop-blur-md border-b border-border px-5 sm:px-6 py-3.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 overflow-hidden">
+          <img
+            src="/brand/nemo-detective.png"
+            alt=""
+            width={56}
+            height={56}
+            className="h-12 w-12 sm:h-14 sm:w-14 object-contain flex-shrink-0 drop-shadow-sm"
+            decoding="async"
+          />
           <div className="min-w-0 overflow-hidden">
             <h1 className="font-display text-2xl font-bold text-foreground leading-tight truncate">
               Hey {displayName.split(' ')[0]} — Live trends
@@ -363,7 +365,6 @@ export default function DashboardContent() {
                 <h2 className="font-semibold tracking-tight text-foreground text-xl">
                   {activeFilters.countries.length > 0 ||
                   activeFilters.platforms.length > 0 ||
-                  activeFilters.keyword ||
                   !activeFilters.categories.includes('All')
                     ? 'Filtered Trends'
                     : 'Active Trends'}{' '}

@@ -40,7 +40,8 @@ function withinTimeframe(t: TrendItem, timeframeHours: number): boolean {
 function matchesGeo(t: TrendItem, countries: string[]): boolean {
   if (countries.length === 0) return true;
   const trendRegions = (t.geoRegions ?? []).map((r) => r.toUpperCase());
-  if (trendRegions.length === 0) return false;
+  // Missing geo → treat as global so niche browsing is not blanked by prefs
+  if (trendRegions.length === 0) return true;
   if (
     trendRegions.includes('GLOBAL') ||
     trendRegions.includes('WW') ||

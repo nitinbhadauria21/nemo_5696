@@ -106,32 +106,43 @@ export function classifyTrendNiche(input: {
     .filter(Boolean)
     .join(' \n ');
 
-  // Prefer text evidence over a stored niche (especially polluted "AI" defaults).
+  // Text can refine the niche, but a stored brief niche must not be wiped to
+  // "other" — that made Browse-by-Niche chips look empty for real DB rows.
+  let textHit: string | null = null;
   if (blob) {
     for (const rule of NICHE_RULES) {
-      if (rule.re.test(blob)) return rule.niche;
+      if (rule.re.test(blob)) {
+        textHit = rule.niche;
+        break;
+      }
     }
-    if (/\br\/?(fitness|bodybuilding|running|sports)\b/i.test(blob)) return 'Fitness';
-    if (/\br\/?(cryptocurrency|personalfinance|investing|stocks)\b/i.test(blob)) return 'Finance';
-    if (/\br\/?(gaming|games|pcgaming)\b/i.test(blob)) return 'Gaming';
-    if (/\br\/?(movies|television|netflix)\b/i.test(blob)) return 'Movies';
-    if (/\br\/?(food|cooking|recipes)\b/i.test(blob)) return 'Food';
-    if (/\br\/?(travel|solotravel)\b/i.test(blob)) return 'Travel';
-    if (/\br\/?(learnprogramming|education|getdisciplined)\b/i.test(blob)) return 'Education';
-    if (/\br\/?(startups|entrepreneur|marketing)\b/i.test(blob)) return 'Startups';
-    if (
-      /\br\/?(machinelearning|artificial|chatgpt|openai|llm|singularity|generative\s*ai)\b/i.test(
-        blob
-      )
-    ) {
-      return 'AI';
+    if (!textHit) {
+      if (/\br\/?(fitness|bodybuilding|running|sports)\b/i.test(blob)) textHit = 'Fitness';
+      else if (/\br\/?(cryptocurrency|personalfinance|investing|stocks)\b/i.test(blob))
+        textHit = 'Finance';
+      else if (/\br\/?(gaming|games|pcgaming)\b/i.test(blob)) textHit = 'Gaming';
+      else if (/\br\/?(movies|television|netflix)\b/i.test(blob)) textHit = 'Movies';
+      else if (/\br\/?(food|cooking|recipes)\b/i.test(blob)) textHit = 'Food';
+      else if (/\br\/?(travel|solotravel)\b/i.test(blob)) textHit = 'Travel';
+      else if (/\br\/?(learnprogramming|education|getdisciplined)\b/i.test(blob))
+        textHit = 'Education';
+      else if (/\br\/?(startups|entrepreneur|marketing)\b/i.test(blob)) textHit = 'Startups';
+      else if (
+        /\br\/?(machinelearning|artificial|chatgpt|openai|llm|singularity|generative\s*ai)\b/i.test(
+          blob
+        )
+      ) {
+        textHit = 'AI';
+      }
     }
   }
 
-  // Non-AI stored niches can stand when text has no stronger signal
-  if (briefHit && briefHit !== 'AI') return briefHit;
+  if (textHit) return textHit;
 
-  if (raw && !DUMP_BUCKETS.has(raw.toLowerCase()) && !briefHit) {
+  // Trust any stored brief niche (including AI) when text has no stronger signal
+  if (briefHit) return briefHit;
+
+  if (raw && !DUMP_BUCKETS.has(raw.toLowerCase())) {
     for (const rule of NICHE_RULES) {
       if (rule.re.test(raw)) return rule.niche;
     }

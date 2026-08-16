@@ -3,7 +3,7 @@ import { MOCK_TRENDS } from '@/lib/mockData';
 import { collectMvpTrendsDetailed } from './collectors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { persistTrendsToSupabase } from './persist';
+import { persistTrendsToSupabase, mapCategoryToNiche } from './persist';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
 import { applyTrendFilters, type TrendQueryFilters } from './filters';
 import { classifyTrendNiche, normalizeUiNiche, sanitizePublicText } from './publicCopy';
@@ -392,7 +392,8 @@ export async function getTrends(options?: {
   void options?.refresh;
   const now = Date.now();
   const supabaseConfigured = isSupabaseConfigured();
-  const fetchLimit = options?.fetchLimit ?? 200;
+  const nicheFilters = (options?.filters?.niche ?? []).filter((n) => n && n !== 'All');
+  const fetchLimit = options?.fetchLimit ?? (nicheFilters.length > 0 ? 500 : 200);
   let lastIngestAt: string | null = null;
 
   const finalize = (
@@ -432,11 +433,36 @@ export async function getTrends(options?: {
         // optional
       }
 
-      const { data, error } = await reader
+      // When browsing by niche, filter at the DB so niche rows are not drowned out
+      // by the global top-N score list (mostly "other").
+      let query = reader
         .from('trend_records')
         .select('*')
         .order('nemo_score', { ascending: false })
         .limit(fetchLimit);
+
+      if (nicheFilters.length > 0) {
+        const dbEnums = Array.from(
+          new Set(nicheFilters.map((n) => mapCategoryToNiche(n)).filter(Boolean))
+        );
+        const uiLabels = Array.from(
+          new Set(nicheFilters.map((n) => normalizeUiNiche(n)).filter((n) => n && n !== 'other'))
+        );
+        // niche enum OR niches[] overlap with UI labels
+        const orParts: string[] = [];
+        if (dbEnums.length) {
+          orParts.push(`niche.in.(${dbEnums.join(',')})`);
+        }
+        if (uiLabels.length) {
+          // PostgREST overlaps: niches.ov.{Fitness,AI}
+          orParts.push(`niches.ov.{${uiLabels.join(',')}}`);
+        }
+        if (orParts.length) {
+          query = query.or(orParts.join(','));
+        }
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('getTrends trend_records select failed', error.message);
