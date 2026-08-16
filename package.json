@@ -11,7 +11,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css,md,json}\"",
     "serve": "next start",
     "type-check": "tsc --noEmit",
-    "test": "tsx --test src/lib/billing/catalogue.test.ts src/lib/billing/webhookSignature.test.ts src/lib/ai/requestPolicy.test.ts src/lib/ai/rateLimit.test.ts src/lib/ai/openRouterRouter.test.ts src/lib/admin/auth.test.ts src/lib/connections/sanitizeMetadata.test.ts src/lib/analytics/analytics.test.ts src/lib/signals/briefScoring.test.ts src/lib/trends/redditVelocity.test.ts",
+    "test": "tsx --test src/lib/billing/catalogue.test.ts src/lib/billing/webhookSignature.test.ts src/lib/ai/requestPolicy.test.ts src/lib/ai/rateLimit.test.ts src/lib/ai/openRouterRouter.test.ts src/lib/admin/auth.test.ts src/lib/connections/sanitizeMetadata.test.ts src/lib/analytics/analytics.test.ts src/lib/signals/briefScoring.test.ts src/lib/trends/redditVelocity.test.ts src/lib/trends/nichePlatformDiversity.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:api": "playwright test e2e/api",
     "test:e2e:ui": "playwright test e2e/dashboard.spec.ts"

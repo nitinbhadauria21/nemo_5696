@@ -1,6 +1,6 @@
 import type { TrendItem, TrendPlatform, LifecycleStatus } from '@/lib/mockData';
 import { BRIEF_NICHES } from '@/lib/mockData';
-import { selectDashboardTrends } from './trendingGate';
+import { selectDashboardTrends, selectDashboardTrendsPreferring } from './trendingGate';
 import { normalizeUiNiche } from './publicCopy';
 import {
   clusterTrends,
@@ -8,6 +8,9 @@ import {
   normalizeClusterKey,
   pickCanonical,
 } from '@/lib/signals/briefScoring';
+
+/** When browsing a niche, backfill per-platform slots from this wider window. */
+export const NICHE_PLATFORM_BACKFILL_HOURS = 72;
 
 export type TrendQueryFilters = {
   niche?: string[];
@@ -188,6 +191,10 @@ export function collapseToCanonicalCards(trends: TrendItem[]): TrendItem[] {
 /**
  * Apply user filters. Never restores unfiltered tops when empty.
  * Optional never-blank top-K runs AFTER filters only.
+ *
+ * Niche browse: prefer the requested timeframe, then backfill per-platform
+ * slots from up to 72h so YouTube/TikTok/etc. are not dropped when Instagram
+ * dominates the strict window.
  */
 export function applyTrendFilters(trends: TrendItem[], filters: TrendQueryFilters): TrendItem[] {
   const timeframeHours = filters.timeframeHours ?? 24;
@@ -197,6 +204,10 @@ export function applyTrendFilters(trends: TrendItem[], filters: TrendQueryFilter
   const statuses = filters.status ?? [];
   const q = (filters.q ?? '').trim().toLowerCase();
   const exclude = new Set(filters.lifecycleExclude ?? ['recycled']);
+  const nicheBrowse = niches.length > 0;
+  const backfillHours = nicheBrowse
+    ? Math.max(timeframeHours, NICHE_PLATFORM_BACKFILL_HOURS)
+    : timeframeHours;
 
   let filtered = trends.filter((t) => {
     if (t.lifecycle && exclude.has(t.lifecycle)) return false;
@@ -213,18 +224,32 @@ export function applyTrendFilters(trends: TrendItem[], filters: TrendQueryFilter
     }
     if (!matchesGeo(t, geo)) return false;
     if (!matchesStatus(t, statuses)) return false;
-    if (!withinTimeframe(t, timeframeHours)) return false;
+    // Defer strict timeframe until after niche platform diversification.
+    if (!withinTimeframe(t, backfillHours)) return false;
     return true;
   });
 
   // One canonical card per cluster before top-K
   filtered = collapseToCanonicalCards(filtered);
 
+  const inWindow = filtered.filter((t) => withinTimeframe(t, timeframeHours));
+
   if (filters.neverBlankTopK !== false && filtered.length > 0) {
-    filtered = selectDashboardTrends(filtered, {
-      perPlatformK: filters.perPlatformK,
-      cap: filters.cap,
-    });
+    if (nicheBrowse) {
+      filtered = selectDashboardTrendsPreferring(inWindow, filtered, {
+        perPlatformK: filters.perPlatformK,
+        cap: filters.cap,
+      });
+    } else if (inWindow.length > 0) {
+      filtered = selectDashboardTrends(inWindow, {
+        perPlatformK: filters.perPlatformK,
+        cap: filters.cap,
+      });
+    } else {
+      filtered = [];
+    }
+  } else {
+    filtered = inWindow;
   }
 
   const sortBy = filters.sortBy ?? 'score';

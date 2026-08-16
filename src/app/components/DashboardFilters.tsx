@@ -177,7 +177,7 @@ export default function DashboardFilters({
           </p>
           <button
             type="button"
-            onClick={() => patchDraft({ platforms: [] })}
+            onClick={() => applyFilters({ ...draft, platforms: [] })}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-sans font-semibold border transition-all ${
               allSourcesActive
                 ? 'bg-primary text-white border-primary'

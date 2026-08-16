@@ -76,13 +76,13 @@ function prefsToFilters(
   const niches = (profile?.niches || [])
     .map((n) => normalizeUiNiche(n))
     .filter((n) => brief.has(n));
-  const platforms = (profile?.platforms || []) as DashboardFilterState['platforms'];
   const tf = profile?.default_time_window || '24h';
   const region = profile?.default_region;
   return {
     // Prefer All when multiple/stale niches would over-filter the feed
     categories: niches.length === 1 ? niches : ['All'],
-    platforms: Array.isArray(platforms) ? platforms.filter(Boolean) : [],
+    // Always start on All Sources so niche browse is multi-platform; user can narrow.
+    platforms: [],
     timeframe: tf === '48h' || tf === '72h' ? tf : '24h',
     bookmarksOnly: false,
     countries: region && region !== 'GLOBAL' ? [region] : [],

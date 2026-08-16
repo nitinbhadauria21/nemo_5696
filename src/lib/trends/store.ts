@@ -434,12 +434,10 @@ export async function getTrends(options?: {
       }
 
       // When browsing by niche, filter at the DB so niche rows are not drowned out
-      // by the global top-N score list (mostly "other").
-      let query = reader
-        .from('trend_records')
-        .select('*')
-        .order('nemo_score', { ascending: false })
-        .limit(fetchLimit);
+      // by the global top-N score list (mostly "other"). Fetch per-platform so
+      // high-scoring Instagram rows cannot crowd out YouTube/TikTok/etc.
+      let data: Record<string, unknown>[] | null = null;
+      let error: { message: string } | null = null;
 
       if (nicheFilters.length > 0) {
         const dbEnums = Array.from(
@@ -448,7 +446,6 @@ export async function getTrends(options?: {
         const uiLabels = Array.from(
           new Set(nicheFilters.map((n) => normalizeUiNiche(n)).filter((n) => n && n !== 'other'))
         );
-        // niche enum OR niches[] overlap with UI labels
         const orParts: string[] = [];
         if (dbEnums.length) {
           orParts.push(`niche.in.(${dbEnums.join(',')})`);
@@ -457,12 +454,63 @@ export async function getTrends(options?: {
           // PostgREST overlaps: niches.ov.{Fitness,AI}
           orParts.push(`niches.ov.{${uiLabels.join(',')}}`);
         }
-        if (orParts.length) {
-          query = query.or(orParts.join(','));
-        }
-      }
+        const nicheOr = orParts.length ? orParts.join(',') : null;
 
-      const { data, error } = await query;
+        const dbPlatforms = [
+          'instagram',
+          'youtube',
+          'youtube_shorts',
+          'google_trends',
+          'reddit',
+          'tiktok',
+          'linkedin',
+          'twitter',
+          'facebook',
+        ] as const;
+        const perPlatformLimit = Math.max(20, Math.ceil(fetchLimit / dbPlatforms.length));
+
+        const settled = await Promise.all(
+          dbPlatforms.map(async (platform) => {
+            let q = reader
+              .from('trend_records')
+              .select('*')
+              .eq('platform', platform)
+              .order('nemo_score', { ascending: false })
+              .limit(perPlatformLimit);
+            if (nicheOr) q = q.or(nicheOr);
+            return q;
+          })
+        );
+
+        const merged = new Map<string, Record<string, unknown>>();
+        const errors: string[] = [];
+        for (const res of settled) {
+          if (res.error) {
+            errors.push(res.error.message);
+            continue;
+          }
+          for (const row of res.data || []) {
+            const r = row as Record<string, unknown>;
+            const id = String(r.trend_id || r.id || '');
+            if (id) merged.set(id, r);
+          }
+        }
+        if (merged.size > 0) {
+          data = [...merged.values()].sort(
+            (a, b) => Number(b.nemo_score || 0) - Number(a.nemo_score || 0)
+          );
+        } else if (errors.length) {
+          error = { message: errors[0] };
+        }
+      } else {
+        const res = await reader
+          .from('trend_records')
+          .select('*')
+          .order('nemo_score', { ascending: false })
+          .limit(fetchLimit);
+        data = (res.data as Record<string, unknown>[] | null) || null;
+        error = res.error;
+      }
 
       if (error) {
         console.error('getTrends trend_records select failed', error.message);
@@ -470,7 +518,7 @@ export async function getTrends(options?: {
 
       if (!error && data?.length) {
         return finalize(
-          data.map((row) => rowToTrend(row as Record<string, unknown>)),
+          data.map((row) => rowToTrend(row)),
           'supabase',
           lastIngestAt || new Date(lastCollectedAt || now).toISOString()
         );

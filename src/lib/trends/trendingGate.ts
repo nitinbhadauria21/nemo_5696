@@ -56,6 +56,35 @@ function compareTrends(a: TrendItem, b: TrendItem): number {
   return b.freshness - a.freshness;
 }
 
+function finalizeSelection(
+  byId: Map<string, TrendItem>,
+  pool: TrendItem[],
+  cap: number
+): TrendItem[] {
+  // Guarantee non-empty when input has rows (e.g. unknown platforms only).
+  if (byId.size === 0 && pool.length > 0) {
+    const topOverall = [...pool].sort(compareTrends).slice(0, Math.min(cap, pool.length));
+    for (const item of topOverall) {
+      byId.set(item.id, item);
+    }
+  }
+
+  const selected = [...byId.values()].sort(compareTrends);
+
+  // If under cap after per-platform union, fill with next-best overall (never blank).
+  if (selected.length < Math.min(cap, pool.length)) {
+    const selectedIds = new Set(selected.map((t) => t.id));
+    const fillers = [...pool]
+      .filter((t) => !selectedIds.has(t.id))
+      .sort(compareTrends)
+      .slice(0, cap - selected.length);
+    selected.push(...fillers);
+    selected.sort(compareTrends);
+  }
+
+  return selected.slice(0, cap);
+}
+
 /**
  * Never-blank Dashboard candidate set: top-K per platform, unioned, sorted, capped.
  * Soft-boosts old gate-passers; never returns empty when `trends` has rows.
@@ -81,26 +110,53 @@ export function selectDashboardTrends(
     }
   }
 
-  // Guarantee non-empty when input has rows (e.g. unknown platforms only).
-  if (byId.size === 0) {
-    const topOverall = [...trends].sort(compareTrends).slice(0, Math.min(cap, trends.length));
-    for (const item of topOverall) {
+  return finalizeSelection(byId, trends, cap);
+}
+
+/**
+ * Like {@link selectDashboardTrends}, but fills each platform's K slots from
+ * `preferred` first, then backfills from `fallback` so niche browse stays
+ * multi-platform when in-window rows are Instagram-skewed.
+ */
+export function selectDashboardTrendsPreferring(
+  preferred: TrendItem[],
+  fallback: TrendItem[],
+  opts: SelectDashboardTrendsOptions = {}
+): TrendItem[] {
+  if (preferred.length === 0 && fallback.length === 0) return [];
+
+  const perPlatformK = opts.perPlatformK ?? 3;
+  const cap = opts.cap ?? 40;
+  const pool = (() => {
+    const map = new Map<string, TrendItem>();
+    for (const t of fallback) map.set(t.id, t);
+    for (const t of preferred) map.set(t.id, t);
+    return [...map.values()];
+  })();
+
+  const byId = new Map<string, TrendItem>();
+
+  for (const platform of DASHBOARD_PLATFORMS) {
+    const fromPreferred = preferred
+      .filter((t) => t.platforms.includes(platform))
+      .sort(compareTrends)
+      .slice(0, perPlatformK);
+    for (const item of fromPreferred) {
       byId.set(item.id, item);
+    }
+
+    if (fromPreferred.length < perPlatformK) {
+      const need = perPlatformK - fromPreferred.length;
+      const taken = new Set(fromPreferred.map((t) => t.id));
+      const fromFallback = fallback
+        .filter((t) => t.platforms.includes(platform) && !taken.has(t.id) && !byId.has(t.id))
+        .sort(compareTrends)
+        .slice(0, need);
+      for (const item of fromFallback) {
+        byId.set(item.id, item);
+      }
     }
   }
 
-  const selected = [...byId.values()].sort(compareTrends);
-
-  // If under cap after per-platform union, fill with next-best overall (never blank).
-  if (selected.length < Math.min(cap, trends.length)) {
-    const selectedIds = new Set(selected.map((t) => t.id));
-    const fillers = [...trends]
-      .filter((t) => !selectedIds.has(t.id))
-      .sort(compareTrends)
-      .slice(0, cap - selected.length);
-    selected.push(...fillers);
-    selected.sort(compareTrends);
-  }
-
-  return selected.slice(0, cap);
+  return finalizeSelection(byId, pool, cap);
 }
