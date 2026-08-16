@@ -1187,15 +1187,15 @@ Calculate an honest viralScore (0–100).`;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header — overflow-visible so mascot is not clipped by sticky bar */}
-      <div className="sticky top-0 z-20 overflow-visible bg-background/95 backdrop-blur-md border-b border-border px-5 sm:px-6 py-5 flex items-start justify-between gap-3 flex-wrap">
-        <div className="flex flex-col items-start gap-2 min-w-0">
+      {/* Header — scrolls away with page; mascot beside title */}
+      <div className="border-b border-border px-5 sm:px-6 py-5 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <img
             src="/brand/nemo-laptop.png"
             alt="Nemo writing on a laptop"
             width={192}
             height={128}
-            className="h-20 w-auto sm:h-24 object-contain flex-shrink-0 drop-shadow-md"
+            className="h-16 w-auto sm:h-20 object-contain flex-shrink-0 drop-shadow-md"
             decoding="async"
           />
           <div className="min-w-0">
@@ -1207,7 +1207,7 @@ Calculate an honest viralScore (0–100).`;
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm font-mono-custom text-primary font-bold">
             <Icon name="SparklesIcon" size={14} variant="solid" />
             NemoScript AI
