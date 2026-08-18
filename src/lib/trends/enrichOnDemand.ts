@@ -163,6 +163,7 @@ export async function enrichTrendOnDemand(
     if (!hasRealCountryMix({ shares: geoShares, regions: geoRegions })) {
       const fetched = await collectRealGeoShares({
         title,
+        platform: String(row.platform || ''),
         existingShares: geoShares,
         existingRegions: geoRegions,
       });

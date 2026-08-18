@@ -85,6 +85,26 @@ describe('parseInterestByRegion', () => {
     });
     assert.deepEqual(rows, [{ country: 'BR', share: 55 }]);
   });
+
+  it('parses SearchAPI nested values per country', () => {
+    const rows = parseInterestByRegion({
+      interest_by_region: [
+        {
+          geo: 'US',
+          name: 'United States',
+          values: [{ query: 'coffee', value: '100%', extracted_value: 100 }],
+        },
+        {
+          geo: 'IN',
+          name: 'India',
+          values: [{ query: 'coffee', value: '72%', extracted_value: 72 }],
+        },
+      ],
+    });
+    assert.equal(rows.length, 2);
+    assert.deepEqual(rows[0], { country: 'US', share: 100 });
+    assert.deepEqual(rows[1], { country: 'IN', share: 72 });
+  });
 });
 
 describe('hasRealCountryMix', () => {

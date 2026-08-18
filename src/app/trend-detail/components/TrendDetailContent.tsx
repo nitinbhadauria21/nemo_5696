@@ -309,6 +309,7 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
     if (!trendId || !remoteTrend) return;
     const needGeo = !hasRealCountryMix({
       shares: geoShares ?? remoteTrend.geoShares,
+      regions: geoRegions ?? remoteTrend.geoRegions,
     });
     const sourceIncomplete =
       sources.length === 0 ||
@@ -350,10 +351,27 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
         const data = await res.json();
         if (Array.isArray(data.geoShares) && data.geoShares.length) {
           setGeoShares(data.geoShares);
-          setGeoRegions(data.geoRegions || data.geoShares.map((s: GeoShare) => s.country));
-          setGeoFailed(false);
-        } else if (needGeo) {
-          setGeoFailed(true);
+        }
+        if (Array.isArray(data.geoRegions) && data.geoRegions.length) {
+          setGeoRegions(data.geoRegions);
+        } else if (Array.isArray(data.geoShares) && data.geoShares.length) {
+          setGeoRegions(data.geoShares.map((s: GeoShare) => s.country));
+        }
+        if (needGeo) {
+          const mergedShares =
+            Array.isArray(data.geoShares) && data.geoShares.length
+              ? data.geoShares
+              : (geoShares ?? remoteTrend.geoShares);
+          const mergedRegions =
+            Array.isArray(data.geoRegions) && data.geoRegions.length
+              ? data.geoRegions
+              : Array.isArray(data.geoShares) && data.geoShares.length
+                ? data.geoShares.map((s: GeoShare) => s.country)
+                : (geoRegions ?? remoteTrend.geoRegions);
+          setGeoFailed(
+            Boolean(data.geoFailed) ||
+              !hasRealCountryMix({ shares: mergedShares, regions: mergedRegions })
+          );
         }
         if (Array.isArray(data.sources) && data.sources.length) {
           setSources(data.sources);

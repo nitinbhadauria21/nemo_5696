@@ -62,6 +62,15 @@ export function normalizeGeoRegionCodes(regions?: string[] | null): string[] {
 }
 
 function shareValue(entry: Record<string, unknown>): number {
+  const nested = entry.values;
+  if (Array.isArray(nested) && nested.length) {
+    let max = 0;
+    for (const item of nested) {
+      if (!item || typeof item !== 'object') continue;
+      max = Math.max(max, shareValue(item as Record<string, unknown>));
+    }
+    if (max > 0) return max;
+  }
   const raw = entry.extracted_value ?? entry.value ?? entry.share ?? entry.max_value_index;
   const n = typeof raw === 'number' ? raw : Number(String(raw ?? '').replace(/[^\d.-]/g, ''));
   return Number.isFinite(n) ? n : 0;

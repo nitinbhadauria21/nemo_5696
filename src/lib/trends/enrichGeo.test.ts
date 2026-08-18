@@ -1,8 +1,36 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { collectRealGeoShares } from './enrichGeo';
+import {
+  buildSearchApiInterestByRegionUrl,
+  buildSerpInterestByRegionUrl,
+  collectRealGeoShares,
+} from './enrichGeo';
 
 const noSleep = async () => {};
+
+describe('buildSerpInterestByRegionUrl', () => {
+  it('uses GEO_MAP_0 and COUNTRY region for single-query interest by region', () => {
+    const url = new URL(buildSerpInterestByRegionUrl('coffee', 'test-key'));
+    assert.equal(url.searchParams.get('engine'), 'google_trends');
+    assert.equal(url.searchParams.get('data_type'), 'GEO_MAP_0');
+    assert.equal(url.searchParams.get('region'), 'COUNTRY');
+    assert.equal(url.searchParams.get('q'), 'coffee');
+  });
+
+  it('can target YouTube property for YouTube-native trends', () => {
+    const url = new URL(buildSerpInterestByRegionUrl('viral shorts', 'test-key', { gprop: 'youtube' }));
+    assert.equal(url.searchParams.get('gprop'), 'youtube');
+  });
+});
+
+describe('buildSearchApiInterestByRegionUrl', () => {
+  it('uses GEO_MAP with COUNTRY region for worldwide country breakdown', () => {
+    const url = new URL(buildSearchApiInterestByRegionUrl('coffee', 'test-key'));
+    assert.equal(url.searchParams.get('data_type'), 'GEO_MAP');
+    assert.equal(url.searchParams.get('region'), 'COUNTRY');
+    assert.equal(url.searchParams.get('q'), 'coffee');
+  });
+});
 
 describe('collectRealGeoShares', () => {
   it('returns stored API shares without calling the network', async () => {
