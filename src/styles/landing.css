@@ -446,7 +446,7 @@ html:has(.landing-root) body {
   background-color: #0d0907;
 }
 
-.landing-root .hero-poster {
+.landing-root .hero-video {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -455,15 +455,10 @@ html:has(.landing-root) body {
   object-fit: cover;
   object-position: center 28%;
   display: block;
-  transition: opacity 0.35s ease;
+  opacity: 1;
 }
 
-.landing-root .hero-poster.is-hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.landing-root .hero-video {
+.landing-root .hero-poster {
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -472,12 +467,14 @@ html:has(.landing-root) body {
   object-fit: cover;
   object-position: center 28%;
   display: block;
-  opacity: 0;
-  transition: opacity 0.35s ease;
 }
 
-.landing-root .hero-video.is-ready {
-  opacity: 1;
+.landing-root .hero-poster.is-hidden,
+.landing-root .hero-media:has(.hero-video.is-playing) .hero-poster {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .landing-root .hero-media-fade-x {
