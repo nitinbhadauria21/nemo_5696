@@ -18,10 +18,7 @@ const tipStyle = {
 };
 
 export default function TrendGeoChart({ regions, shares }: GeoChartProps) {
-  const data = useMemo(
-    () => buildGeoChartRows({ regions, shares, limit: 10 }),
-    [regions, shares]
-  );
+  const data = useMemo(() => buildGeoChartRows({ regions, shares, limit: 10 }), [regions, shares]);
 
   const chartHeight = Math.max(200, data.length * 32 + 16);
 
@@ -36,7 +33,11 @@ export default function TrendGeoChart({ regions, shares }: GeoChartProps) {
         </p>
       ) : (
         <ResponsiveContainer width="100%" height={chartHeight}>
-          <BarChart data={data} layout="vertical" margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
+          <BarChart
+            data={data}
+            layout="vertical"
+            margin={{ top: 0, right: 12, left: 0, bottom: 0 }}
+          >
             <XAxis type="number" hide />
             <YAxis
               type="category"

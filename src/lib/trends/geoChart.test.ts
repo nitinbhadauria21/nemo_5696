@@ -1,10 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import {
-  buildGeoChartRows,
-  parseInterestByRegion,
-  resolveCollectionGeoCodes,
-} from './geoChart';
+import { buildGeoChartRows, parseInterestByRegion, resolveCollectionGeoCodes } from './geoChart';
 
 describe('buildGeoChartRows', () => {
   it('returns no rows for GLOBAL-only or empty geo (no fake world bar)', () => {

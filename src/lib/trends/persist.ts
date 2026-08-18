@@ -8,6 +8,7 @@ import {
   pickCanonical,
 } from '@/lib/signals/briefScoring';
 import { normalizeUiNiche } from './publicCopy';
+import { normalizeGeoRegionCodes } from './geoChart';
 
 /** DB platform_enum values (incl. google_trends + youtube_shorts). */
 type DbPlatform =
@@ -86,10 +87,7 @@ function mapTrendToRecord(t: TrendItem) {
     fading: 'DECLINING',
   };
   const platforms = (t.platforms?.length ? t.platforms : ['google']).map(mapUiPlatformToDb);
-  const geo =
-    t.geoRegions && t.geoRegions.length
-      ? t.geoRegions.map((g) => String(g).toUpperCase())
-      : ['GLOBAL'];
+  const geo = normalizeGeoRegionCodes(t.geoRegions);
 
   const uiNiches = Array.from(
     new Set(

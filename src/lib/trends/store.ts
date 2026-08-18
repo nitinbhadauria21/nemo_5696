@@ -12,6 +12,7 @@ import { evaluateAlertRules } from '@/lib/alerts/evaluate';
 import { buildWhyTrending } from '@/lib/signals/briefScoring';
 import { loadPriorRedditMetrics } from './redditVelocity';
 import type { RedditPostSnapshot } from './redditVelocity';
+import { normalizeGeoRegionCodes, type GeoShare } from './geoChart';
 
 let memoryStore: TrendItem[] = [];
 let lastCollectedAt = 0;
@@ -116,6 +117,21 @@ function confidenceFromScore(score: number): ConfidenceLevel {
   return 'Low';
 }
 
+function asGeoShares(value: unknown): GeoShare[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const shares = value
+    .map((s) => {
+      if (!s || typeof s !== 'object') return null;
+      const o = s as Record<string, unknown>;
+      const country = String(o.country ?? o.code ?? '');
+      const share = Number(o.share);
+      if (!country || !Number.isFinite(share)) return null;
+      return { country, share };
+    })
+    .filter((s): s is GeoShare => s != null);
+  return shares.length ? shares : undefined;
+}
+
 function rowToTrend(row: Record<string, unknown>): TrendItem {
   const raw = row.raw_platform_data as TrendItem | null;
   const geoFromRow = (row.geo_regions as string[] | null) || [];
@@ -144,7 +160,8 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
     return scrubTrend({
       ...raw,
       title,
-      geoRegions: raw.geoRegions?.length ? raw.geoRegions : geoFromRow,
+      geoRegions: normalizeGeoRegionCodes(raw.geoRegions?.length ? raw.geoRegions : geoFromRow),
+      geoShares: asGeoShares(raw.geoShares),
       category,
       niches,
       lifecycle: raw.lifecycle || lifecycleFromRow(row, status, raw.nemoScore),
@@ -230,7 +247,8 @@ function rowToTrend(row: Record<string, unknown>): TrendItem {
     sparklineData: [],
     timeAgo: '',
     isBookmarked: false,
-    geoRegions: geoFromRow,
+    geoRegions: normalizeGeoRegionCodes(geoFromRow),
+    geoShares: asGeoShares((raw as TrendItem | null)?.geoShares),
     geoSpreadScore: Number(row.geo_spread_score) || geoFromRow.length,
     breakoutBoolean: Boolean(row.breakout_boolean),
     clusterId: String(row.cluster_id || '') || undefined,

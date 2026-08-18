@@ -865,42 +865,44 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
       if (res.ok) {
         const data = await res.json();
         const items = Array.isArray(data) ? data : (data.trends ?? []);
-        return compactTrends(
-          items.slice(0, 8).map((item: any, idx: number) => {
-            const title = String(item.title || item.query || `Trend ${idx}`);
-            const growth = Number(item.growth ?? 120 + idx * 15);
-            const signals = collectGoogleTrendsSignals({
-              breakout_boolean: Boolean(item.breakout) || growth > 300,
-              normalized_growth_pct: growth,
-              time_window_4h: Math.min(100, growth / 5),
-              time_window_24h: Math.min(100, growth / 4),
-              time_window_48h: Math.min(100, growth / 6),
-              time_window_7d: Math.min(100, growth / 8),
-              active_status: true,
-              geo_spread_score: Number(item.geo ?? 40),
-              source_surface: 'trending_now',
-              category: String(item.niche || 'other'),
-              search_type: 'web',
-              geo_regions: geo,
-              collected_at: new Date().toISOString(),
-            });
-            scoreGoogleTrendsSignals(signals, {
-              max_normalized_growth_pct: 500,
-              max_geo_spread_score: 50,
-            });
-            return toTrendItem({
-              topic: title,
-              niche: mapToUiCategory(String(item.niche || 'other'), title),
-              platforms: ['google'],
-              creators6h: 40 + idx * 5,
-              creators24h: 120 + idx * 12,
-              creators72h: 300 + idx * 20,
-              mentions24h: 2000 + idx * 300,
-              mentionsPrev24h: estimateMentionsPrev24h(2000 + idx * 300),
-              ageHours: 3 + idx,
-              geoRegions: geo,
-            });
-          })
+        return enrichGoogleTrendsGeo(
+          compactTrends(
+            items.slice(0, 8).map((item: any, idx: number) => {
+              const title = String(item.title || item.query || `Trend ${idx}`);
+              const growth = Number(item.growth ?? 120 + idx * 15);
+              const signals = collectGoogleTrendsSignals({
+                breakout_boolean: Boolean(item.breakout) || growth > 300,
+                normalized_growth_pct: growth,
+                time_window_4h: Math.min(100, growth / 5),
+                time_window_24h: Math.min(100, growth / 4),
+                time_window_48h: Math.min(100, growth / 6),
+                time_window_7d: Math.min(100, growth / 8),
+                active_status: true,
+                geo_spread_score: Number(item.geo ?? 40),
+                source_surface: 'trending_now',
+                category: String(item.niche || 'other'),
+                search_type: 'web',
+                geo_regions: geo,
+                collected_at: new Date().toISOString(),
+              });
+              scoreGoogleTrendsSignals(signals, {
+                max_normalized_growth_pct: 500,
+                max_geo_spread_score: 50,
+              });
+              return toTrendItem({
+                topic: title,
+                niche: mapToUiCategory(String(item.niche || 'other'), title),
+                platforms: ['google'],
+                creators6h: 40 + idx * 5,
+                creators24h: 120 + idx * 12,
+                creators72h: 300 + idx * 20,
+                mentions24h: 2000 + idx * 300,
+                mentionsPrev24h: estimateMentionsPrev24h(2000 + idx * 300),
+                ageHours: 3 + idx,
+                geoRegions: geo,
+              });
+            })
+          )
         );
       }
     } catch (err) {
@@ -921,37 +923,39 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
     { title: 'Quiet luxury reels', niche: 'Fashion', growth: 160 },
   ];
 
-  return compactTrends(
-    seeds.map((s, idx) => {
-      collectGoogleTrendsSignals({
-        breakout_boolean: s.growth > 300,
-        normalized_growth_pct: s.growth,
-        time_window_4h: Math.min(100, s.growth / 5),
-        time_window_24h: Math.min(100, s.growth / 4),
-        time_window_48h: Math.min(100, s.growth / 6),
-        time_window_7d: Math.min(100, s.growth / 8),
-        active_status: true,
-        geo_spread_score: 35 + idx * 8,
-        source_surface: 'explore_rising',
-        category: s.niche,
-        search_type: 'web',
-        geo_regions: geo,
-        collected_at: new Date().toISOString(),
-      });
-      return toTrendItem({
-        topic: s.title,
-        niche: s.niche,
-        platforms: ['google'],
-        creators6h: 50 + idx * 8,
-        creators24h: 140 + idx * 15,
-        creators72h: 320 + idx * 25,
-        mentions24h: 2500 + s.growth * 4,
-        mentionsPrev24h: estimateMentionsPrev24h(2500 + s.growth * 4),
-        ageHours: 2 + idx,
-        hashtags: [`#${s.niche.replace(/\s+/g, '')}`, '#trends'],
-        geoRegions: geo,
-      });
-    })
+  return enrichGoogleTrendsGeo(
+    compactTrends(
+      seeds.map((s, idx) => {
+        collectGoogleTrendsSignals({
+          breakout_boolean: s.growth > 300,
+          normalized_growth_pct: s.growth,
+          time_window_4h: Math.min(100, s.growth / 5),
+          time_window_24h: Math.min(100, s.growth / 4),
+          time_window_48h: Math.min(100, s.growth / 6),
+          time_window_7d: Math.min(100, s.growth / 8),
+          active_status: true,
+          geo_spread_score: 35 + idx * 8,
+          source_surface: 'explore_rising',
+          category: s.niche,
+          search_type: 'web',
+          geo_regions: geo,
+          collected_at: new Date().toISOString(),
+        });
+        return toTrendItem({
+          topic: s.title,
+          niche: s.niche,
+          platforms: ['google'],
+          creators6h: 50 + idx * 8,
+          creators24h: 140 + idx * 15,
+          creators72h: 320 + idx * 25,
+          mentions24h: 2500 + s.growth * 4,
+          mentionsPrev24h: estimateMentionsPrev24h(2500 + s.growth * 4),
+          ageHours: 2 + idx,
+          hashtags: [`#${s.niche.replace(/\s+/g, '')}`, '#trends'],
+          geoRegions: geo,
+        });
+      })
+    )
   );
 }
 

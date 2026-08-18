@@ -8,6 +8,7 @@ import {
   normalizeClusterKey,
   pickCanonical,
 } from '@/lib/signals/briefScoring';
+import { mergeGeoShares, normalizeGeoRegionCodes } from './geoChart';
 
 /** When browsing a niche, backfill per-platform slots from this wider window. */
 export const NICHE_PLATFORM_BACKFILL_HOURS = 72;
@@ -156,7 +157,13 @@ export function collapseToCanonicalCards(trends: TrendItem[]): TrendItem[] {
       mentions24h: Math.max(...members.map((m) => m.mentions24h || 0)),
       creatorsCount: Math.max(...members.map((m) => m.creatorsCount || 0)),
       nemoScore: Math.max(...members.map((m) => m.nemoScore)),
+      geoRegions: normalizeGeoRegionCodes(members.flatMap((m) => m.geoRegions ?? [])),
+      geoShares: mergeGeoShares(...members.map((m) => m.geoShares)),
     };
+    merged.geoSpreadScore = Math.max(
+      ...members.map((m) => m.geoSpreadScore || 0),
+      merged.geoRegions?.length || 0
+    );
     // Soft down-rank evergreen niche labels still present after filters
     if (isEvergreenTopic(merged.title)) {
       merged.nemoScore = Math.round(merged.nemoScore * 0.55 * 100) / 100;
