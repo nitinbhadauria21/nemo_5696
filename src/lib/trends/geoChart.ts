@@ -150,6 +150,14 @@ export function buildGeoChartRows(opts: {
   }));
 }
 
+/** True when the chart can render at least one real country (never GLOBAL). */
+export function hasRealCountryMix(opts: {
+  regions?: string[] | null;
+  shares?: GeoShare[] | null;
+}): boolean {
+  return buildGeoChartRows({ ...opts, limit: 10 }).length > 0;
+}
+
 export function mergeGeoShares(...lists: Array<GeoShare[] | undefined | null>): GeoShare[] {
   const byCode = new Map<string, number>();
   for (const list of lists) {

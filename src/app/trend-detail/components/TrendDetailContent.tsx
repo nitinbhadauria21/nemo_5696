@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Bookmark, BookmarkCheck, Share2, Plus, Copy, CheckCheck } from 'lucide-react';
@@ -19,6 +19,15 @@ import CountrySelector from '@/components/ui/CountrySelector';
 import { COUNTRIES } from '@/lib/countries';
 import { MOCK_TRENDS, type TrendItem } from '@/lib/mockData';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { hasRealCountryMix, type GeoShare } from '@/lib/trends/geoChart';
+import {
+  isRealHttpUrl,
+  isRealSourceMedia,
+  sourceCaption,
+  youtubeThumbnailUrl,
+  youtubeVideoIdFrom,
+  youtubeWatchUrl,
+} from '@/lib/trends/mediaResolve';
 
 /** Coerce niche/category payloads that may arrive as objects from collectors. */
 function formatCategoryLabel(category: unknown): string {
@@ -98,6 +107,7 @@ type SourceRow = {
   creator: string | null;
   published_at: string | null;
   collected_at: string;
+  external_id?: string | null;
   metadata?: {
     views?: string;
     historical?: boolean;
@@ -106,12 +116,21 @@ type SourceRow = {
   } | null;
 };
 
-function sourceViewsLabel(item: { views?: string; url?: string; creator?: string | null }): string {
-  const views = item.views?.trim();
-  if (views && views !== 'Source') return views;
-  if (item.creator) return `by ${item.creator}`;
-  if (item.url) return 'View post';
-  return views || 'Source';
+function sourceThumb(item: {
+  url?: string | null;
+  thumbnail?: string | null;
+  externalId?: string | null;
+}): string | undefined {
+  const direct = item.thumbnail?.trim();
+  if (isRealHttpUrl(direct)) return direct;
+  const id = youtubeVideoIdFrom(item.url) || youtubeVideoIdFrom(item.externalId);
+  return id ? youtubeThumbnailUrl(id) : undefined;
+}
+
+function sourceHref(item: { url?: string | null; externalId?: string | null }): string | undefined {
+  if (isRealHttpUrl(item.url)) return item.url!.trim();
+  const id = youtubeVideoIdFrom(item.externalId);
+  return id ? youtubeWatchUrl(id) : undefined;
 }
 
 function RepresentativeContentCard({
@@ -126,13 +145,19 @@ function RepresentativeContentCard({
     historical?: boolean;
     url?: string;
     thumbnail?: string;
+    creator?: string | null;
   };
   fallbackPlatform: string;
 }) {
   const [imgFailed, setImgFailed] = useState(false);
-  const thumb = item.thumbnail?.trim();
+  const href = sourceHref({ url: item.url });
+  const thumb = sourceThumb({ url: item.url, thumbnail: item.thumbnail });
   const showImg = Boolean(thumb) && !imgFailed;
-  const caption = sourceViewsLabel(item);
+  const caption = sourceCaption({
+    url: href,
+    views: item.views,
+    creator: item.creator,
+  });
 
   const media = (
     <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
@@ -156,8 +181,8 @@ function RepresentativeContentCard({
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
-      {item.url ? (
-        <a href={item.url} target="_blank" rel="noopener noreferrer" className="block">
+      {href ? (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="block">
           {media}
         </a>
       ) : (
@@ -165,23 +190,20 @@ function RepresentativeContentCard({
       )}
       <div className="p-3">
         <p className="text-xs font-sans font-semibold text-foreground line-clamp-2">
-          {item.url ? (
-            <a
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary"
-            >
+          {href ? (
+            <a href={href} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
               {item.title}
             </a>
           ) : (
             item.title
           )}
         </p>
-        <p className="text-xs font-mono-custom text-muted-foreground mt-1">
-          {caption}
-          {item.historical ? ' · historical context' : ''}
-        </p>
+        {(caption || item.historical) && (
+          <p className="text-xs font-mono-custom text-muted-foreground mt-1">
+            {caption}
+            {item.historical ? `${caption ? ' · ' : ''}historical context` : ''}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -204,9 +226,19 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
   const [chartWindow, setChartWindow] = useState(72);
   const [history, setHistory] = useState<HistoryPayload | null>(null);
   const [sources, setSources] = useState<SourceRow[]>([]);
+  const [sourcesReady, setSourcesReady] = useState(false);
+  const [geoShares, setGeoShares] = useState<GeoShare[] | undefined>(undefined);
+  const [geoRegions, setGeoRegions] = useState<string[] | undefined>(undefined);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoFailed, setGeoFailed] = useState(false);
+  const [contentLoading, setContentLoading] = useState(false);
+  const enrichKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    enrichKeyRef.current = null;
+    setSourcesReady(false);
+    setSources([]);
     async function load() {
       try {
         const url = trendId ? `/api/trends/${trendId}` : '/api/trends';
@@ -217,11 +249,21 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
           if (data.trend) {
             setRemoteTrend(data.trend);
             setRelatedTrends(data.related ?? []);
+            setGeoShares(data.trend.geoShares);
+            setGeoRegions(data.trend.geoRegions);
+            setGeoFailed(false);
+            enrichKeyRef.current = null;
           } else {
             const list = (data.trends ?? data) as TrendItem[];
             if (Array.isArray(list) && list.length) {
               const match = trendId ? list.find((t) => t.id === trendId) : list[0];
-              if (match) setRemoteTrend(match);
+              if (match) {
+                setRemoteTrend(match);
+                setGeoShares(match.geoShares);
+                setGeoRegions(match.geoRegions);
+                setGeoFailed(false);
+                enrichKeyRef.current = null;
+              }
             }
           }
         }
@@ -254,12 +296,83 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
         }
       } catch {
         // optional enrichment
+      } finally {
+        if (!cancelled) setSourcesReady(true);
       }
     })();
     return () => {
       cancelled = true;
     };
   }, [trendId]);
+
+  const runEnrich = (force = false) => {
+    if (!trendId || !remoteTrend) return;
+    const needGeo = !hasRealCountryMix({
+      shares: geoShares ?? remoteTrend.geoShares,
+    });
+    const sourceIncomplete =
+      sources.length === 0 ||
+      sources.some((s) => {
+        const thumb = s.metadata?.thumbnail || s.metadata?.imageUrl;
+        return !isRealSourceMedia({
+          url: sourceHref({ url: s.url, externalId: s.external_id }),
+          thumbnail: thumb,
+        });
+      });
+    const topIncomplete = (remoteTrend.topContent ?? []).some(
+      (item) => !isRealSourceMedia({ url: item.url, thumbnail: item.thumbnail })
+    );
+    const needSources = sourceIncomplete || (sources.length === 0 && topIncomplete);
+    if (!needGeo && !needSources) return;
+
+    const key = `${trendId}:${needGeo ? 'geo' : ''}${needSources ? 'src' : ''}`;
+    if (!force && enrichKeyRef.current === key) return;
+    enrichKeyRef.current = key;
+
+    if (needGeo) {
+      setGeoLoading(true);
+      setGeoFailed(false);
+    }
+    if (needSources) setContentLoading(true);
+
+    void (async () => {
+      try {
+        const kind = needGeo && needSources ? 'all' : needGeo ? 'geo' : 'sources';
+        const res = await fetch(`/api/trends/${encodeURIComponent(trendId)}/enrich`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ kind }),
+        });
+        if (!res.ok) {
+          if (needGeo) setGeoFailed(true);
+          return;
+        }
+        const data = await res.json();
+        if (Array.isArray(data.geoShares) && data.geoShares.length) {
+          setGeoShares(data.geoShares);
+          setGeoRegions(data.geoRegions || data.geoShares.map((s: GeoShare) => s.country));
+          setGeoFailed(false);
+        } else if (needGeo) {
+          setGeoFailed(true);
+        }
+        if (Array.isArray(data.sources) && data.sources.length) {
+          setSources(data.sources);
+        }
+      } catch {
+        if (needGeo) setGeoFailed(true);
+      } finally {
+        setGeoLoading(false);
+        setContentLoading(false);
+      }
+    })();
+  };
+
+  useEffect(() => {
+    if (!sourcesReady) return;
+    runEnrich(false);
+    // Enrich once per trend after initial trend + sources land.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trendId, remoteTrend, sourcesReady]);
 
   useEffect(() => {
     if (!remoteTrend?.firstDetectedAt) return;
@@ -273,15 +386,20 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
   }, [remoteTrend?.firstDetectedAt]);
 
   const TREND = useMemo(() => {
-    if (remoteTrend) return toUiTrend(remoteTrend);
+    const overlay = (t: TrendItem) => ({
+      ...toUiTrend(t),
+      geoRegions: geoRegions ?? t.geoRegions,
+      geoShares: geoShares ?? t.geoShares,
+    });
+    if (remoteTrend) return overlay(remoteTrend);
     const fromMock = !isSupabaseConfigured()
       ? trendId
         ? MOCK_TRENDS.find((t) => t.id === trendId)
         : MOCK_TRENDS[0]
       : undefined;
-    if (fromMock) return toUiTrend(fromMock);
+    if (fromMock) return overlay(fromMock);
     return null;
-  }, [remoteTrend, trendId]);
+  }, [remoteTrend, trendId, geoRegions, geoShares]);
 
   const activeSeries = useMemo(() => {
     const series = history?.series || [];
@@ -337,25 +455,38 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
 
   const contentItems =
     sources.length > 0
-      ? sources.slice(0, 6).map((s) => ({
-          id: String(s.id),
-          title: s.title || TREND.title,
-          views: sourceViewsLabel({
-            views: s.metadata?.views,
-            url: s.url || undefined,
+      ? sources.slice(0, 6).map((s) => {
+          const href = sourceHref({ url: s.url, externalId: s.external_id });
+          const thumb = sourceThumb({
+            url: href,
+            thumbnail: s.metadata?.thumbnail || s.metadata?.imageUrl,
+            externalId: s.external_id,
+          });
+          return {
+            id: String(s.id),
+            title: s.title || TREND.title,
+            views: sourceCaption({
+              views: s.metadata?.views,
+              url: href,
+              creator: s.creator,
+            }),
+            platform: s.platform,
+            historical: Boolean(s.metadata?.historical) || Boolean(s.published_at),
+            url: href,
+            thumbnail: thumb,
             creator: s.creator,
-          }),
-          platform: s.platform,
-          historical: Boolean(s.metadata?.historical) || Boolean(s.published_at),
-          url: s.url || undefined,
-          thumbnail: s.metadata?.thumbnail || s.metadata?.imageUrl,
-        }))
-      : (remoteTrend?.topContent ?? []).map((item) => ({
-          ...item,
-          historical: false as boolean,
-          url: item.url,
-          thumbnail: item.thumbnail,
-        }));
+          };
+        })
+      : (remoteTrend?.topContent ?? []).map((item) => {
+          const href = sourceHref({ url: item.url });
+          return {
+            ...item,
+            historical: false as boolean,
+            url: href,
+            thumbnail: sourceThumb({ url: href, thumbnail: item.thumbnail }),
+            creator: undefined as string | undefined,
+          };
+        });
 
   return (
     <div className="min-h-screen bg-background">
@@ -545,7 +676,21 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
                 windowHours={chartWindow}
                 velocities={activeSeries?.velocities || history?.velocities}
               />
-              <TrendGeoChart regions={TREND.geoRegions} shares={TREND.geoShares} />
+              <TrendGeoChart
+                regions={TREND.geoRegions}
+                shares={TREND.geoShares}
+                loading={
+                  geoLoading ||
+                  (!hasRealCountryMix({ shares: TREND.geoShares }) &&
+                    !hasRealCountryMix({ regions: TREND.geoRegions }) &&
+                    !geoFailed)
+                }
+                failed={geoFailed}
+                onRetry={() => {
+                  enrichKeyRef.current = null;
+                  runEnrich(true);
+                }}
+              />
             </div>
 
             {relatedTrends.length > 0 && (
@@ -571,30 +716,32 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
               <h3 className="font-mono-custom text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Representative content
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {(contentItems.length
-                  ? contentItems
-                  : [
-                      {
-                        id: '1',
-                        title: 'Top post for this topic',
-                        views: '—',
-                        platform: TREND.platforms[0],
-                        historical: true,
-                        url: undefined as string | undefined,
-                        thumbnail: undefined as string | undefined,
-                      },
-                    ]
-                )
-                  .slice(0, 6)
-                  .map((item) => (
+              {contentItems.length === 0 && contentLoading ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {[1, 2, 3].map((n) => (
+                    <div
+                      key={`content-skel-${n}`}
+                      className="rounded-xl border border-border bg-card overflow-hidden"
+                    >
+                      <div className="aspect-video bg-muted animate-pulse" />
+                      <div className="p-3 space-y-2">
+                        <div className="h-3 bg-muted rounded animate-pulse" />
+                        <div className="h-3 w-1/2 bg-muted rounded animate-pulse" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {contentItems.slice(0, 6).map((item) => (
                     <RepresentativeContentCard
                       key={item.id}
                       item={item}
                       fallbackPlatform={TREND.platforms[0] || 'google'}
                     />
                   ))}
-              </div>
+                </div>
+              )}
             </div>
 
             {TREND.id && <TrendFeedbackControl trendId={TREND.id} />}

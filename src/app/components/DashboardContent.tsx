@@ -8,6 +8,7 @@ import DashboardSidebar from './DashboardSidebar';
 import TrendCard from './TrendCard';
 import RealtimeStatus from './RealtimeStatus';
 import DataSourceStatus from './DataSourceStatus';
+import { untilRealResult } from '@/lib/loop/untilRealResult';
 import type { TrendItem } from '@/lib/mockData';
 import { BRIEF_NICHES } from '@/lib/mockData';
 import { COUNTRIES } from '@/lib/countries';
@@ -144,23 +145,41 @@ export default function DashboardContent() {
 
   const loadTrends = useCallback(
     async (refresh = false, filters = activeFilters) => {
-      try {
-        const qs = buildQuery(filters);
-        const res = await fetch(`/api/trends?${qs}${refresh ? '&refresh=1' : ''}`);
-        if (!res.ok) {
-          setSource('error');
-          return;
-        }
-        const data = await res.json();
-        if (Array.isArray(data.trends)) {
-          setTrends(data.trends);
-          setSource(data.source || 'api');
-          setLastIngestAt(data.lastIngestAt || data.collectedAt || null);
-          setTotalBeforeFilter(Number(data.totalBeforeFilter) || data.trends.length);
-        }
-      } catch {
-        setSource('error');
+      const hasNiche = !filters.categories.includes('All') && filters.categories.length > 0;
+      const payload = await untilRealResult({
+        attempts: hasNiche ? 4 : 3,
+        delayMs: (n) => 400 * n,
+        isReal: (data) => {
+          if (!data || !Array.isArray(data.trends)) return false;
+          if (data.trends.length > 0) return true;
+          return !hasNiche;
+        },
+        run: async () => {
+          try {
+            const qs = buildQuery(filters);
+            const res = await fetch(`/api/trends?${qs}${refresh ? '&refresh=1' : ''}`);
+            if (!res.ok) return null;
+            return (await res.json()) as {
+              trends?: TrendItem[];
+              source?: string;
+              lastIngestAt?: string;
+              collectedAt?: string;
+              totalBeforeFilter?: number;
+            };
+          } catch {
+            return null;
+          }
+        },
+      });
+      if (payload && Array.isArray(payload.trends)) {
+        setTrends(payload.trends);
+        setSource(payload.source || 'api');
+        setLastIngestAt(payload.lastIngestAt || payload.collectedAt || null);
+        setTotalBeforeFilter(Number(payload.totalBeforeFilter) || payload.trends.length);
+        return;
       }
+      setTrends([]);
+      setSource(hasNiche ? 'api' : 'error');
     },
     [activeFilters]
   );

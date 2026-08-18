@@ -255,6 +255,23 @@ function withOptionalThumbnail(
   return meta;
 }
 
+/** Merge a real url/thumbnail onto an existing trend_sources row (no fabricated fields). */
+export function mergeSourceMediaPatch(
+  existing: { url?: string | null; metadata?: Record<string, unknown> | null },
+  patch: { url?: string; thumbnail?: string }
+): { url: string | null; metadata: Record<string, unknown> } {
+  const url = nonemptyString(patch.url) || nonemptyString(existing.url) || null;
+  const meta: Record<string, unknown> = { ...(existing.metadata || {}) };
+  const thumb =
+    nonemptyString(patch.thumbnail) ||
+    nonemptyString(typeof meta.thumbnail === 'string' ? meta.thumbnail : null) ||
+    nonemptyString(typeof meta.imageUrl === 'string' ? meta.imageUrl : null);
+  return {
+    url,
+    metadata: withOptionalThumbnail(meta, thumb),
+  };
+}
+
 function decodeRedditSourceMeta(item: TrendTopContent): {
   meta: Record<string, unknown>;
   permalink: string | null;

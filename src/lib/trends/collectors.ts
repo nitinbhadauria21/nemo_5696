@@ -19,8 +19,8 @@ import {
   extractCommentKeywords,
 } from './redditVelocity';
 import type { RedditPostSnapshot } from './redditVelocity';
+import { fetchGoogleInterestByRegion } from './enrichGeo';
 import {
-  parseInterestByRegion,
   resolveCollectionGeoCodes,
   normalizeGeoRegionCodes,
   mergeGeoShares,
@@ -578,13 +578,14 @@ async function collectYouTubeNative(): Promise<TrendItem[]> {
         const watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : undefined;
         const thumbs = item.snippet?.thumbnails as
           Record<string, { url?: string } | undefined> | undefined;
-        const thumbnail = firstHttpUrl(
-          thumbs?.high?.url,
-          thumbs?.medium?.url,
-          thumbs?.standard?.url,
-          thumbs?.default?.url,
-          thumbs?.maxres?.url
-        );
+        const thumbnail =
+          firstHttpUrl(
+            thumbs?.high?.url,
+            thumbs?.medium?.url,
+            thumbs?.standard?.url,
+            thumbs?.default?.url,
+            thumbs?.maxres?.url
+          ) || (videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : undefined);
         return toTrendItem({
           topic: title,
           niche: mapToUiCategory(String(item.snippet?.categoryId || ''), title),
@@ -656,7 +657,9 @@ async function collectYouTubeScrapeCreators(): Promise<TrendItem[]> {
       const title = String(item.title || `YouTube Short ${idx}`).slice(0, 120);
       const shortId = String(item.id || '');
       const watchUrl = shortId ? `https://www.youtube.com/shorts/${shortId}` : undefined;
-      const thumbnail = firstHttpUrl(item.thumbnailUrl, item.thumbnail);
+      const thumbnail =
+        firstHttpUrl(item.thumbnailUrl, item.thumbnail) ||
+        (shortId ? `https://i.ytimg.com/vi/${shortId}/hqdefault.jpg` : undefined);
       return toTrendItem({
         topic: title,
         niche: mapToUiCategory(keywords.join(' '), title),
@@ -741,47 +744,8 @@ function mapGoogleTrendRows(items: any[], sourceLabel: string, geo: string[]): T
   );
 }
 
-const GEO_MAP_TIMEOUT_MS = 8000;
 const GEO_MAP_CONCURRENCY = 3;
 const GEO_MAP_MAX_QUERIES = 8;
-
-async function fetchGoogleInterestByRegion(query: string): Promise<GeoShare[]> {
-  const q = query.trim();
-  if (!q) return [];
-  const serpKey = process.env.SERPAPI_KEY?.trim();
-  const searchApiKey = process.env.SEARCHAPI_KEY?.trim() || process.env.SEARCHAPI_API_KEY?.trim();
-  const signal = AbortSignal.timeout(GEO_MAP_TIMEOUT_MS);
-
-  const tryFetch = async (url: string): Promise<GeoShare[]> => {
-    const res = await fetch(url, { cache: 'no-store', signal });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return parseInterestByRegion(data).slice(0, 10);
-  };
-
-  try {
-    if (serpKey) {
-      const url = new URL('https://serpapi.com/search.json');
-      url.searchParams.set('engine', 'google_trends');
-      url.searchParams.set('q', q);
-      url.searchParams.set('data_type', 'GEO_MAP');
-      url.searchParams.set('api_key', serpKey);
-      const parsed = await tryFetch(url.toString());
-      if (parsed.length) return parsed;
-    }
-    if (searchApiKey) {
-      const url = new URL('https://www.searchapi.io/api/v1/search');
-      url.searchParams.set('engine', 'google_trends');
-      url.searchParams.set('q', q);
-      url.searchParams.set('data_type', 'GEO_MAP');
-      url.searchParams.set('api_key', searchApiKey);
-      return await tryFetch(url.toString());
-    }
-  } catch {
-    return [];
-  }
-  return [];
-}
 
 async function enrichGoogleTrendsGeo(trends: TrendItem[]): Promise<TrendItem[]> {
   if (!trends.length) return trends;

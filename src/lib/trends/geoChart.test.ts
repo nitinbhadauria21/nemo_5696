@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { buildGeoChartRows, parseInterestByRegion, resolveCollectionGeoCodes } from './geoChart';
+import {
+  buildGeoChartRows,
+  hasRealCountryMix,
+  parseInterestByRegion,
+  resolveCollectionGeoCodes,
+} from './geoChart';
 
 describe('buildGeoChartRows', () => {
   it('returns no rows for GLOBAL-only or empty geo (no fake world bar)', () => {
@@ -79,6 +84,15 @@ describe('parseInterestByRegion', () => {
       ],
     });
     assert.deepEqual(rows, [{ country: 'BR', share: 55 }]);
+  });
+});
+
+describe('hasRealCountryMix', () => {
+  it('is false for GLOBAL / empty and true for API shares or real countries', () => {
+    assert.equal(hasRealCountryMix({ regions: ['GLOBAL'] }), false);
+    assert.equal(hasRealCountryMix({ regions: [] }), false);
+    assert.equal(hasRealCountryMix({ shares: [{ country: 'US', share: 100 }] }), true);
+    assert.equal(hasRealCountryMix({ regions: ['IN', 'US'] }), true);
   });
 });
 

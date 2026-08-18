@@ -523,6 +523,7 @@ function sleep(ms: number) {
 /**
  * OpenRouter quality path (B+C):
  * For each free model (up to 3), try twice on transient/empty errors, then fall back.
+ * Empty / unparseable completions are treated as retryable — same contract as untilRealResult.
  */
 export async function createCompletionWithFallbacks(options: {
   provider: ProviderId;

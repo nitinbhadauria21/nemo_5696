@@ -1,12 +1,20 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { untilRealResult } from '@/lib/loop/untilRealResult';
 import {
   getChatCompletion,
   getStreamingChatCompletion,
   type ChatExtras,
 } from '@/lib/ai/chatCompletion';
 import { friendlyAiError } from '@/lib/ai/aiClient';
+
+function completionText(result: unknown): string {
+  if (!result || typeof result !== 'object') return '';
+  const content = (result as { choices?: { message?: { content?: unknown } }[] }).choices?.[0]
+    ?.message?.content;
+  return typeof content === 'string' ? content : '';
+}
 
 export function useChat(provider: string, model: string, streaming: boolean = true, task?: string) {
   const [response, setResponse] = useState('');
@@ -42,20 +50,25 @@ export function useChat(provider: string, model: string, streaming: boolean = tr
             extras
           );
         } else {
-          const result = await getChatCompletion(
-            provider,
-            model,
-            messages,
-            parameters,
-            task,
-            extras
-          );
-          setFullResponse(result);
-          const content = result?.choices?.[0]?.message?.content || '';
-          if (!String(content).trim()) {
+          const result = await untilRealResult({
+            attempts: 3,
+            delayMs: (n) => 300 * n,
+            isReal: (row) => Boolean(completionText(row).trim()),
+            run: async () => {
+              try {
+                return await getChatCompletion(provider, model, messages, parameters, task, extras);
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : '';
+                if (/sign in|unauthorized|limit/i.test(msg)) throw err;
+                return { choices: [{ message: { content: '' } }] };
+              }
+            },
+          });
+          if (!result) {
             throw new Error(friendlyAiError('ai_empty_response'));
           }
-          setResponse(content);
+          setFullResponse(result);
+          setResponse(completionText(result));
           setIsLoading(false);
         }
       } catch (err) {

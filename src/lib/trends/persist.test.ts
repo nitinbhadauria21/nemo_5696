@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { TrendItem } from '../mockData';
-import { mapTrendSourceRows } from './persist';
+import { mapTrendSourceRows, mergeSourceMediaPatch } from './persist';
 
 function makeTrend(overrides: Partial<TrendItem> & { id: string }): TrendItem {
   return {
@@ -187,5 +187,18 @@ describe('mapTrendSourceRows', () => {
     );
 
     assert.equal(rows[0].url, 'https://www.reddit.com/r/test/comments/xyz/custom/');
+  });
+
+  it('merges url and thumbnail onto an existing source without dropping metadata', () => {
+    const merged = mergeSourceMediaPatch(
+      { url: null, metadata: { views: '9K', historical: false } },
+      {
+        url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
+      }
+    );
+    assert.equal(merged.url, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    assert.equal(merged.metadata.views, '9K');
+    assert.equal(merged.metadata.thumbnail, 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg');
   });
 });

@@ -9,6 +9,7 @@ import {
   selectOpenRouterRoute,
   type OpenRouterTask,
 } from '@/lib/ai/openRouterRouter';
+import { untilRealResult } from '@/lib/loop/untilRealResult';
 
 function extractText(result: unknown): string {
   if (!result || typeof result !== 'object') return String(result ?? '');
@@ -77,13 +78,24 @@ export async function runAiPrompt(
       models: route.models,
       strategy: route.strategy,
     });
-    const result = await createCompletionWithFallbacks({
-      provider,
-      models: route.models,
-      messages: [{ role: 'user', content: prompt }],
-      stream: false,
+    const text = await untilRealResult({
+      attempts: 2,
+      delayMs: (n) => 250 * n,
+      isReal: (value) => Boolean(value && value.trim()),
+      run: async () => {
+        try {
+          const result = await createCompletionWithFallbacks({
+            provider,
+            models: route.models,
+            messages: [{ role: 'user', content: prompt }],
+            stream: false,
+          });
+          return extractText(result).trim();
+        } catch {
+          return '';
+        }
+      },
     });
-    const text = extractText(result).trim();
     if (!text) {
       throw Object.assign(new Error('AI returned an empty response'), {
         code: 'ai_empty_response',
