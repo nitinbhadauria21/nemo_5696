@@ -93,11 +93,33 @@ const STEPS = [
   },
 ];
 
+const HERO_VIDEO_SRC = '/landing/hero-bg-lite.mp4';
+
+type NavigatorConnection = {
+  saveData?: boolean;
+  effectiveType?: string;
+};
+
+function shouldSkipHeroVideo(): boolean {
+  if (typeof window === 'undefined') return true;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+  const nav = navigator as Navigator & {
+    connection?: NavigatorConnection;
+    mozConnection?: NavigatorConnection;
+    webkitConnection?: NavigatorConnection;
+  };
+  const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
+  if (conn?.saveData) return true;
+  if (conn?.effectiveType === 'slow-2g' || conn?.effectiveType === '2g') return true;
+  return false;
+}
+
 export default function LandingContent() {
   const rootRef = useRef<HTMLDivElement>(null);
   const heroVideoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const [soundOn, setSoundOn] = useState(false);
+  const [heroVideoEnabled, setHeroVideoEnabled] = useState(false);
 
   useScrollReveal(rootRef);
   useCountUp(rootRef);
@@ -118,46 +140,44 @@ export default function LandingContent() {
     return () => window.removeEventListener('scroll', update, { capture: true });
   }, []);
 
-  // Muted autoplay on mount — browsers block unmuted autoplay without a gesture.
-  // Skip fetching the video when the user prefers reduced motion (poster only).
+  // Small muted loop. Skip on 2G / Save-Data / reduced motion so the poster stays still.
+  // Wait for canplaythrough so playback does not start mid-buffer (stutter).
   useEffect(() => {
     const video = heroVideoRef.current;
     if (!video) return;
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (shouldSkipHeroVideo()) {
+      setHeroVideoEnabled(false);
       video.removeAttribute('src');
       video.preload = 'none';
       video.load();
       return;
     }
 
+    setHeroVideoEnabled(true);
     video.muted = true;
     video.defaultMuted = true;
     video.setAttribute('muted', '');
     video.playsInline = true;
     video.loop = true;
-    video.preload = 'metadata';
-    video.src = '/landing/hero-bg.mp4';
+    video.preload = 'auto';
+    video.src = HERO_VIDEO_SRC;
 
-    const tryPlay = () => {
+    const markReadyAndPlay = () => {
+      video.classList.add('is-ready');
       if (video.paused) {
         void video.play().catch(() => {
-          /* retry on later media events */
+          /* autoplay can still be blocked; poster stays visible */
         });
       }
     };
 
-    tryPlay();
-    video.addEventListener('loadedmetadata', tryPlay);
-    video.addEventListener('loadeddata', tryPlay);
-    video.addEventListener('canplay', tryPlay);
-    document.addEventListener('visibilitychange', tryPlay);
+    video.addEventListener('canplaythrough', markReadyAndPlay);
+    document.addEventListener('visibilitychange', markReadyAndPlay);
 
     return () => {
-      video.removeEventListener('loadedmetadata', tryPlay);
-      video.removeEventListener('loadeddata', tryPlay);
-      video.removeEventListener('canplay', tryPlay);
-      document.removeEventListener('visibilitychange', tryPlay);
+      video.removeEventListener('canplaythrough', markReadyAndPlay);
+      document.removeEventListener('visibilitychange', markReadyAndPlay);
     };
   }, []);
 
@@ -232,28 +252,29 @@ export default function LandingContent() {
           <video
             ref={heroVideoRef}
             className="hero-video"
-            autoPlay
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="none"
             poster="/landing/hero-poster.webp"
             aria-hidden="true"
           />
           <div className="hero-media-fade-x" aria-hidden="true" />
           <div className="hero-media-fade-y" aria-hidden="true" />
-          <button
-            type="button"
-            className={`hero-sound${soundOn ? ' is-on' : ''}`}
-            onClick={toggleSound}
-            aria-pressed={soundOn}
-            aria-label={soundOn ? 'Mute hero video' : 'Unmute hero video'}
-          >
-            <span className="hero-sound-icon" aria-hidden="true">
-              {soundOn ? <IconSoundOn /> : <IconSoundOff />}
-            </span>
-            <span>{soundOn ? 'Sound off' : 'Sound on'}</span>
-          </button>
+          {heroVideoEnabled ? (
+            <button
+              type="button"
+              className={`hero-sound${soundOn ? ' is-on' : ''}`}
+              onClick={toggleSound}
+              aria-pressed={soundOn}
+              aria-label={soundOn ? 'Mute hero video' : 'Unmute hero video'}
+            >
+              <span className="hero-sound-icon" aria-hidden="true">
+                {soundOn ? <IconSoundOn /> : <IconSoundOff />}
+              </span>
+              <span>{soundOn ? 'Sound off' : 'Sound on'}</span>
+            </button>
+          ) : null}
         </div>
 
         <div className="hero-veil" aria-hidden="true" />

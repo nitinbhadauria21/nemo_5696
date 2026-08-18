@@ -443,6 +443,7 @@ html:has(.landing-root) body {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  background: #0d0907 url('/landing/hero-poster.webp') center 28% / cover no-repeat;
 }
 
 .landing-root .hero-video {
@@ -453,7 +454,7 @@ html:has(.landing-root) body {
   object-fit: cover;
   object-position: center 28%;
   display: block;
-  opacity: 1;
+  opacity: 0;
   /* Soft left falloff — dissolves into dark canvas; no hard cut */
   -webkit-mask-image: linear-gradient(
     90deg,
@@ -475,6 +476,10 @@ html:has(.landing-root) body {
     rgba(0, 0, 0, 0.88) 64%,
     #000 78%
   );
+}
+
+.landing-root .hero-video.is-ready {
+  opacity: 1;
 }
 
 .landing-root .hero-media-fade-x {
