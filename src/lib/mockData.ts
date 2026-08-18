@@ -25,6 +25,16 @@ export type TrendPlatform =
 
 export type TrendContentType = 'TOPIC' | 'HOOK' | 'CONCEPT' | 'KEYWORD';
 
+/** Representative post shown on trend detail. */
+export type TrendTopContent = {
+  id: string;
+  title: string;
+  views: string;
+  platform?: string;
+  url?: string;
+  thumbnail?: string;
+};
+
 export interface TrendItem {
   id: string;
   title: string;
@@ -75,7 +85,9 @@ export interface TrendItem {
 
   // New signals from document
   geoRegions?: string[];
-  topContent?: { id: string; title: string; views: string; platform?: string }[];
+  /** Ranked country interest (Google Trends GEO_MAP, etc.). Share is 0–100 relative to the top country. */
+  geoShares?: { country: string; share: number }[];
+  topContent?: TrendTopContent[];
   breakoutBoolean?: boolean;
   queryClusterId?: string;
   clusterId?: string;

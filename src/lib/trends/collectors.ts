@@ -1,4 +1,4 @@
-import type { TrendItem, TrendPlatform, TrendStatus } from '@/lib/mockData';
+import type { TrendItem, TrendPlatform, TrendStatus, TrendTopContent } from '@/lib/mockData';
 import type { Platform, RedditSortPosition } from '@/lib/signals';
 import {
   computeFullNemoScore,
@@ -19,6 +19,13 @@ import {
   extractCommentKeywords,
 } from './redditVelocity';
 import type { RedditPostSnapshot } from './redditVelocity';
+import {
+  parseInterestByRegion,
+  resolveCollectionGeoCodes,
+  normalizeGeoRegionCodes,
+  mergeGeoShares,
+  type GeoShare,
+} from './geoChart';
 
 function hashId(input: string): string {
   let h = 0;
@@ -46,11 +53,9 @@ function mapUiPlatforms(platforms: TrendPlatform[]): Platform[] {
   });
 }
 
-/** Collection geo: GLOBAL by default; else 2-letter country from env. */
+/** Collection geo: empty when worldwide/unset; else 2-letter country from env. */
 export function collectionGeoRegions(override?: string | null): string[] {
-  const raw = (override ?? process.env.GOOGLE_TRENDS_GEO ?? 'GLOBAL').trim().toUpperCase();
-  if (!raw || raw === 'GLOBAL' || raw === 'WW' || raw === 'WORLD') return ['GLOBAL'];
-  return [raw.slice(0, 2)];
+  return resolveCollectionGeoCodes(override, process.env.GOOGLE_TRENDS_GEO);
 }
 
 /** Map free-text / DB niche toward brief Dashboard niches. */
@@ -126,9 +131,10 @@ function toTrendItem(input: {
   description?: string;
   hashtags?: string[];
   geoRegions?: string[];
+  geoShares?: GeoShare[];
   id?: string;
   sourceUrl?: string;
-  topContent?: { id: string; title: string; views: string; platform?: string }[];
+  topContent?: TrendTopContent[];
 }): TrendItem | null {
   const ageHours = Math.max(0.25, input.ageHours);
   // Product time rule: do not persist / surface evergreen content older than 30 days
@@ -154,7 +160,12 @@ function toTrendItem(input: {
     description: input.description,
     hashtags: input.hashtags,
   });
-  const geoRegions = input.geoRegions?.length ? input.geoRegions : collectionGeoRegions();
+  const geoShares = input.geoShares?.length ? input.geoShares : undefined;
+  const geoRegions = normalizeGeoRegionCodes(
+    input.geoRegions?.length
+      ? input.geoRegions
+      : (geoShares?.map((s) => s.country) ?? collectionGeoRegions())
+  );
   const score = computeFullNemoScore({
     creatorVelocityInputs: {
       creators_last_6h: creators6h,
@@ -220,6 +231,8 @@ function toTrendItem(input: {
     spike: Number((mentions24h / Math.max(mentionsPrev24h, 1)).toFixed(2)),
     contentType: 'TOPIC',
     geoRegions,
+    geoShares,
+    geoSpreadScore: geoShares?.length || geoRegions.length,
     sourceUrl: input.sourceUrl,
     topContent: input.topContent,
   };
@@ -227,6 +240,45 @@ function toTrendItem(input: {
 
 function compactTrends(items: Array<TrendItem | null | undefined>): TrendItem[] {
   return items.filter((t): t is TrendItem => t != null);
+}
+
+function firstHttpUrl(...candidates: Array<string | null | undefined>): string | undefined {
+  for (const c of candidates) {
+    const v = typeof c === 'string' ? c.trim() : '';
+    if (v.startsWith('http')) return v;
+  }
+  return undefined;
+}
+
+function pickInstagramMediaImage(item: {
+  media_type?: string;
+  media_url?: string;
+  thumbnail_url?: string;
+}): string | undefined {
+  const type = String(item.media_type || '').toUpperCase();
+  if (type === 'VIDEO' || type === 'REELS') {
+    return firstHttpUrl(item.thumbnail_url, item.media_url);
+  }
+  return firstHttpUrl(item.media_url, item.thumbnail_url);
+}
+
+function mediaTopContent(input: {
+  id: string;
+  title: string;
+  views: string | number;
+  platform: TrendPlatform;
+  url?: string;
+  thumbnail?: string;
+}): TrendTopContent[] {
+  const item: TrendTopContent = {
+    id: input.id,
+    title: input.title.slice(0, 120),
+    views: String(input.views),
+    platform: input.platform,
+  };
+  if (input.url) item.url = input.url;
+  if (input.thumbnail) item.thumbnail = input.thumbnail;
+  return [item];
 }
 
 /**
@@ -435,6 +487,8 @@ export async function collectRedditTrends(
             title: post.title.slice(0, 120),
             views: sourceMetaJson,
             platform: 'reddit',
+            url: permalink,
+            thumbnail: post.thumbnail,
           },
         ],
       });
@@ -447,7 +501,20 @@ function mergeTrendsByTitle(items: TrendItem[]): TrendItem[] {
   for (const t of items) {
     const key = t.title.toLowerCase().replace(/\s+/g, ' ').trim();
     const existing = byTitle.get(key);
-    if (!existing || t.nemoScore > existing.nemoScore) byTitle.set(key, t);
+    if (!existing) {
+      byTitle.set(key, t);
+      continue;
+    }
+    const winner = t.nemoScore > existing.nemoScore ? t : existing;
+    const other = winner === t ? existing : t;
+    byTitle.set(key, {
+      ...winner,
+      geoRegions: normalizeGeoRegionCodes([
+        ...(winner.geoRegions ?? []),
+        ...(other.geoRegions ?? []),
+      ]),
+      geoShares: mergeGeoShares(winner.geoShares, other.geoShares),
+    });
   }
   return [...byTitle.values()];
 }
@@ -507,6 +574,17 @@ async function collectYouTubeNative(): Promise<TrendItem[]> {
         });
 
         const mentions24h = Math.max(100, Math.round(views / 100));
+        const videoId = String(item.id || '');
+        const watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : undefined;
+        const thumbs = item.snippet?.thumbnails as
+          Record<string, { url?: string } | undefined> | undefined;
+        const thumbnail = firstHttpUrl(
+          thumbs?.high?.url,
+          thumbs?.medium?.url,
+          thumbs?.standard?.url,
+          thumbs?.default?.url,
+          thumbs?.maxres?.url
+        );
         return toTrendItem({
           topic: title,
           niche: mapToUiCategory(String(item.snippet?.categoryId || ''), title),
@@ -520,6 +598,15 @@ async function collectYouTubeNative(): Promise<TrendItem[]> {
           description: String(item.snippet?.description || '').slice(0, 220),
           hashtags: ['#youtube'],
           geoRegions: geo,
+          sourceUrl: watchUrl,
+          topContent: mediaTopContent({
+            id: videoId || `yt-${idx}`,
+            title,
+            views,
+            platform: 'youtube',
+            url: watchUrl,
+            thumbnail,
+          }),
         });
       })
     );
@@ -545,6 +632,8 @@ async function collectYouTubeScrapeCreators(): Promise<TrendItem[]> {
       commentCountInt?: number | null;
       publishDate?: string | null;
       keywords?: string[];
+      thumbnail?: string | null;
+      thumbnailUrl?: string | null;
     }>;
   }>('/v1/youtube/shorts/trending', {}, { timeoutMs: 45000 });
 
@@ -565,6 +654,9 @@ async function collectYouTubeScrapeCreators(): Promise<TrendItem[]> {
         .map((k) => `#${String(k).replace(/\s+/g, '')}`);
       const mentions24h = Math.max(100, Math.round(views / 100));
       const title = String(item.title || `YouTube Short ${idx}`).slice(0, 120);
+      const shortId = String(item.id || '');
+      const watchUrl = shortId ? `https://www.youtube.com/shorts/${shortId}` : undefined;
+      const thumbnail = firstHttpUrl(item.thumbnailUrl, item.thumbnail);
       return toTrendItem({
         topic: title,
         niche: mapToUiCategory(keywords.join(' '), title),
@@ -578,6 +670,15 @@ async function collectYouTubeScrapeCreators(): Promise<TrendItem[]> {
         description: String(item.description || item.title || '').slice(0, 220),
         hashtags: keywords.length ? keywords : ['#youtube', '#shorts'],
         geoRegions: geo,
+        sourceUrl: watchUrl,
+        topContent: mediaTopContent({
+          id: shortId || `shorts-${idx}`,
+          title,
+          views,
+          platform: 'youtube_shorts',
+          url: watchUrl,
+          thumbnail,
+        }),
       });
     })
   );
@@ -595,7 +696,22 @@ export async function collectYouTubeTrends(): Promise<TrendItem[]> {
   return mergeTrendsByTitle([...native, ...scrapeCreators]);
 }
 
+function geosFromGoogleItem(item: Record<string, unknown>, fallback: string[]): string[] {
+  const candidates = [item.geo, item.geos, item.regions, item.countries, item.locations];
+  for (const raw of candidates) {
+    if (Array.isArray(raw)) {
+      const codes = normalizeGeoRegionCodes(raw.map((x) => String(x)));
+      if (codes.length) return codes;
+    } else if (typeof raw === 'string') {
+      const codes = resolveCollectionGeoCodes(raw);
+      if (codes.length) return codes;
+    }
+  }
+  return fallback;
+}
+
 function mapGoogleTrendRows(items: any[], sourceLabel: string, geo: string[]): TrendItem[] {
+  void sourceLabel;
   return compactTrends(
     items.slice(0, 8).map((item: any, idx: number) => {
       const title = String(item.query || item.title || item.story_title || `Trend ${idx}`).slice(
@@ -619,10 +735,76 @@ function mapGoogleTrendRows(items: any[], sourceLabel: string, geo: string[]): T
         ageHours: 2 + idx,
         description: `Rising search interest: ${title}`,
         hashtags: ['#googletrends'],
-        geoRegions: geo,
+        geoRegions: geosFromGoogleItem(item, geo),
       });
     })
   );
+}
+
+const GEO_MAP_TIMEOUT_MS = 8000;
+const GEO_MAP_CONCURRENCY = 3;
+const GEO_MAP_MAX_QUERIES = 8;
+
+async function fetchGoogleInterestByRegion(query: string): Promise<GeoShare[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const serpKey = process.env.SERPAPI_KEY?.trim();
+  const searchApiKey = process.env.SEARCHAPI_KEY?.trim() || process.env.SEARCHAPI_API_KEY?.trim();
+  const signal = AbortSignal.timeout(GEO_MAP_TIMEOUT_MS);
+
+  const tryFetch = async (url: string): Promise<GeoShare[]> => {
+    const res = await fetch(url, { cache: 'no-store', signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return parseInterestByRegion(data).slice(0, 10);
+  };
+
+  try {
+    if (serpKey) {
+      const url = new URL('https://serpapi.com/search.json');
+      url.searchParams.set('engine', 'google_trends');
+      url.searchParams.set('q', q);
+      url.searchParams.set('data_type', 'GEO_MAP');
+      url.searchParams.set('api_key', serpKey);
+      const parsed = await tryFetch(url.toString());
+      if (parsed.length) return parsed;
+    }
+    if (searchApiKey) {
+      const url = new URL('https://www.searchapi.io/api/v1/search');
+      url.searchParams.set('engine', 'google_trends');
+      url.searchParams.set('q', q);
+      url.searchParams.set('data_type', 'GEO_MAP');
+      url.searchParams.set('api_key', searchApiKey);
+      return await tryFetch(url.toString());
+    }
+  } catch {
+    return [];
+  }
+  return [];
+}
+
+async function enrichGoogleTrendsGeo(trends: TrendItem[]): Promise<TrendItem[]> {
+  if (!trends.length) return trends;
+  const slice = trends.slice(0, GEO_MAP_MAX_QUERIES);
+  const rest = trends.slice(GEO_MAP_MAX_QUERIES);
+  const enriched: TrendItem[] = [];
+  for (let i = 0; i < slice.length; i += GEO_MAP_CONCURRENCY) {
+    const batch = slice.slice(i, i + GEO_MAP_CONCURRENCY);
+    const batchResults = await Promise.all(
+      batch.map(async (t) => {
+        const shares = await fetchGoogleInterestByRegion(t.title);
+        if (!shares.length) return t;
+        return {
+          ...t,
+          geoShares: shares,
+          geoRegions: shares.map((s) => s.country),
+          geoSpreadScore: shares.length,
+        };
+      })
+    );
+    enriched.push(...batchResults);
+  }
+  return [...enriched, ...rest];
 }
 
 /**
@@ -644,7 +826,7 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
         const data = await res.json();
         const items = (data.trending_searches || data.trends || data.news_results || []) as any[];
         if (Array.isArray(items) && items.length) {
-          return mapGoogleTrendRows(items, 'SerpAPI', geo);
+          return enrichGoogleTrendsGeo(mapGoogleTrendRows(items, 'SerpAPI', geo));
         }
       } else {
         console.error('SerpAPI Google Trends HTTP', res.status);
@@ -666,7 +848,7 @@ export async function collectGoogleTrends(): Promise<TrendItem[]> {
         const data = await res.json();
         const items = (data.trends || data.trending_searches || data.trending_now || []) as any[];
         if (Array.isArray(items) && items.length) {
-          return mapGoogleTrendRows(items, 'SearchAPI.io', geo);
+          return enrichGoogleTrendsGeo(mapGoogleTrendRows(items, 'SearchAPI.io', geo));
         }
       } else {
         console.error('SearchAPI.io Google Trends HTTP', res.status);
@@ -786,6 +968,10 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
         ig_play_count?: number;
         shortcode?: string;
         user?: { username?: string };
+        thumbnail_url?: string;
+        display_url?: string;
+        image_url?: string;
+        thumbnail?: string;
       }>;
       data?: { reels?: unknown[] };
     }>('/v1/instagram/reels/trending', {}, { timeoutMs: 60000 });
@@ -801,6 +987,10 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
         ig_play_count?: number;
         shortcode?: string;
         user?: { username?: string };
+        thumbnail_url?: string;
+        display_url?: string;
+        image_url?: string;
+        thumbnail?: string;
       }>;
       if (reels.length) {
         const geo = collectionGeoRegions();
@@ -816,6 +1006,15 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
                 ? `IG reel @${item.user.username}`
                 : `Instagram reel ${idx + 1}`);
             const mentions24h = Math.max(50, likes || Math.round(plays / 100) || 50);
+            const permalink = item.shortcode
+              ? `https://www.instagram.com/reel/${item.shortcode}/`
+              : undefined;
+            const thumbnail = firstHttpUrl(
+              item.thumbnail_url,
+              item.display_url,
+              item.image_url,
+              item.thumbnail
+            );
             return toTrendItem({
               topic: topic.slice(0, 120),
               niche: mapToUiCategory(caption, topic),
@@ -829,6 +1028,15 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
               description: 'Trending Instagram reel',
               hashtags: ['#instagram', '#reels'],
               geoRegions: geo,
+              sourceUrl: permalink,
+              topContent: mediaTopContent({
+                id: item.shortcode || `ig-reel-${idx}`,
+                title: topic,
+                views: likes || mentions24h,
+                platform: 'instagram',
+                url: permalink,
+                thumbnail,
+              }),
             });
           })
         );
@@ -867,7 +1075,7 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
     }
 
     const res = await fetch(
-      `https://graph.facebook.com/v19.0/${igUserId}/media?fields=id,caption,like_count,comments_count,timestamp,permalink&limit=8&access_token=${encodeURIComponent(token)}`,
+      `https://graph.facebook.com/v19.0/${igUserId}/media?fields=id,caption,like_count,comments_count,timestamp,permalink,media_url,thumbnail_url,media_type&limit=8&access_token=${encodeURIComponent(token)}`,
       { cache: 'no-store' }
     );
     if (!res.ok) {
@@ -877,18 +1085,27 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
     }
     const data = await res.json();
     const items = (data.data ?? []).slice(0, 8) as Array<{
+      id?: string;
       caption?: string;
       like_count?: number;
       comments_count?: number;
       timestamp?: string;
+      permalink?: string;
+      media_url?: string;
+      thumbnail_url?: string;
+      media_type?: string;
     }>;
     if (!items.length) return [];
 
     const geo = collectionGeoRegions();
     return compactTrends(
-      items.map((item, idx) =>
-        toTrendItem({
-          topic: (item.caption ?? 'Instagram post').slice(0, 80),
+      items.map((item, idx) => {
+        const caption = (item.caption ?? 'Instagram post').slice(0, 80);
+        const permalink = firstHttpUrl(item.permalink);
+        const thumbnail = pickInstagramMediaImage(item);
+        const likes = item.like_count ?? 0;
+        return toTrendItem({
+          topic: caption,
           niche: mapToUiCategory(item.caption || 'Fashion'),
           platforms: ['instagram'],
           creators6h: 30 + idx * 5,
@@ -900,8 +1117,17 @@ export async function collectInstagramTrends(): Promise<TrendItem[]> {
           description: `Instagram media from connected business account`,
           hashtags: ['#instagram'],
           geoRegions: geo,
-        })
-      )
+          sourceUrl: permalink,
+          topContent: mediaTopContent({
+            id: item.id || `ig-${idx}`,
+            title: caption,
+            views: likes,
+            platform: 'instagram',
+            url: permalink,
+            thumbnail,
+          }),
+        });
+      })
     );
   } catch (err) {
     console.error('Instagram collector failed', err);
@@ -1120,6 +1346,10 @@ export async function collectTikTokTrends(): Promise<TrendItem[]> {
       };
       author?: { nickname?: string; unique_id?: string };
       aweme_id?: string;
+      video?: {
+        cover?: { url_list?: string[] };
+        origin_cover?: { url_list?: string[] };
+      };
     }>;
   }>('/v1/tiktok/get-trending-feed', { region, trim: true }, { timeoutMs: 60000 });
 
@@ -1152,6 +1382,16 @@ export async function collectTikTokTrends(): Promise<TrendItem[]> {
       const ageHours = item.create_time
         ? Math.max(0.5, (Date.now() / 1000 - item.create_time) / 3600)
         : 2 + idx;
+      const unique = item.author?.unique_id;
+      const watchUrl = item.aweme_id
+        ? unique
+          ? `https://www.tiktok.com/@${unique}/video/${item.aweme_id}`
+          : `https://www.tiktok.com/video/${item.aweme_id}`
+        : undefined;
+      const thumbnail = firstHttpUrl(
+        item.video?.cover?.url_list?.[0],
+        item.video?.origin_cover?.url_list?.[0]
+      );
       return toTrendItem({
         topic: topic.slice(0, 120) || `TikTok trend ${idx + 1}`,
         niche: mapToUiCategory(desc, topic),
@@ -1165,6 +1405,15 @@ export async function collectTikTokTrends(): Promise<TrendItem[]> {
         description: `Trending on TikTok right now`,
         hashtags: hashtags.length ? hashtags : ['#tiktok'],
         geoRegions: collectionGeoRegions(region),
+        sourceUrl: watchUrl,
+        topContent: mediaTopContent({
+          id: item.aweme_id || `tt-${idx}`,
+          title: topic,
+          views: plays || likes,
+          platform: 'tiktok',
+          url: watchUrl,
+          thumbnail,
+        }),
       });
     })
   );
@@ -1193,6 +1442,9 @@ export async function collectFacebookTrends(): Promise<TrendItem[]> {
     creation_time?: string;
     url?: string;
     post_id?: string;
+    thumbnail?: string;
+    thumbnail_url?: string;
+    image_url?: string;
   };
 
   const all: FbReel[] = [];
@@ -1232,6 +1484,8 @@ export async function collectFacebookTrends(): Promise<TrendItem[]> {
       const ageHours = item.creation_time
         ? Math.max(0.5, (Date.now() - new Date(item.creation_time).getTime()) / 3600000)
         : 2 + idx;
+      const watchUrl = firstHttpUrl(item.url);
+      const thumbnail = firstHttpUrl(item.thumbnail_url, item.thumbnail, item.image_url);
       return toTrendItem({
         topic: topic.slice(0, 120),
         niche: mapToUiCategory(desc, topic),
@@ -1245,6 +1499,15 @@ export async function collectFacebookTrends(): Promise<TrendItem[]> {
         description: `Trending on Facebook right now`,
         hashtags: ['#facebook'],
         geoRegions: geo,
+        sourceUrl: watchUrl,
+        topContent: mediaTopContent({
+          id: item.post_id || `fb-${idx}`,
+          title: topic,
+          views,
+          platform: 'facebook',
+          url: watchUrl,
+          thumbnail,
+        }),
       });
     })
   );

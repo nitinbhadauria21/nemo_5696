@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { TrendItem, TrendPlatform } from '@/lib/mockData';
+import type { TrendItem, TrendPlatform, TrendTopContent } from '@/lib/mockData';
 import {
   buildWhyTrending,
   clusterTrends,
@@ -225,34 +225,79 @@ async function persistClusters(
   return assignment;
 }
 
-async function persistTrendSources(supabase: SupabaseClient, trends: TrendItem[]): Promise<void> {
+function nonemptyString(value?: string | null): string | undefined {
+  const trimmed = typeof value === 'string' ? value.trim() : '';
+  return trimmed || undefined;
+}
+
+function redditPermalinkUrl(permalink: string): string {
+  return permalink.startsWith('http') ? permalink : `https://reddit.com${permalink}`;
+}
+
+function resolveSourceUrl(
+  item: Pick<TrendTopContent, 'url'>,
+  trend: Pick<TrendItem, 'sourceUrl'>,
+  platformPermalink?: string | null
+): string | null {
+  return (
+    nonemptyString(item.url) ||
+    (platformPermalink ? redditPermalinkUrl(platformPermalink) : undefined) ||
+    nonemptyString(trend.sourceUrl) ||
+    null
+  );
+}
+
+function withOptionalThumbnail(
+  meta: Record<string, unknown>,
+  thumbnail?: string
+): Record<string, unknown> {
+  const thumb = nonemptyString(thumbnail);
+  if (thumb) meta.thumbnail = thumb;
+  else delete meta.thumbnail;
+  return meta;
+}
+
+function decodeRedditSourceMeta(item: TrendTopContent): {
+  meta: Record<string, unknown>;
+  permalink: string | null;
+} {
+  let meta: Record<string, unknown> = { historical: false };
+  let permalink: string | null = null;
+  try {
+    const parsed = JSON.parse(item.views || '{}') as unknown;
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const record = parsed as Record<string, unknown>;
+      const rawPermalink = typeof record.permalink === 'string' ? record.permalink : null;
+      const { permalink: _p, ...rest } = record;
+      void _p;
+      meta = { ...rest, historical: false };
+      permalink = rawPermalink;
+    }
+  } catch {
+    // views is a plain display string, not encoded reddit JSON
+  }
+  return { meta, permalink };
+}
+
+/** Pure mapping of trend topContent → trend_sources rows (testable without Supabase). */
+export function mapTrendSourceRows(
+  trends: TrendItem[],
+  collectedAt: string = new Date().toISOString()
+): Array<Record<string, unknown>> {
   const rows: Array<Record<string, unknown>> = [];
-  const now = new Date().toISOString();
   for (const t of trends) {
     for (const item of t.topContent || []) {
       const platform = mapUiPlatformToDb(item.platform || t.platforms[0] || 'google');
       if (platform === 'reddit') {
-        // Decode per-post reddit metadata encoded in topContent.views as JSON
-        let meta: Record<string, unknown> = { historical: false };
-        let url: string | null = null;
-        try {
-          const parsed = JSON.parse(item.views || '{}') as Record<string, unknown>;
-          const permalink = typeof parsed.permalink === 'string' ? parsed.permalink : null;
-          const { permalink: _p, ...rest } = parsed;
-          void _p;
-          meta = { ...rest, historical: false };
-          url = permalink ? `https://reddit.com${permalink}` : t.sourceUrl || null;
-        } catch {
-          url = t.sourceUrl || null;
-        }
+        const decoded = decodeRedditSourceMeta(item);
         rows.push({
           trend_id: t.id,
           platform: 'reddit',
           external_id: item.id,
           title: item.title,
-          url,
-          metadata: meta,
-          collected_at: now,
+          url: resolveSourceUrl(item, t, decoded.permalink),
+          metadata: withOptionalThumbnail(decoded.meta, item.thumbnail),
+          collected_at: collectedAt,
         });
         continue;
       }
@@ -261,25 +306,29 @@ async function persistTrendSources(supabase: SupabaseClient, trends: TrendItem[]
         platform,
         external_id: item.id,
         title: item.title,
-        url: null,
-        metadata: { views: item.views, historical: false },
-        collected_at: now,
+        url: resolveSourceUrl(item, t),
+        metadata: withOptionalThumbnail({ views: item.views, historical: false }, item.thumbnail),
+        collected_at: collectedAt,
       });
     }
-    // Fallback: one source row per platform so detail can show evidence
     if (!t.topContent?.length && t.platforms?.length) {
       for (const p of t.platforms.slice(0, 4)) {
         rows.push({
           trend_id: t.id,
           platform: mapUiPlatformToDb(p),
           title: t.title,
-          url: t.sourceUrl || null,
+          url: nonemptyString(t.sourceUrl) || null,
           metadata: { historical: false },
-          collected_at: now,
+          collected_at: collectedAt,
         });
       }
     }
   }
+  return rows;
+}
+
+async function persistTrendSources(supabase: SupabaseClient, trends: TrendItem[]): Promise<void> {
+  const rows = mapTrendSourceRows(trends);
   if (!rows.length) return;
   // Avoid unbounded growth: delete prior sources for these trends then insert
   const ids = [...new Set(rows.map((r) => String(r.trend_id)))];

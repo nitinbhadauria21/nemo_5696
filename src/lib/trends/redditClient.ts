@@ -92,6 +92,7 @@ export interface RedditPost {
   subreddit_subscribers: number;
   over_18: boolean;
   link_flair_text: string | null;
+  thumbnail?: string;
 }
 
 export interface RedditComment {
@@ -120,6 +121,10 @@ function parseRedditPost(raw: Record<string, unknown>): RedditPost {
       typeof raw.subreddit_subscribers === 'number' ? raw.subreddit_subscribers : 0,
     over_18: Boolean(raw.over_18),
     link_flair_text: raw.link_flair_text != null ? String(raw.link_flair_text) : null,
+    thumbnail:
+      typeof raw.thumbnail === 'string' && raw.thumbnail.startsWith('http')
+        ? raw.thumbnail
+        : undefined,
   };
 }
 

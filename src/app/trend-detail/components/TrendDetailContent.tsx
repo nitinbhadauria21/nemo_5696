@@ -61,6 +61,8 @@ function toUiTrend(t: TrendItem) {
     whyTrending: t.whyTrending || [],
     velocity: t.velocity,
     acceleration: t.acceleration ?? 0,
+    geoRegions: t.geoRegions,
+    geoShares: t.geoShares,
   };
 }
 
@@ -96,8 +98,94 @@ type SourceRow = {
   creator: string | null;
   published_at: string | null;
   collected_at: string;
-  metadata?: { views?: string; historical?: boolean } | null;
+  metadata?: {
+    views?: string;
+    historical?: boolean;
+    thumbnail?: string;
+    imageUrl?: string;
+  } | null;
 };
+
+function sourceViewsLabel(item: { views?: string; url?: string; creator?: string | null }): string {
+  const views = item.views?.trim();
+  if (views && views !== 'Source') return views;
+  if (item.creator) return `by ${item.creator}`;
+  if (item.url) return 'View post';
+  return views || 'Source';
+}
+
+function RepresentativeContentCard({
+  item,
+  fallbackPlatform,
+}: {
+  item: {
+    id: string;
+    title: string;
+    views: string;
+    platform?: string;
+    historical?: boolean;
+    url?: string;
+    thumbnail?: string;
+  };
+  fallbackPlatform: string;
+}) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const thumb = item.thumbnail?.trim();
+  const showImg = Boolean(thumb) && !imgFailed;
+  const caption = sourceViewsLabel(item);
+
+  const media = (
+    <div className="aspect-video bg-muted flex items-center justify-center overflow-hidden">
+      {showImg ? (
+        <img
+          src={thumb}
+          alt=""
+          className="h-full w-full object-cover"
+          referrerPolicy="no-referrer"
+          onError={() => setImgFailed(true)}
+        />
+      ) : (
+        <PlatformIcon
+          platform={item.platform || fallbackPlatform || 'google'}
+          size={28}
+          withTile={false}
+        />
+      )}
+    </div>
+  );
+
+  return (
+    <div className="rounded-xl border border-border bg-card overflow-hidden">
+      {item.url ? (
+        <a href={item.url} target="_blank" rel="noopener noreferrer" className="block">
+          {media}
+        </a>
+      ) : (
+        media
+      )}
+      <div className="p-3">
+        <p className="text-xs font-sans font-semibold text-foreground line-clamp-2">
+          {item.url ? (
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-primary"
+            >
+              {item.title}
+            </a>
+          ) : (
+            item.title
+          )}
+        </p>
+        <p className="text-xs font-mono-custom text-muted-foreground mt-1">
+          {caption}
+          {item.historical ? ' · historical context' : ''}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 interface TrendDetailContentProps {
   trendId?: string;
@@ -252,15 +340,21 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
       ? sources.slice(0, 6).map((s) => ({
           id: String(s.id),
           title: s.title || TREND.title,
-          views: s.metadata?.views || (s.creator ? `by ${s.creator}` : 'Source'),
+          views: sourceViewsLabel({
+            views: s.metadata?.views,
+            url: s.url || undefined,
+            creator: s.creator,
+          }),
           platform: s.platform,
           historical: Boolean(s.metadata?.historical) || Boolean(s.published_at),
-          url: s.url,
+          url: s.url || undefined,
+          thumbnail: s.metadata?.thumbnail || s.metadata?.imageUrl,
         }))
       : (remoteTrend?.topContent ?? []).map((item) => ({
           ...item,
           historical: false as boolean,
-          url: undefined as string | undefined,
+          url: item.url,
+          thumbnail: item.thumbnail,
         }));
 
   return (
@@ -451,7 +545,7 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
                 windowHours={chartWindow}
                 velocities={activeSeries?.velocities || history?.velocities}
               />
-              <TrendGeoChart regions={remoteTrend?.geoRegions} />
+              <TrendGeoChart regions={TREND.geoRegions} shares={TREND.geoShares} />
             </div>
 
             {relatedTrends.length > 0 && (
@@ -488,43 +582,17 @@ export default function TrendDetailContent({ trendId: trendIdProp }: TrendDetail
                         platform: TREND.platforms[0],
                         historical: true,
                         url: undefined as string | undefined,
+                        thumbnail: undefined as string | undefined,
                       },
                     ]
                 )
                   .slice(0, 6)
                   .map((item) => (
-                    <div
+                    <RepresentativeContentCard
                       key={item.id}
-                      className="rounded-xl border border-border bg-card overflow-hidden"
-                    >
-                      <div className="aspect-video bg-muted flex items-center justify-center">
-                        <PlatformIcon
-                          platform={item.platform || TREND.platforms[0] || 'google'}
-                          size={28}
-                          withTile={false}
-                        />
-                      </div>
-                      <div className="p-3">
-                        <p className="text-xs font-sans font-semibold text-foreground line-clamp-2">
-                          {item.url ? (
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:text-primary"
-                            >
-                              {item.title}
-                            </a>
-                          ) : (
-                            item.title
-                          )}
-                        </p>
-                        <p className="text-xs font-mono-custom text-muted-foreground mt-1">
-                          {item.views}
-                          {item.historical ? ' · historical context' : ''}
-                        </p>
-                      </div>
-                    </div>
+                      item={item}
+                      fallbackPlatform={TREND.platforms[0] || 'google'}
+                    />
                   ))}
               </div>
             </div>
