@@ -93,43 +93,13 @@ const STEPS = [
   },
 ];
 
-const HERO_POSTER = '/landing/hero-poster.webp';
 const HERO_VIDEO = '/landing/hero-bg.mp4';
-const HERO_VIDEO_LITE = '/landing/hero-bg-lite.mp4';
-
-type NavigatorConnection = {
-  saveData?: boolean;
-  effectiveType?: string;
-};
-
-function getNetworkConnection(): NavigatorConnection | undefined {
-  if (typeof window === 'undefined') return undefined;
-  const nav = navigator as Navigator & {
-    connection?: NavigatorConnection;
-    mozConnection?: NavigatorConnection;
-    webkitConnection?: NavigatorConnection;
-  };
-  return nav.connection || nav.mozConnection || nav.webkitConnection;
-}
-
-/** 2G / Save-Data / reduced-motion: poster only, never download video. */
-function pickHeroVideoSrc(): string | null {
-  if (typeof window === 'undefined') return null;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
-  const conn = getNetworkConnection();
-  if (conn?.saveData) return null;
-  if (conn?.effectiveType === 'slow-2g' || conn?.effectiveType === '2g') return null;
-  if (conn?.effectiveType === '3g') return HERO_VIDEO_LITE;
-  return HERO_VIDEO;
-}
 
 export default function LandingContent() {
   const rootRef = useRef<HTMLDivElement>(null);
   const heroVideoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const [soundOn, setSoundOn] = useState(false);
-  const [heroSrc, setHeroSrc] = useState<string | null>(null);
-  const [heroVideoReady, setHeroVideoReady] = useState(false);
 
   useScrollReveal(rootRef);
   useCountUp(rootRef);
@@ -150,15 +120,10 @@ export default function LandingContent() {
     return () => window.removeEventListener('scroll', update, { capture: true });
   }, []);
 
-  // Poster-only on 2G / Save-Data / reduced motion. One video, no src-swap.
-  // Play immediately — do not wait for canplay (preload=metadata deadlocks autoplay).
-  useEffect(() => {
-    setHeroSrc(pickHeroVideoSrc());
-  }, []);
-
+  // Muted autoplay on mount — browsers block unmuted autoplay without a gesture.
   useEffect(() => {
     const video = heroVideoRef.current;
-    if (!video || !heroSrc) return;
+    if (!video) return;
 
     video.muted = true;
     video.defaultMuted = true;
@@ -166,34 +131,27 @@ export default function LandingContent() {
     video.playsInline = true;
     video.loop = true;
 
-    const hidePoster = () => {
-      video.classList.add('is-playing');
-      setHeroVideoReady(true);
-    };
-
     const tryPlay = () => {
-      if (!video.paused && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-        hidePoster();
-        return;
+      if (video.paused) {
+        void video.play().catch(() => {
+          /* retry on later media events */
+        });
       }
-      void video.play().catch(() => {
-        /* poster stays until the playing event fires */
-      });
     };
 
     tryPlay();
-    video.addEventListener('playing', hidePoster);
+    video.addEventListener('loadedmetadata', tryPlay);
     video.addEventListener('loadeddata', tryPlay);
     video.addEventListener('canplay', tryPlay);
     document.addEventListener('visibilitychange', tryPlay);
 
     return () => {
-      video.removeEventListener('playing', hidePoster);
+      video.removeEventListener('loadedmetadata', tryPlay);
       video.removeEventListener('loadeddata', tryPlay);
       video.removeEventListener('canplay', tryPlay);
       document.removeEventListener('visibilitychange', tryPlay);
     };
-  }, [heroSrc]);
+  }, []);
 
   const toggleSound = useCallback(() => {
     const video = heroVideoRef.current;
@@ -263,44 +221,29 @@ export default function LandingContent() {
 
       <header className="hero" id="top">
         <div className="hero-media">
-          {heroSrc ? (
-            <video
-              ref={heroVideoRef}
-              className="hero-video"
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              src={heroSrc}
-              aria-hidden="true"
-            />
-          ) : null}
-          {/* Native img: next/image fill wraps a span that can cover the playing video. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className={`hero-poster${heroVideoReady ? ' is-hidden' : ''}`}
-            src={HERO_POSTER}
-            alt=""
+          <video
+            ref={heroVideoRef}
+            className="hero-video"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            src={HERO_VIDEO}
             aria-hidden="true"
-            fetchPriority="high"
           />
-          <div className="hero-media-fade-x" aria-hidden="true" />
-          <div className="hero-media-fade-y" aria-hidden="true" />
-          {heroSrc ? (
-            <button
-              type="button"
-              className={`hero-sound${soundOn ? ' is-on' : ''}`}
-              onClick={toggleSound}
-              aria-pressed={soundOn}
-              aria-label={soundOn ? 'Mute hero video' : 'Unmute hero video'}
-            >
-              <span className="hero-sound-icon" aria-hidden="true">
-                {soundOn ? <IconSoundOn /> : <IconSoundOff />}
-              </span>
-              <span>{soundOn ? 'Sound off' : 'Sound on'}</span>
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className={`hero-sound${soundOn ? ' is-on' : ''}`}
+            onClick={toggleSound}
+            aria-pressed={soundOn}
+            aria-label={soundOn ? 'Mute hero video' : 'Unmute hero video'}
+          >
+            <span className="hero-sound-icon" aria-hidden="true">
+              {soundOn ? <IconSoundOn /> : <IconSoundOff />}
+            </span>
+            <span>{soundOn ? 'Sound off' : 'Sound on'}</span>
+          </button>
         </div>
 
         <div className="hero-veil" aria-hidden="true" />
