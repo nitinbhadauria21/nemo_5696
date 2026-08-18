@@ -53,9 +53,9 @@ const ALLOWED_SET = new Set<string>([
 /** Speed-first free chains (smaller/faster free models before huge queue-prone ones). */
 const FREE_TASK_CHAINS: Record<OpenRouterTask, readonly string[]> = {
   script: [
-    'openai/gpt-oss-20b:free',
-    'nvidia/nemotron-3-nano-30b-a3b:free',
     'google/gemma-4-26b-a4b-it:free',
+    'google/gemma-4-31b-it:free',
+    'openai/gpt-oss-20b:free',
   ],
   analysis: [
     'nvidia/nemotron-3-nano-30b-a3b:free',
@@ -112,7 +112,7 @@ export type OpenRouterRouteDecision = {
 };
 
 const TASK_REASONS: Record<OpenRouterTask, string> = {
-  script: 'Viral scripts → fast free models first, optional cheap paid speed fallback',
+  script: 'Viral scripts → free Google Gemma on OpenRouter (Gemini Flash :free is not offered)',
   analysis: 'Trend analysis → compact free models first',
   ideas: 'Content ideas → fast generative free models',
   sentiment: 'Sentiment → compact free classifiers',

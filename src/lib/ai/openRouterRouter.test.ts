@@ -101,13 +101,11 @@ describe('openRouterRouter agent', () => {
     assert.equal(OPENROUTER_ATTEMPTS_PER_MODEL, 1);
   });
 
-  it('prefers faster free models for script over huge queue-prone ones', () => {
+  it('prefers free Google Gemma for script, then a non-Google free fallback', () => {
     const script = getFreeModelChain('script', null, {});
-    assert.ok(
-      /gpt-oss-20b|nano-30b|gemma-4-26b/i.test(script[0]),
-      `unexpected primary ${script[0]}`
-    );
-    assert.ok(!/ultra-550b|super-120b|gemma-4-31b/i.test(script[0]));
+    assert.equal(script[0], 'google/gemma-4-26b-a4b-it:free');
+    assert.equal(script[1], 'google/gemma-4-31b-it:free');
+    assert.ok(script.some((id) => id.endsWith(':free') && !id.startsWith('google/')));
   });
 
   it('detects OpenRouter privacy/guardrail blocks', () => {

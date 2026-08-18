@@ -36,13 +36,13 @@ Allowlists for request policy also live in [`requestPolicy.ts`](./requestPolicy.
 
 ## Tasks
 
-| Task | How resolved | Default reason string |
-|------|----------------|----------------------|
-| `script` | hint, or message match (`NemoScript`, `viralScore`, …) | Viral scripts → fast free models first… |
-| `analysis` | hint, or trend-analysis phrasing | Trend analysis → compact free models first |
-| `ideas` | hint, or content-ideas phrasing | Content ideas → fast generative free models |
-| `sentiment` | hint, or brand-safety / sentiment phrasing | Sentiment → compact free classifiers |
-| `chat` | default / unknown hint | Chat → fastest free models |
+| Task        | How resolved                                           | Default reason string                       |
+| ----------- | ------------------------------------------------------ | ------------------------------------------- |
+| `script`    | hint, or message match (`NemoScript`, `viralScore`, …) | Viral scripts → fast free models first…     |
+| `analysis`  | hint, or trend-analysis phrasing                       | Trend analysis → compact free models first  |
+| `ideas`     | hint, or content-ideas phrasing                        | Content ideas → fast generative free models |
+| `sentiment` | hint, or brand-safety / sentiment phrasing             | Sentiment → compact free classifiers        |
+| `chat`      | default / unknown hint                                 | Chat → fastest free models                  |
 
 `resolveOpenRouterTask` lowercases the hint; anything unknown becomes `chat`.
 
@@ -50,13 +50,13 @@ Allowlists for request policy also live in [`requestPolicy.ts`](./requestPolicy.
 
 Default (`OPENROUTER_ALLOW_PAID_FALLBACK` unset/false): free-only, up to `OPENROUTER_MAX_MODELS` (3). Preferred `AI_MODEL` is prepended when it is an allowlisted free id.
 
-| Task | Chain (order) |
-|------|----------------|
-| `script` | `openai/gpt-oss-20b:free` → `nvidia/nemotron-3-nano-30b-a3b:free` → `google/gemma-4-26b-a4b-it:free` |
-| `analysis` | `nvidia/nemotron-3-nano-30b-a3b:free` → `openai/gpt-oss-20b:free` → `google/gemma-4-26b-a4b-it:free` |
-| `ideas` | `openai/gpt-oss-20b:free` → `nvidia/nemotron-nano-9b-v2:free` → `google/gemma-4-26b-a4b-it:free` |
+| Task        | Chain (order)                                                                                                    |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| `script`    | `google/gemma-4-26b-a4b-it:free` → `google/gemma-4-31b-it:free` → `openai/gpt-oss-20b:free`                      |
+| `analysis`  | `nvidia/nemotron-3-nano-30b-a3b:free` → `openai/gpt-oss-20b:free` → `google/gemma-4-26b-a4b-it:free`             |
+| `ideas`     | `openai/gpt-oss-20b:free` → `nvidia/nemotron-nano-9b-v2:free` → `google/gemma-4-26b-a4b-it:free`                 |
 | `sentiment` | `nvidia/nemotron-nano-9b-v2:free` → `inclusionai/ling-3.0-tiny:free` → `nvidia/nemotron-3.5-content-safety:free` |
-| `chat` | `nvidia/nemotron-nano-9b-v2:free` → `inclusionai/ling-3.0-tiny:free` → `openai/gpt-oss-20b:free` |
+| `chat`      | `nvidia/nemotron-nano-9b-v2:free` → `inclusionai/ling-3.0-tiny:free` → `openai/gpt-oss-20b:free`                 |
 
 Empty-chain safety net: `openai/gpt-oss-20b:free`, `nvidia/nemotron-nano-9b-v2:free`.
 
@@ -67,22 +67,22 @@ When `OPENROUTER_ALLOW_PAID_FALLBACK=true`:
 1. Keep the **first free** model from the task chain as primary.
 2. Append task-specific cheap paid twins (still capped at 3 total).
 
-| Task | Paid twins (after free primary) |
-|------|----------------------------------|
-| `script` | `google/gemma-4-31b-it`, `google/gemma-3-12b-it`, `meta-llama/llama-3.1-8b-instruct` |
-| `analysis` | `google/gemma-4-26b-a4b-it`, `google/gemma-3-12b-it`, `meta-llama/llama-3.1-8b-instruct` |
-| `ideas` | `google/gemma-4-31b-it`, `google/gemma-3-12b-it`, `mistralai/mistral-small-24b-instruct-2501` |
-| `sentiment` | `google/gemma-3-4b-it`, `meta-llama/llama-3.2-3b-instruct`, `mistralai/mistral-nemo` |
-| `chat` | `google/gemma-3-4b-it`, `meta-llama/llama-3.2-3b-instruct`, `mistralai/mistral-nemo` |
+| Task        | Paid twins (after free primary)                                                               |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| `script`    | `google/gemma-4-31b-it`, `google/gemma-3-12b-it`, `meta-llama/llama-3.1-8b-instruct`          |
+| `analysis`  | `google/gemma-4-26b-a4b-it`, `google/gemma-3-12b-it`, `meta-llama/llama-3.1-8b-instruct`      |
+| `ideas`     | `google/gemma-4-31b-it`, `google/gemma-3-12b-it`, `mistralai/mistral-small-24b-instruct-2501` |
+| `sentiment` | `google/gemma-3-4b-it`, `meta-llama/llama-3.2-3b-instruct`, `mistralai/mistral-nemo`          |
+| `chat`      | `google/gemma-3-4b-it`, `meta-llama/llama-3.2-3b-instruct`, `mistralai/mistral-nemo`          |
 
 ## Timeouts and execution rules
 
 Constants from the router (used by `createCompletionWithFallbacks` in [`providers.ts`](./providers.ts)):
 
-| Constant | Value | Meaning |
-|----------|-------|---------|
-| `OPENROUTER_MAX_MODELS` | `3` | Max models in a route chain |
-| `OPENROUTER_ATTEMPTS_PER_MODEL` | `1` | No same-model retry by default (free queues are costly) |
+| Constant                        | Value   | Meaning                                                       |
+| ------------------------------- | ------- | ------------------------------------------------------------- |
+| `OPENROUTER_MAX_MODELS`         | `3`     | Max models in a route chain                                   |
+| `OPENROUTER_ATTEMPTS_PER_MODEL` | `1`     | No same-model retry by default (free queues are costly)       |
 | `OPENROUTER_REQUEST_TIMEOUT_MS` | `35000` | Per-model HTTP timeout (overridable via env of the same name) |
 
 On OpenRouter:

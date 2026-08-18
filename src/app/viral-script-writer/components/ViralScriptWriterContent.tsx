@@ -871,8 +871,8 @@ export default function ViralScriptWriterContent() {
   };
 
   const { response, isLoading, error, sendMessage } = useChat(
-    'GEMINI',
-    'gemini-2.0-flash',
+    'OPENROUTER',
+    'auto',
     false,
     'script'
   );
@@ -1581,9 +1581,8 @@ Calculate an honest viralScore (0–100).`;
                   <p className="text-xs font-sans text-muted-foreground mt-3 leading-relaxed">
                     If this keeps failing, confirm{' '}
                     <span className="font-mono">OPENROUTER_API_KEY</span> is set in Vercel with{' '}
-                    <span className="font-mono">AI_PROVIDER=OPENROUTER</span>. Scripts run on
-                    OpenRouter by default; <span className="font-mono">GEMINI_API_KEY</span> is
-                    optional for faster generation. Then redeploy.
+                    <span className="font-mono">AI_PROVIDER=OPENROUTER</span>. Scripts use
+                    OpenRouter free Google Gemma models. Then redeploy.
                   </p>
                 )}
               </div>
