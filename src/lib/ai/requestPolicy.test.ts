@@ -6,6 +6,7 @@ import {
   MAX_OUTPUT_TOKENS,
   MAX_TOTAL_CHARS,
   applyOpenRouterEnvOverride,
+  hasGeminiApiKey,
   validateChatPayload,
 } from './requestPolicy';
 
@@ -95,20 +96,43 @@ describe('validateChatPayload', () => {
   });
 });
 
+describe('hasGeminiApiKey', () => {
+  it('is true only for a non-empty GEMINI_API_KEY', () => {
+    assert.equal(hasGeminiApiKey({ GEMINI_API_KEY: 'abc' }), true);
+    assert.equal(hasGeminiApiKey({ GEMINI_API_KEY: '  ' }), false);
+    assert.equal(hasGeminiApiKey({ GEMINI_API_KEY: '' }), false);
+    assert.equal(hasGeminiApiKey({}), false);
+  });
+});
+
 describe('applyOpenRouterEnvOverride', () => {
   it('rewrites Anthropic/Claude hardcodes when env is OPENROUTER', () => {
     const result = applyOpenRouterEnvOverride(
       { provider: 'ANTHROPIC', model: 'claude-sonnet-4-6', task: 'chat' },
-      'OPENROUTER'
+      'OPENROUTER',
+      {}
     );
     assert.equal(result.provider, 'OPENROUTER');
     assert.equal(result.model, 'claude-sonnet-4-6');
   });
 
-  it('keeps GEMINI + allowlisted model for script requests', () => {
+  it('keeps GEMINI + allowlisted model for script requests when GEMINI_API_KEY is set', () => {
     const body = { provider: 'GEMINI', model: 'gemini-2.0-flash', task: 'script' };
-    const result = applyOpenRouterEnvOverride(body, 'OPENROUTER');
+    const result = applyOpenRouterEnvOverride(body, 'OPENROUTER', {
+      GEMINI_API_KEY: 'test-gemini-key',
+    });
     assert.equal(result.provider, 'GEMINI');
+    assert.equal(result.model, 'gemini-2.0-flash');
+    assert.equal(result.task, 'script');
+  });
+
+  it('rewrites GEMINI script requests to OpenRouter when GEMINI_API_KEY is missing', () => {
+    const result = applyOpenRouterEnvOverride(
+      { provider: 'GEMINI', model: 'gemini-2.0-flash', task: 'script' },
+      'OPENROUTER',
+      {}
+    );
+    assert.equal(result.provider, 'OPENROUTER');
     assert.equal(result.model, 'gemini-2.0-flash');
     assert.equal(result.task, 'script');
   });
@@ -116,7 +140,8 @@ describe('applyOpenRouterEnvOverride', () => {
   it('still forces OpenRouter for GEMINI when task is not script', () => {
     const result = applyOpenRouterEnvOverride(
       { provider: 'GEMINI', model: 'gemini-2.0-flash', task: 'chat' },
-      'OPENROUTER'
+      'OPENROUTER',
+      { GEMINI_API_KEY: 'test-gemini-key' }
     );
     assert.equal(result.provider, 'OPENROUTER');
     assert.equal(result.model, 'gemini-2.0-flash');

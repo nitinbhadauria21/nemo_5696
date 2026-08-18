@@ -76,9 +76,10 @@ export async function POST(request: NextRequest) {
   }
 
   const envProvider = resolveAiProvider(process.env.AI_PROVIDER);
-  // When production uses OpenRouter, ignore client Anthropic/Claude hardcodes,
-  // but allow GEMINI + allowlisted model for script generation.
-  body = applyOpenRouterEnvOverride(body, envProvider);
+  // When production uses OpenRouter, ignore client Anthropic/Claude hardcodes.
+  // GEMINI + allowlisted model is kept for scripts only when GEMINI_API_KEY is set;
+  // otherwise rewrite to OPENROUTER so createCompletionWithFallbacks is used.
+  body = applyOpenRouterEnvOverride(body, envProvider, process.env);
 
   const validated = validateChatPayload(body as Parameters<typeof validateChatPayload>[0]);
   if (!validated.ok) {

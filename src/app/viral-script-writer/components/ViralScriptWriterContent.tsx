@@ -1579,10 +1579,11 @@ Calculate an honest viralScore (0–100).`;
                 </p>
                 {/monthly AI limit|Upgrade or try again/i.test(error.message) ? null : (
                   <p className="text-xs font-sans text-muted-foreground mt-3 leading-relaxed">
-                    If this keeps failing, confirm <span className="font-mono">GEMINI_API_KEY</span>{' '}
-                    is set in Vercel (scripts use Gemini). Other AI features use{' '}
-                    <span className="font-mono">OPENROUTER_API_KEY</span> with{' '}
-                    <span className="font-mono">AI_PROVIDER=OPENROUTER</span>. Then redeploy.
+                    If this keeps failing, confirm{' '}
+                    <span className="font-mono">OPENROUTER_API_KEY</span> is set in Vercel with{' '}
+                    <span className="font-mono">AI_PROVIDER=OPENROUTER</span>. Scripts run on
+                    OpenRouter by default; <span className="font-mono">GEMINI_API_KEY</span> is
+                    optional for faster generation. Then redeploy.
                   </p>
                 )}
               </div>

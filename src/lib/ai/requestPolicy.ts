@@ -31,16 +31,25 @@ export type ValidatedChatPayload = {
 export type ValidateChatPayloadResult =
   ({ ok: true } & ValidatedChatPayload) | { ok: false; status: number; code: string };
 
+type EnvLike = Record<string, string | undefined>;
+
+/** True when GEMINI_API_KEY is set to a non-empty value. */
+export function hasGeminiApiKey(env: EnvLike = process.env): boolean {
+  return Boolean(env.GEMINI_API_KEY?.trim());
+}
+
 /**
  * When env AI_PROVIDER is OPENROUTER, rewrite client provider/model so hardcoded
  * Anthropic/Claude (etc.) cannot bypass production routing.
  *
- * Exception: Viral Script Writer may call Gemini directly when task is `script`
- * and the model is on the GEMINI allowlist.
+ * Exception: Viral Script Writer may call Gemini directly when task is `script`,
+ * the model is on the GEMINI allowlist, and GEMINI_API_KEY is set. Without the
+ * key, script requests fall back to OpenRouter like every other task.
  */
 export function applyOpenRouterEnvOverride(
   body: Record<string, unknown>,
-  envProvider: ProviderId
+  envProvider: ProviderId,
+  env: EnvLike = process.env
 ): Record<string, unknown> {
   if (envProvider !== 'OPENROUTER') return body;
 
@@ -48,7 +57,10 @@ export function applyOpenRouterEnvOverride(
   const model = typeof body.model === 'string' ? body.model.trim() : '';
   const task = typeof body.task === 'string' ? body.task : '';
   const allowGeminiScript =
-    task === 'script' && provider === 'GEMINI' && ALLOWED_MODELS.GEMINI.includes(model);
+    task === 'script' &&
+    provider === 'GEMINI' &&
+    ALLOWED_MODELS.GEMINI.includes(model) &&
+    hasGeminiApiKey(env);
 
   if (allowGeminiScript) return body;
 
