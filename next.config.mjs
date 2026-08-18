@@ -27,6 +27,19 @@ const nextConfig = {
     minimumCacheTTL: 60,
     qualities: [75, 85, 100],
   },
+  async headers() {
+    return [
+      {
+        source: '/landing/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: '/explore', destination: '/dashboard', permanent: true },

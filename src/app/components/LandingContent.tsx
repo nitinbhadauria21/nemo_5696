@@ -119,16 +119,25 @@ export default function LandingContent() {
   }, []);
 
   // Muted autoplay on mount — browsers block unmuted autoplay without a gesture.
+  // Skip fetching the video when the user prefers reduced motion (poster only).
   useEffect(() => {
     const video = heroVideoRef.current;
     if (!video) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      video.removeAttribute('src');
+      video.preload = 'none';
+      video.load();
+      return;
+    }
 
     video.muted = true;
     video.defaultMuted = true;
     video.setAttribute('muted', '');
     video.playsInline = true;
     video.loop = true;
-    video.preload = 'auto';
+    video.preload = 'metadata';
+    video.src = '/landing/hero-bg.mp4';
 
     const tryPlay = () => {
       if (video.paused) {
@@ -187,8 +196,8 @@ export default function LandingContent() {
               className="brand-lockup"
               src="/landing/nemo-lockup.png"
               alt="Nemo"
-              width={1433}
-              height={291}
+              width={480}
+              height={97}
               sizes="160px"
               priority
             />
@@ -227,8 +236,8 @@ export default function LandingContent() {
             muted
             loop
             playsInline
-            preload="auto"
-            src="/landing/hero-bg.mp4"
+            preload="metadata"
+            poster="/landing/hero-poster.webp"
             aria-hidden="true"
           />
           <div className="hero-media-fade-x" aria-hidden="true" />
@@ -502,9 +511,10 @@ export default function LandingContent() {
               <Image
                 src="/landing/nemo-faq.png"
                 alt="Nemo the mascot relaxing in a beanbag with a laptop"
-                width={1130}
-                height={1009}
+                width={780}
+                height={696}
                 sizes="(max-width: 768px) 200px, 260px"
+                loading="lazy"
               />
             </div>
             <div className="faq-mascot-copy">
@@ -545,33 +555,37 @@ export default function LandingContent() {
           <Image
             src="/landing/nemo-wordmark.png"
             alt=""
-            width={1488}
-            height={385}
-            sizes="150px"
+            width={1160}
+            height={300}
+            sizes="(max-width: 768px) 320px, 580px"
+            loading="lazy"
             aria-hidden
           />
           <Image
             src="/landing/nemo-wordmark.png"
             alt=""
-            width={1488}
-            height={385}
-            sizes="150px"
+            width={1160}
+            height={300}
+            sizes="(max-width: 768px) 320px, 580px"
+            loading="lazy"
             aria-hidden
           />
           <Image
             src="/landing/nemo-wordmark.png"
             alt=""
-            width={1488}
-            height={385}
-            sizes="150px"
+            width={1160}
+            height={300}
+            sizes="(max-width: 768px) 320px, 580px"
+            loading="lazy"
             aria-hidden
           />
           <Image
             src="/landing/nemo-wordmark.png"
             alt=""
-            width={1488}
-            height={385}
-            sizes="150px"
+            width={1160}
+            height={300}
+            sizes="(max-width: 768px) 320px, 580px"
+            loading="lazy"
             aria-hidden
           />
         </div>
@@ -586,9 +600,10 @@ export default function LandingContent() {
                   className="brand-lockup"
                   src="/landing/nemo-lockup.png"
                   alt="Nemo"
-                  width={1433}
-                  height={291}
+                  width={480}
+                  height={97}
                   sizes="140px"
+                  loading="lazy"
                 />
               </Link>
               <p>
