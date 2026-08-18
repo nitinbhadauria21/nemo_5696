@@ -32,6 +32,30 @@ export type ValidateChatPayloadResult =
   ({ ok: true } & ValidatedChatPayload) | { ok: false; status: number; code: string };
 
 /**
+ * When env AI_PROVIDER is OPENROUTER, rewrite client provider/model so hardcoded
+ * Anthropic/Claude (etc.) cannot bypass production routing.
+ *
+ * Exception: Viral Script Writer may call Gemini directly when task is `script`
+ * and the model is on the GEMINI allowlist.
+ */
+export function applyOpenRouterEnvOverride(
+  body: Record<string, unknown>,
+  envProvider: ProviderId
+): Record<string, unknown> {
+  if (envProvider !== 'OPENROUTER') return body;
+
+  const provider = typeof body.provider === 'string' ? body.provider : '';
+  const model = typeof body.model === 'string' ? body.model.trim() : '';
+  const task = typeof body.task === 'string' ? body.task : '';
+  const allowGeminiScript =
+    task === 'script' && provider === 'GEMINI' && ALLOWED_MODELS.GEMINI.includes(model);
+
+  if (allowGeminiScript) return body;
+
+  return { ...body, provider: 'OPENROUTER', model: body.model || 'auto' };
+}
+
+/**
  * Pure allowlist / size validation for AI chat-completion.
  * Auth and anonymous rejection stay at the route layer (E2E later).
  */

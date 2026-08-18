@@ -5,6 +5,7 @@ import {
   MAX_MESSAGES,
   MAX_OUTPUT_TOKENS,
   MAX_TOTAL_CHARS,
+  applyOpenRouterEnvOverride,
   validateChatPayload,
 } from './requestPolicy';
 
@@ -91,5 +92,33 @@ describe('validateChatPayload', () => {
     });
     assert.equal(result.ok, true);
     if (result.ok) assert.equal(result.maxTokens, MAX_OUTPUT_TOKENS);
+  });
+});
+
+describe('applyOpenRouterEnvOverride', () => {
+  it('rewrites Anthropic/Claude hardcodes when env is OPENROUTER', () => {
+    const result = applyOpenRouterEnvOverride(
+      { provider: 'ANTHROPIC', model: 'claude-sonnet-4-6', task: 'chat' },
+      'OPENROUTER'
+    );
+    assert.equal(result.provider, 'OPENROUTER');
+    assert.equal(result.model, 'claude-sonnet-4-6');
+  });
+
+  it('keeps GEMINI + allowlisted model for script requests', () => {
+    const body = { provider: 'GEMINI', model: 'gemini-2.0-flash', task: 'script' };
+    const result = applyOpenRouterEnvOverride(body, 'OPENROUTER');
+    assert.equal(result.provider, 'GEMINI');
+    assert.equal(result.model, 'gemini-2.0-flash');
+    assert.equal(result.task, 'script');
+  });
+
+  it('still forces OpenRouter for GEMINI when task is not script', () => {
+    const result = applyOpenRouterEnvOverride(
+      { provider: 'GEMINI', model: 'gemini-2.0-flash', task: 'chat' },
+      'OPENROUTER'
+    );
+    assert.equal(result.provider, 'OPENROUTER');
+    assert.equal(result.model, 'gemini-2.0-flash');
   });
 });

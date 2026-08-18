@@ -4,7 +4,7 @@ import {
   createCompletionWithFallbacks,
   getAiErrorCode,
 } from '@/lib/ai/providers';
-import { validateChatPayload } from '@/lib/ai/requestPolicy';
+import { applyOpenRouterEnvOverride, validateChatPayload } from '@/lib/ai/requestPolicy';
 import { checkAndIncrementAiUsage } from '@/lib/billing/usage';
 import { requireAuthUserId } from '@/lib/api/auth';
 import { getClientIp } from '@/lib/api/clientIp';
@@ -76,10 +76,9 @@ export async function POST(request: NextRequest) {
   }
 
   const envProvider = resolveAiProvider(process.env.AI_PROVIDER);
-  // When production uses OpenRouter, ignore client Anthropic/Claude hardcodes.
-  if (envProvider === 'OPENROUTER') {
-    body = { ...body, provider: 'OPENROUTER', model: body.model || 'auto' };
-  }
+  // When production uses OpenRouter, ignore client Anthropic/Claude hardcodes,
+  // but allow GEMINI + allowlisted model for script generation.
+  body = applyOpenRouterEnvOverride(body, envProvider);
 
   const validated = validateChatPayload(body as Parameters<typeof validateChatPayload>[0]);
   if (!validated.ok) {

@@ -871,8 +871,8 @@ export default function ViralScriptWriterContent() {
   };
 
   const { response, isLoading, error, sendMessage } = useChat(
-    'OPENROUTER',
-    'auto',
+    'GEMINI',
+    'gemini-2.0-flash',
     false,
     'script'
   );
@@ -1579,10 +1579,10 @@ Calculate an honest viralScore (0–100).`;
                 </p>
                 {/monthly AI limit|Upgrade or try again/i.test(error.message) ? null : (
                   <p className="text-xs font-sans text-muted-foreground mt-3 leading-relaxed">
-                    If this keeps failing, confirm{' '}
-                    <span className="font-mono">OPENROUTER_API_KEY</span> is set in Vercel for{' '}
-                    <span className="font-mono">AI_PROVIDER=OPENROUTER</span>, then redeploy. Free
-                    models may briefly rate-limit — wait a moment and try again.
+                    If this keeps failing, confirm <span className="font-mono">GEMINI_API_KEY</span>{' '}
+                    is set in Vercel (scripts use Gemini). Other AI features use{' '}
+                    <span className="font-mono">OPENROUTER_API_KEY</span> with{' '}
+                    <span className="font-mono">AI_PROVIDER=OPENROUTER</span>. Then redeploy.
                   </p>
                 )}
               </div>
