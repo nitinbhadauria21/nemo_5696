@@ -93,25 +93,64 @@ const STEPS = [
   },
 ];
 
-const HERO_VIDEO_SRC = '/landing/hero-bg-lite.mp4';
+const HERO_POSTER = '/landing/hero-poster.webp';
+
+const HERO_SOURCES = {
+  lite: '/landing/hero-bg-lite.mp4',
+  mid: '/landing/hero-bg-720.mp4',
+  hd: '/landing/hero-bg-1080.mp4',
+} as const;
+
+type HeroVideoTier = keyof typeof HERO_SOURCES | 'none';
 
 type NavigatorConnection = {
   saveData?: boolean;
   effectiveType?: string;
 };
 
-function shouldSkipHeroVideo(): boolean {
-  if (typeof window === 'undefined') return true;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+function getNetworkConnection(): NavigatorConnection | undefined {
+  if (typeof window === 'undefined') return undefined;
   const nav = navigator as Navigator & {
     connection?: NavigatorConnection;
     mozConnection?: NavigatorConnection;
     webkitConnection?: NavigatorConnection;
   };
-  const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
+  return nav.connection || nav.mozConnection || nav.webkitConnection;
+}
+
+function shouldSkipHeroVideo(): boolean {
+  if (typeof window === 'undefined') return true;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
+  const conn = getNetworkConnection();
   if (conn?.saveData) return true;
   if (conn?.effectiveType === 'slow-2g' || conn?.effectiveType === '2g') return true;
   return false;
+}
+
+function getHeroVideoTier(): HeroVideoTier {
+  if (shouldSkipHeroVideo()) return 'none';
+  const et = getNetworkConnection()?.effectiveType;
+  if (et === '3g') return 'lite';
+  if (et === '4g') return 'mid';
+  return 'hd';
+}
+
+function getPreloadForTier(tier: HeroVideoTier): 'none' | 'metadata' | 'auto' {
+  if (tier === 'none') return 'none';
+  if (tier === 'hd') return 'auto';
+  return 'metadata';
+}
+
+/** Fast links start at 720p, then upgrade to 1080p after playback begins. */
+function getInitialAndUpgradeSrc(tier: HeroVideoTier): {
+  initial: string | null;
+  upgrade: string | null;
+} {
+  if (tier === 'none') return { initial: null, upgrade: null };
+  if (tier === 'hd') {
+    return { initial: HERO_SOURCES.mid, upgrade: HERO_SOURCES.hd };
+  }
+  return { initial: HERO_SOURCES[tier], upgrade: null };
 }
 
 export default function LandingContent() {
@@ -120,6 +159,7 @@ export default function LandingContent() {
   const progressRef = useRef<HTMLDivElement>(null);
   const [soundOn, setSoundOn] = useState(false);
   const [heroVideoEnabled, setHeroVideoEnabled] = useState(false);
+  const [heroVideoReady, setHeroVideoReady] = useState(false);
 
   useScrollReveal(rootRef);
   useCountUp(rootRef);
@@ -140,13 +180,16 @@ export default function LandingContent() {
     return () => window.removeEventListener('scroll', update, { capture: true });
   }, []);
 
-  // Small muted loop. Skip on 2G / Save-Data / reduced motion so the poster stays still.
-  // Wait for canplaythrough so playback does not start mid-buffer (stutter).
+  // Adaptive hero loop: poster-only on 2G / Save-Data / reduced motion.
+  // Wait for canplay before revealing video (opacity) so the poster never bleeds through a mask.
   useEffect(() => {
     const video = heroVideoRef.current;
     if (!video) return;
 
-    if (shouldSkipHeroVideo()) {
+    const tier = getHeroVideoTier();
+    const { initial, upgrade } = getInitialAndUpgradeSrc(tier);
+
+    if (!initial) {
       setHeroVideoEnabled(false);
       video.removeAttribute('src');
       video.preload = 'none';
@@ -160,11 +203,17 @@ export default function LandingContent() {
     video.setAttribute('muted', '');
     video.playsInline = true;
     video.loop = true;
-    video.preload = 'auto';
-    video.src = HERO_VIDEO_SRC;
+    video.preload = getPreloadForTier(tier);
+    video.src = initial;
+
+    let readyHandled = false;
+    let upgradeStarted = false;
 
     const markReadyAndPlay = () => {
+      if (readyHandled) return;
+      readyHandled = true;
       video.classList.add('is-ready');
+      setHeroVideoReady(true);
       if (video.paused) {
         void video.play().catch(() => {
           /* autoplay can still be blocked; poster stays visible */
@@ -172,11 +221,47 @@ export default function LandingContent() {
       }
     };
 
+    const onPlaying = () => {
+      setHeroVideoReady(true);
+
+      if (!upgrade || upgradeStarted) return;
+      upgradeStarted = true;
+
+      const hd = document.createElement('video');
+      hd.preload = 'auto';
+      hd.muted = true;
+      hd.playsInline = true;
+      hd.src = upgrade;
+
+      const swapToHd = () => {
+        const t = video.currentTime % (video.duration || 6);
+        video.src = upgrade;
+        video.load();
+        const onHdReady = () => {
+          video.currentTime = t;
+          video.classList.add('is-ready');
+          setHeroVideoReady(true);
+          void video.play().catch(() => {});
+          video.removeEventListener('canplay', onHdReady);
+        };
+        video.addEventListener('canplay', onHdReady);
+        hd.removeEventListener('canplaythrough', swapToHd);
+        hd.removeAttribute('src');
+        hd.load();
+      };
+
+      hd.addEventListener('canplaythrough', swapToHd);
+    };
+
     video.addEventListener('canplaythrough', markReadyAndPlay);
+    video.addEventListener('canplay', markReadyAndPlay);
+    video.addEventListener('playing', onPlaying);
     document.addEventListener('visibilitychange', markReadyAndPlay);
 
     return () => {
       video.removeEventListener('canplaythrough', markReadyAndPlay);
+      video.removeEventListener('canplay', markReadyAndPlay);
+      video.removeEventListener('playing', onPlaying);
       document.removeEventListener('visibilitychange', markReadyAndPlay);
     };
   }, []);
@@ -249,6 +334,15 @@ export default function LandingContent() {
 
       <header className="hero" id="top">
         <div className="hero-media">
+          <Image
+            className={`hero-poster${heroVideoReady ? ' is-hidden' : ''}`}
+            src={HERO_POSTER}
+            alt=""
+            aria-hidden
+            fill
+            sizes="100vw"
+            priority
+          />
           <video
             ref={heroVideoRef}
             className="hero-video"
@@ -256,7 +350,6 @@ export default function LandingContent() {
             loop
             playsInline
             preload="none"
-            poster="/landing/hero-poster.webp"
             aria-hidden="true"
           />
           <div className="hero-media-fade-x" aria-hidden="true" />

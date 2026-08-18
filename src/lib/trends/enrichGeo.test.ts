@@ -18,7 +18,9 @@ describe('buildSerpInterestByRegionUrl', () => {
   });
 
   it('can target YouTube property for YouTube-native trends', () => {
-    const url = new URL(buildSerpInterestByRegionUrl('viral shorts', 'test-key', { gprop: 'youtube' }));
+    const url = new URL(
+      buildSerpInterestByRegionUrl('viral shorts', 'test-key', { gprop: 'youtube' })
+    );
     assert.equal(url.searchParams.get('gprop'), 'youtube');
   });
 });
