@@ -10,6 +10,7 @@ export type OpenRouterTask = 'script' | 'chat' | 'analysis' | 'sentiment' | 'ide
 /** Free catalog IDs (primary routing). */
 export const OPENROUTER_FREE_MODELS = [
   'openrouter/free',
+  'deepseek/deepseek-r1:free',
   'google/gemma-4-31b-it:free',
   'google/gemma-4-26b-a4b-it:free',
   'nvidia/nemotron-3-super-120b-a12b:free',
@@ -73,8 +74,8 @@ const FREE_TASK_CHAINS: Record<OpenRouterTask, readonly string[]> = {
     'nvidia/nemotron-3.5-content-safety:free',
   ],
   chat: [
-    'nvidia/nemotron-nano-9b-v2:free',
-    'inclusionai/ling-3.0-tiny:free',
+    'deepseek/deepseek-r1:free',
+    'nvidia/nemotron-3-super-120b-a12b:free',
     'openai/gpt-oss-20b:free',
   ],
 };

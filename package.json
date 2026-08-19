@@ -29,7 +29,9 @@
     "react": "19.0.3",
     "react-dom": "19.0.3",
     "react-hook-form": "^7.81.0",
+    "react-markdown": "^10.1.0",
     "recharts": "^2.15.2",
+    "remark-gfm": "^4.0.1",
     "sonner": "^1.7.4"
   },
   "devDependencies": {

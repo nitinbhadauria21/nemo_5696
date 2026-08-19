@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useChat } from '@/lib/hooks/useChat';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/AppIcon';
@@ -12,15 +14,21 @@ interface Message {
 
 const SYSTEM_MESSAGE = {
   role: 'system' as const,
-  content: `You are Nemo AI, an expert trend analyst and content strategy advisor embedded in the Nemo trend intelligence platform. 
-You help creators, marketers, and brands:
-- Explore and understand trending topics across platforms (YouTube, Instagram, TikTok, LinkedIn, Google)
-- Analyze why trends are rising or falling
-- Generate content ideas and strategies based on current trends
-- Advise on the best times and formats to publish content
+  content: `You are Nemo AI, an expert trend analyst and content strategy advisor embedded in the Nemo trend intelligence platform. You have access to real-time trend data from Nemo's database injected before each reply.
+
+Your capabilities:
+- Analyze trending topics across YouTube, Instagram, TikTok, LinkedIn, and Google
+- Explain why trends are rising or falling using the provided data
+- Generate specific content ideas and strategies grounded in current trends
+- Advise on posting timing, formats, and platform-specific tactics
 - Identify niche opportunities within broader trends
 
-Be concise, insightful, and actionable. Use bullet points and short paragraphs for clarity. Reference specific platforms and metrics when relevant.`,
+Response rules:
+- Always cite specific trend names, platforms, scores, or metrics from the injected data when available
+- Keep responses conversational and direct — never use raw markdown symbols like **, ##, or -
+- Reference prior messages in the conversation; do not repeat yourself
+- Be concise, specific, and actionable
+- If trend data is provided, lead with insights from it before general advice`,
 };
 
 const SUGGESTED_PROMPTS = [
@@ -214,13 +222,48 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
                 </div>
               )}
               <div
-                className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-sm font-sans leading-relaxed whitespace-pre-wrap ${
+                className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-sm font-sans leading-relaxed ${
                   msg.role === 'user'
                     ? 'bg-primary text-white rounded-br-sm'
                     : 'bg-muted text-foreground rounded-bl-sm'
                 }`}
               >
-                {msg.content}
+                {msg.role === 'user' ? (
+                  msg.content
+                ) : (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                      ul: ({ children }) => (
+                        <ul className="list-disc pl-4 mb-1 space-y-0.5">{children}</ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="list-decimal pl-4 mb-1 space-y-0.5">{children}</ol>
+                      ),
+                      li: ({ children }) => <li className="leading-snug">{children}</li>,
+                      strong: ({ children }) => (
+                        <strong className="font-semibold">{children}</strong>
+                      ),
+                      h1: ({ children }) => (
+                        <h1 className="font-semibold text-sm mt-1 mb-0.5">{children}</h1>
+                      ),
+                      h2: ({ children }) => (
+                        <h2 className="font-semibold text-sm mt-1 mb-0.5">{children}</h2>
+                      ),
+                      h3: ({ children }) => (
+                        <h3 className="font-semibold text-sm mt-1 mb-0.5">{children}</h3>
+                      ),
+                      code: ({ children }) => (
+                        <code className="bg-black/10 dark:bg-white/10 rounded px-1 py-0.5 text-xs font-mono">
+                          {children}
+                        </code>
+                      ),
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                )}
               </div>
               {msg.role === 'user' && (
                 <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -236,8 +279,41 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
               <div className="w-7 h-7 rounded-lg flame-gradient flex items-center justify-center flex-shrink-0 mt-0.5">
                 <span className="text-white text-xs font-bold font-display">N</span>
               </div>
-              <div className="max-w-[80%] px-3 py-2.5 rounded-2xl rounded-bl-sm bg-muted text-foreground text-sm font-sans leading-relaxed whitespace-pre-wrap">
-                {streamingContent || (
+              <div className="max-w-[80%] px-3 py-2.5 rounded-2xl rounded-bl-sm bg-muted text-foreground text-sm font-sans leading-relaxed">
+                {streamingContent ? (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                      ul: ({ children }) => (
+                        <ul className="list-disc pl-4 mb-1 space-y-0.5">{children}</ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="list-decimal pl-4 mb-1 space-y-0.5">{children}</ol>
+                      ),
+                      li: ({ children }) => <li className="leading-snug">{children}</li>,
+                      strong: ({ children }) => (
+                        <strong className="font-semibold">{children}</strong>
+                      ),
+                      h1: ({ children }) => (
+                        <h1 className="font-semibold text-sm mt-1 mb-0.5">{children}</h1>
+                      ),
+                      h2: ({ children }) => (
+                        <h2 className="font-semibold text-sm mt-1 mb-0.5">{children}</h2>
+                      ),
+                      h3: ({ children }) => (
+                        <h3 className="font-semibold text-sm mt-1 mb-0.5">{children}</h3>
+                      ),
+                      code: ({ children }) => (
+                        <code className="bg-black/10 dark:bg-white/10 rounded px-1 py-0.5 text-xs font-mono">
+                          {children}
+                        </code>
+                      ),
+                    }}
+                  >
+                    {streamingContent}
+                  </ReactMarkdown>
+                ) : (
                   <span className="flex items-center gap-1.5 text-muted-foreground">
                     <span className="sr-only">Nemo AI is thinking</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:0ms]" />
@@ -292,9 +368,6 @@ export default function AIChatPanel({ isOpen, onClose }: AIChatPanelProps) {
               <Icon name="PaperAirplaneIcon" size={15} className="text-white" />
             </button>
           </div>
-          <p className="text-[10px] text-muted-foreground font-mono-custom text-center mt-2">
-            Powered by Claude · Press Enter to send
-          </p>
         </div>
       </div>
     </div>

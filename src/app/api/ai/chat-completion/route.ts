@@ -13,6 +13,21 @@ import { trackEvent } from '@/lib/analytics/track';
 import { logAiGeneration } from '@/lib/ai/logGeneration';
 import { resolveAiProvider } from '@/lib/ai/runPrompt';
 import { inferTaskFromMessages, selectOpenRouterRoute } from '@/lib/ai/openRouterRouter';
+import { buildTrendContext } from '@/lib/ai/buildTrendContext';
+
+function auditResponse(response: string): boolean {
+  if (response.trim().length < 40) return false;
+  const deflections = [
+    "i don't know",
+    'i cannot',
+    'as an ai',
+    "i'm not able",
+    'i am not able',
+    "i'm unable",
+  ];
+  if (deflections.some((d) => response.toLowerCase().includes(d))) return false;
+  return true;
+}
 
 function safeClientError(status: number, code: string) {
   return NextResponse.json({ error: code }, { status });
@@ -126,20 +141,39 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // DB context injection for chat tasks
+  const isChat = taskName === 'chat';
+  let messagesWithContext = messages;
+  if (isChat) {
+    const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
+    if (lastUserMsg) {
+      const trendContext = await buildTrendContext(lastUserMsg.content);
+      if (trendContext) {
+        const systemMsgs = messages.filter((m) => m.role === 'system');
+        const conversationMsgs = messages.filter((m) => m.role !== 'system');
+        messagesWithContext = [
+          ...systemMsgs,
+          { role: 'system' as const, content: trendContext },
+          ...conversationMsgs,
+        ];
+      }
+    }
+  }
+
   try {
     const result =
       provider === 'OPENROUTER'
         ? await createCompletionWithFallbacks({
             provider,
             models: openRouterModels,
-            messages,
+            messages: messagesWithContext,
             stream,
             parameters: { max_tokens: maxTokens, temperature },
           })
         : await createCompletion({
             provider,
             model,
-            messages,
+            messages: messagesWithContext,
             stream,
             parameters: { max_tokens: maxTokens, temperature },
           });
@@ -185,6 +219,41 @@ export async function POST(request: NextRequest) {
     });
 
     // scriptMeta is logged on ai_generations/events; client POSTs script_generations after parse.
+
+    // Quality audit for non-streaming chat completions
+    if (!stream && isChat && result && typeof result === 'object') {
+      const responseText =
+        typeof (result as Record<string, unknown>).text === 'string'
+          ? ((result as Record<string, unknown>).text as string)
+          : typeof (result as Record<string, unknown>).content === 'string'
+            ? ((result as Record<string, unknown>).content as string)
+            : '';
+
+      if (responseText && !auditResponse(responseText)) {
+        const retrySystemAppend =
+          '\n\nIMPORTANT: Be specific and cite the trend data provided. Give a concrete, actionable answer.';
+        const retryMessages = messagesWithContext.map((m) =>
+          m.role === 'system' ? { ...m, content: m.content + retrySystemAppend } : m
+        );
+        const retryResult =
+          provider === 'OPENROUTER'
+            ? await createCompletionWithFallbacks({
+                provider,
+                models: openRouterModels,
+                messages: retryMessages,
+                stream: false,
+                parameters: { max_tokens: maxTokens, temperature },
+              })
+            : await createCompletion({
+                provider,
+                model,
+                messages: retryMessages,
+                stream: false,
+                parameters: { max_tokens: maxTokens, temperature },
+              });
+        return NextResponse.json(retryResult);
+      }
+    }
 
     if (stream) {
       const encoder = new TextEncoder();
